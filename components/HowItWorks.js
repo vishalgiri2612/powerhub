@@ -27,15 +27,15 @@ export default function HowItWorks() {
         
         {/* Section Header */}
         <div className="text-center space-y-3 max-w-2xl mx-auto">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#C39281]/10 border border-[#C39281]/20">
-            <span className="text-[10px] font-extrabold text-[#C39281] uppercase tracking-wider">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/30">
+            <span className="text-[10px] font-extrabold text-[#3674B5] uppercase tracking-wider">
               Effortless Logistics
             </span>
           </div>
-          <h2 className="font-display font-black text-3xl sm:text-4xl text-[#1A1917] tracking-tight">
+          <h2 className="font-display font-black text-3xl sm:text-4xl text-[#1E293B] tracking-tight">
             Order in 3 Simple Steps
           </h2>
-          <p className="text-sm font-semibold text-[#1A1917]/50">
+          <p className="text-sm font-semibold text-[#1E293B]/50">
             Getting premium power has never been more straightforward or secure.
           </p>
         </div>
@@ -44,23 +44,23 @@ export default function HowItWorks() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16 relative">
           
           {/* Connector Line on Desktop */}
-          <div className="hidden md:block absolute top-12 left-[15%] right-[15%] h-[1px] bg-[#1A1917]/10 z-0"></div>
+          <div className="hidden md:block absolute top-12 left-[15%] right-[15%] h-[1px] bg-[#3674B5]/10 z-0"></div>
 
           {steps.map((step) => (
             <div key={step.num} className="relative z-10 flex flex-col items-center text-center space-y-4">
               
               {/* Number Circle Badge */}
-              <div className="w-20 h-20 rounded-full bg-[#F3F4F6] border border-white flex items-center justify-center shadow-sm">
-                <span className="font-display font-black text-xl text-[#C39281]">
+              <div className="w-20 h-20 rounded-full bg-[#F8F9FA] border border-white flex items-center justify-center shadow-sm">
+                <span className="font-display font-black text-xl text-[#3674B5]">
                   {step.num}
                 </span>
               </div>
 
               {/* Title & Description */}
-              <h3 className="font-bold text-lg text-[#1A1917] pt-2">
+              <h3 className="font-bold text-lg text-[#1E293B] pt-2">
                 {step.title}
               </h3>
-              <p className="text-sm text-[#1A1917]/60 leading-relaxed max-w-xs font-medium">
+              <p className="text-sm text-[#1E293B]/60 leading-relaxed max-w-xs font-medium">
                 {step.description}
               </p>
 

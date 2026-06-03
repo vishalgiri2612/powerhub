@@ -137,10 +137,10 @@ export function CartProvider({ children }) {
             key={toast.id}
             className={`pointer-events-auto px-5 py-4 rounded-xl shadow-lg border text-sm font-medium flex items-center gap-3 animate-fade-in-up ${
               toast.type === "success"
-                ? "bg-[#8C9985] text-white border-[#8C9985]/30"
+                ? "bg-[#3674B5] text-white border-[#3674B5]/40"
                 : toast.type === "error"
-                ? "bg-[#C39281] text-white border-[#C39281]/30"
-                : "bg-[#EDECE6] text-[#1A1917] border-[#1A1917]/10"
+                ? "bg-[#3674B5] text-white border-[#3674B5]/40"
+                : "bg-[#EDECE6] text-[#1E293B] border-[#1E293B]/15"
             }`}
           >
             {toast.type === "success" && (

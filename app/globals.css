@@ -1,35 +1,51 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --color-bg-brand: #F8F9FA;
-  --color-text-brand: #1A1917;
-  --color-surface-brand: #F3F4F6;
+  --color-bg-brand: #FFFFFF;
+  --color-text-brand: #334155;
+  --color-surface-brand: #F8F9FA;
   --color-muted-brand: #E5E7EB;
   --color-card-brand: #FFFFFF;
 
-  --color-sage: #8C9985;
-  --color-sage-light: #E8EFE5;
-  --color-clay: #C39281;
-  --color-clay-light: #F5EBE6;
-  --color-sand: #FAFAFA;
+  --color-sage: #3674B5;
+  --color-sage-light: #D0ECFC;
+  --color-clay: #3674B5;
+  --color-clay-light: #D0ECFC;
+  --color-sand: #FFFFFF;
 
-  --font-sans: "Plus Jakarta Sans", sans-serif;
-  --font-display: "Outfit", sans-serif;
+  --font-sans: "Inter", sans-serif;
+  --font-display: "Plus Jakarta Sans", sans-serif;
 }
 
 :root {
-  --background: #F8F9FA;
-  --foreground: #1A1917;
-  --font-geist-sans: "Plus Jakarta Sans", sans-serif;
+  --background: #FFFFFF;
+  --foreground: #334155;
+  --font-geist-sans: "Inter", sans-serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: "Plus Jakarta Sans", sans-serif;
+  font-family: "Inter", sans-serif;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #1E293B !important;
+  font-family: "Plus Jakarta Sans", sans-serif !important;
+}
+
+button, 
+input[type="submit"], 
+input[type="button"],
+a[href="#store"], 
+a[href="#deals"], 
+a[href="#categories"],
+a.button {
+  font-family: "Inter", sans-serif !important;
+  font-weight: 500 !important;
 }
 
 /* Custom premium scrollbar */
@@ -39,16 +55,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #F8F9FA;
+  background: #FFFFFF;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #C39281;
+  background: #3674B5;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #8C9985;
+  background: #578FCA;
 }
 
 /* Premium glassmorphism effects */

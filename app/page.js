@@ -18,7 +18,7 @@ import CartDrawer from "../components/CartDrawer";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-bg-brand text-text-brand antialiased selection:bg-[#C39281] selection:text-white">
+    <div className="min-h-screen bg-bg-brand text-text-brand antialiased selection:bg-[#3674B5] selection:text-white">
       {/* Sticky Navigation Bar */}
       <Navbar />
 

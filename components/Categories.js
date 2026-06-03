@@ -7,42 +7,42 @@ const themeMap = {
   "Power Banks": {
     bg: "bg-[#DEC89E]/10",
     border: "border-[#DEC89E]/30",
-    text: "text-[#C39281]",
+    text: "text-[#3674B5]",
     glow: "rgba(222, 200, 158, 0.2)",
     image: "/images/powerbank.png"
   },
   "Wall Chargers": {
-    bg: "bg-[#C39281]/10",
-    border: "border-[#C39281]/30",
-    text: "text-[#C39281]",
+    bg: "bg-[#3674B5]/10",
+    border: "border-[#3674B5]/40",
+    text: "text-[#3674B5]",
     glow: "rgba(195, 146, 129, 0.2)",
     image: "/images/charger.png"
   },
   "Charging Cables": {
-    bg: "bg-[#8C9985]/10",
-    border: "border-[#8C9985]/30",
-    text: "text-[#8C9985]",
+    bg: "bg-[#3674B5]/10",
+    border: "border-[#3674B5]/40",
+    text: "text-[#3674B5]",
     glow: "rgba(140, 153, 133, 0.2)",
     image: "/images/cable.png"
   },
   "Webcams": {
     bg: "bg-[#DEC89E]/10",
     border: "border-[#DEC89E]/30",
-    text: "text-[#C39281]",
+    text: "text-[#3674B5]",
     glow: "rgba(222, 200, 158, 0.2)",
     image: "/images/webcam.png"
   },
   "Earbuds / Audio": {
-    bg: "bg-[#C39281]/10",
-    border: "border-[#C39281]/30",
-    text: "text-[#C39281]",
+    bg: "bg-[#3674B5]/10",
+    border: "border-[#3674B5]/40",
+    text: "text-[#3674B5]",
     glow: "rgba(195, 146, 129, 0.2)",
     image: "/images/earbuds.png"
   },
   "Smart Accessories": {
-    bg: "bg-[#8C9985]/10",
-    border: "border-[#8C9985]/30",
-    text: "text-[#8C9985]",
+    bg: "bg-[#3674B5]/10",
+    border: "border-[#3674B5]/40",
+    text: "text-[#3674B5]",
     glow: "rgba(140, 153, 133, 0.2)",
     image: "/images/magsafe.png"
   }
@@ -57,17 +57,17 @@ export default function Categories() {
       <div className="max-w-7xl mx-auto space-y-12">
 
         {/* Section Header */}
-        <div className="text-center space-y-5 max-w-2xl mx-auto pb-5 border-b border-[#1A1917]/5">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#8C9985]/10 border border-[#8C9985]/20">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#8C9985] animate-pulse" />
-            <span className="text-[10px] font-extrabold text-[#8C9985] uppercase tracking-wider">
+        <div className="text-center space-y-5 max-w-2xl mx-auto pb-5 border-b border-[#1E293B]/10">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/30">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
+            <span className="text-[10px] font-extrabold text-[#3674B5] uppercase tracking-wider">
               Explore Our Collection
             </span>
           </div>
-          <h2 className="font-display font-black text-4xl sm:text-5xl lg:text-6xl text-[#1A1917] tracking-tight leading-tight">
-            Shop by <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#C39281] to-[#8C9985]">Category</span>
+          <h2 className="font-display font-black text-4xl sm:text-5xl lg:text-6xl text-[#1E293B] tracking-tight leading-tight">
+            Shop by <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#3674B5] to-[#578FCA]">Category</span>
           </h2>
-          <p className="text-sm sm:text-base font-semibold text-[#1A1917]/50 leading-relaxed">
+          <p className="text-sm sm:text-base font-semibold text-[#1E293B]/50 leading-relaxed">
             Tailored hardware designed specifically to match your creative ecosystem and lifestyle.
           </p>
         </div>
@@ -76,9 +76,9 @@ export default function Categories() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-8">
           {categories.map((category) => {
             const theme = themeMap[category.name] || {
-              bg: "bg-[#1A1917]/5",
-              border: "border-[#1A1917]/10",
-              text: "text-[#1A1917]",
+              bg: "bg-[#3674B5]/5",
+              border: "border-[#1E293B]/15",
+              text: "text-[#1E293B]",
               glow: "rgba(26, 25, 23, 0.05)",
               image: "/images/charger.png"
             };
@@ -86,7 +86,7 @@ export default function Categories() {
             return (
               <div
                 key={category.name}
-                className="group relative rounded-[3rem] bg-white border border-[#1A1917]/5 p-8 text-center hover-lift transition-all duration-500 cursor-pointer overflow-hidden flex flex-col items-center justify-between min-h-[340px]"
+                className="group relative rounded-[3rem] bg-white border border-[#1E293B]/10 p-8 text-center hover-lift transition-all duration-500 cursor-pointer overflow-hidden flex flex-col items-center justify-between min-h-[340px]"
                 style={{
                   boxShadow: "0 15px 40px -20px rgba(26, 25, 23, 0.04)"
                 }}
@@ -115,16 +115,16 @@ export default function Categories() {
 
                 {/* Text Content Block */}
                 <div className="space-y-1.5">
-                  <h3 className="font-display font-extrabold text-lg sm:text-xl text-[#1A1917] group-hover:text-[#C39281] transition-colors duration-300">
+                  <h3 className="font-display font-extrabold text-lg sm:text-xl text-[#1E293B] group-hover:text-[#3674B5] transition-colors duration-300">
                     {category.name}
                   </h3>
-                  <p className="text-xs font-bold text-[#1A1917]/40 uppercase tracking-widest">
+                  <p className="text-xs font-bold text-[#1E293B]/40 uppercase tracking-widest">
                     {category.count} Products
                   </p>
                 </div>
 
                 {/* Bottom Browse Indicator (increased size & gap) */}
-                <div className="mt-5 flex items-center justify-center gap-1.5 text-xs font-extrabold text-[#C39281] uppercase tracking-widest opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+                <div className="mt-5 flex items-center justify-center gap-1.5 text-xs font-extrabold text-[#3674B5] uppercase tracking-widest opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
                   <span>Browse</span>
                   <span className="translate-x-0 group-hover:translate-x-1.5 transition-transform duration-300">→</span>
                 </div>

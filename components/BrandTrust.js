@@ -15,9 +15,9 @@ export default function BrandTrust() {
   ];
 
   return (
-    <section className="py-12 bg-white border-y border-[#1A1917]/5 overflow-hidden">
+    <section className="py-12 bg-white border-y border-[#1E293B]/10 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6 flex flex-col items-center text-center">
-        <span className="text-[10px] font-extrabold text-[#1A1917]/40 uppercase tracking-widest">
+        <span className="text-[10px] font-extrabold text-[#1E293B]/40 uppercase tracking-widest">
           Universal Compatibility & Safety Standards
         </span>
       </div>
@@ -37,9 +37,9 @@ export default function BrandTrust() {
           {[...brands, ...brands].map((brand, idx) => (
             <div 
               key={`${brand}-${idx}`}
-              className="flex items-center gap-2.5 font-display font-extrabold text-[#1A1917]/40 hover:text-[#1A1917]/80 transition-colors text-base sm:text-lg tracking-wider uppercase"
+              className="flex items-center gap-2.5 font-display font-extrabold text-[#1E293B]/40 hover:text-[#1E293B]/80 transition-colors text-base sm:text-lg tracking-wider uppercase"
             >
-              <span className="w-2.5 h-2.5 rounded-full bg-[#C39281]/30"></span>
+              <span className="w-2.5 h-2.5 rounded-full bg-[#3674B5]/30"></span>
               <span>{brand}</span>
             </div>
           ))}

@@ -21,19 +21,19 @@ export default function Bestsellers() {
       <div className="max-w-7xl mx-auto space-y-16 relative z-10">
 
         {/* Section Header with Premium Styling */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-[#1A1917]/5 pb-8">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-[#1E293B]/10 pb-8">
           <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#C39281]/10 border border-[#C39281]/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#C39281] animate-pulse" />
-              <span className="text-[10px] font-extrabold text-[#C39281] uppercase tracking-wider">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/30">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
+              <span className="text-[10px] font-extrabold text-[#3674B5] uppercase tracking-wider">
                 Curated Favorites
               </span>
             </div>
-            <h2 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-[#1A1917] tracking-tight leading-tight">
-              Top Picks <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#C39281] to-[#8C9985]">This Week</span>
+            <h2 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-[#1E293B] tracking-tight leading-tight">
+              Top Picks <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#3674B5] to-[#578FCA]">This Week</span>
             </h2>
           </div>
-          <p className="text-sm font-semibold text-[#1A1917]/50 max-w-sm leading-relaxed">
+          <p className="text-sm font-semibold text-[#1E293B]/50 max-w-sm leading-relaxed">
             High-performance hardware crafted with aesthetic precision, trusted by tech enthusiasts worldwide.
           </p>
         </div>
@@ -60,7 +60,7 @@ export default function Bestsellers() {
             return (
               <div
                 key={product.id}
-                className="group relative rounded-[2.5rem] bg-white border border-[#1A1917]/5 p-5 flex flex-col justify-between hover-lift transition-all duration-500 overflow-hidden cursor-pointer"
+                className="group relative rounded-[2.5rem] bg-white border border-[#1E293B]/10 p-5 flex flex-col justify-between hover-lift transition-all duration-500 overflow-hidden cursor-pointer"
                 style={{
                   boxShadow: "0 10px 30px -15px rgba(26, 25, 23, 0.03)"
                 }}
@@ -77,8 +77,8 @@ export default function Bestsellers() {
                 <div>
                   {/* Product Card Top: Badges & Wishlist */}
                   <div className="flex items-center justify-between z-10 relative">
-                    <span className="text-[10px] font-extrabold uppercase px-3 py-1 rounded-full backdrop-blur-md bg-white/80 border border-[#1A1917]/5 text-[#1A1917] tracking-wider flex items-center gap-1.5 shadow-xs">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#C39281] animate-pulse" />
+                    <span className="text-[10px] font-extrabold uppercase px-3 py-1 rounded-full backdrop-blur-md bg-white/80 border border-[#1E293B]/10 text-[#1E293B] tracking-wider flex items-center gap-1.5 shadow-xs">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
                       {product.discountBadge}
                     </span>
 
@@ -89,8 +89,8 @@ export default function Bestsellers() {
                       }}
                       className={`p-2.5 rounded-full border backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-xs ${
                         isWishlisted
-                          ? "bg-[#C39281]/15 border-[#C39281]/30 text-[#C39281]"
-                          : "bg-white/80 border-[#1A1917]/5 text-[#1A1917]/40 hover:text-[#1A1917] hover:bg-white"
+                          ? "bg-[#3674B5]/15 border-[#3674B5]/40 text-[#3674B5]"
+                          : "bg-white/80 border-[#1E293B]/10 text-[#1E293B]/40 hover:text-[#1E293B] hover:bg-white"
                       }`}
                       aria-label="Add to Wishlist"
                     >
@@ -111,7 +111,7 @@ export default function Bestsellers() {
                   </div>
 
                   {/* Product Image Frame */}
-                  <div className="relative aspect-square w-full rounded-[2rem] bg-[#F8F9FA] overflow-hidden mt-3 mb-5 transition-colors duration-500 group-hover:bg-[#F3F4F6]">
+                  <div className="relative aspect-square w-full rounded-[2rem] bg-[#FFFFFF] overflow-hidden mt-3 mb-5 transition-colors duration-500 group-hover:bg-[#F8F9FA]">
                     <div className="absolute inset-0 bg-gradient-to-tr from-[#1A1917]/0 to-[#1A1917]/2 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     <img
                       src={product.image}
@@ -126,20 +126,20 @@ export default function Bestsellers() {
                   {/* Info Container */}
                   <div className="space-y-4">
                     {/* Category & Color Indicator Row */}
-                    <div className="flex items-center justify-between text-[10px] font-bold text-[#1A1917]/40 uppercase tracking-widest">
+                    <div className="flex items-center justify-between text-[10px] font-bold text-[#1E293B]/40 uppercase tracking-widest">
                       <span>{product.category}</span>
                       <span className="flex items-center gap-1.5">
                         <span 
-                          className="w-2.5 h-2.5 rounded-full border border-[#1A1917]/10 shadow-xs" 
+                          className="w-2.5 h-2.5 rounded-full border border-[#1E293B]/15 shadow-xs" 
                           style={{ backgroundColor: swatchColor }}
                           title={product.color}
                         />
-                        <span className="text-[9px] font-semibold tracking-normal text-[#1A1917]/50 lowercase first-letter:uppercase">{product.color}</span>
+                        <span className="text-[9px] font-semibold tracking-normal text-[#1E293B]/50 lowercase first-letter:uppercase">{product.color}</span>
                       </span>
                     </div>
 
                     {/* Name */}
-                    <h3 className="font-display font-bold text-lg text-[#1A1917] tracking-tight line-clamp-1 group-hover:text-[#C39281] transition-colors duration-300">
+                    <h3 className="font-display font-bold text-lg text-[#1E293B] tracking-tight line-clamp-1 group-hover:text-[#3674B5] transition-colors duration-300">
                       {product.name}
                     </h3>
 
@@ -148,7 +148,7 @@ export default function Bestsellers() {
                       {specItems.map((spec, i) => (
                         <span 
                           key={i} 
-                          className="text-[10px] font-semibold text-[#1A1917]/60 bg-[#F3F4F6] px-2.5 py-1 rounded-lg border border-[#1A1917]/2"
+                          className="text-[10px] font-semibold text-[#1E293B]/60 bg-[#F8F9FA] px-2.5 py-1 rounded-lg border border-[#1E293B]/2"
                         >
                           {spec}
                         </span>
@@ -175,23 +175,23 @@ export default function Bestsellers() {
                           </svg>
                         ))}
                       </div>
-                      <span className="text-xs font-bold text-[#1A1917]">{product.rating}</span>
-                      <span className="text-[10px] text-[#1A1917]/40 font-medium">({product.reviewsCount} verified reviews)</span>
+                      <span className="text-xs font-bold text-[#1E293B]">{product.rating}</span>
+                      <span className="text-[10px] text-[#1E293B]/40 font-medium">({product.reviewsCount} verified reviews)</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Pricing and Button row */}
-                <div className="flex items-center justify-between pt-4 border-t border-[#1A1917]/5 mt-6 relative z-10">
+                <div className="flex items-center justify-between pt-4 border-t border-[#1E293B]/10 mt-6 relative z-10">
                   <div className="space-y-0.5">
-                    <span className="text-[9px] font-extrabold text-[#8C9985] uppercase tracking-wider">
+                    <span className="text-[9px] font-extrabold text-[#3674B5] uppercase tracking-wider">
                       Save ₹{(product.originalPrice - product.price).toLocaleString()}
                     </span>
                     <div className="flex items-baseline gap-1.5">
-                      <span className="text-xl font-black text-[#C39281]">
+                      <span className="text-xl font-black text-[#3674B5]">
                         ₹{product.price.toLocaleString()}
                       </span>
-                      <span className="text-xs text-[#1A1917]/30 line-through font-medium">
+                      <span className="text-xs text-[#1E293B]/30 line-through font-medium">
                         ₹{product.originalPrice.toLocaleString()}
                       </span>
                     </div>
@@ -202,7 +202,7 @@ export default function Bestsellers() {
                       e.stopPropagation();
                       addToCart(product);
                     }}
-                    className="px-5 py-3 rounded-2xl bg-[#1A1917] hover:bg-[#8C9985] text-white text-xs font-bold transition-all duration-300 hover:scale-[1.03] active:scale-97 flex items-center gap-1.5 shadow-md shadow-[#1A1917]/5"
+                    className="px-5 py-3 rounded-2xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-bold transition-all duration-300 hover:scale-[1.03] active:scale-97 flex items-center gap-1.5 shadow-md shadow-[#1A1917]/5"
                   >
                     <span>Add</span>
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

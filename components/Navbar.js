@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useCart } from "../app/context/CartContext";
+import { Zap } from "lucide-react";
 
 export default function Navbar() {
   const { 
@@ -61,17 +62,17 @@ export default function Navbar() {
       }>
         <nav className={
           isScrolled
-            ? "max-w-5xl mx-auto glass-panel rounded-full px-6 py-2.5 flex items-center justify-between shadow-lg hover:shadow-xl navbar-transition"
-            : "max-w-full mx-auto bg-[#F8F9FA]/80 backdrop-blur-md border-b border-[#1A1917]/5 rounded-none px-8 sm:px-12 py-5 flex items-center justify-between navbar-transition"
+            ? "max-w-5xl mx-auto bg-[#FFFFFF] border border-[#1E293B]/10 rounded-full px-6 py-2.5 flex items-center justify-between shadow-lg hover:shadow-xl navbar-transition"
+            : "max-w-full mx-auto bg-[#FFFFFF] border-b border-[#1E293B]/10 rounded-none px-8 sm:px-12 py-5 flex items-center justify-between navbar-transition"
         }>
           
           {/* Logo Brand */}
           <a href="#home" className="flex items-center gap-2.5 group">
-            <span className="w-9 h-9 rounded-full bg-[#1A1917] text-white flex items-center justify-center font-bold text-lg shadow-sm transition-transform group-hover:rotate-12">
-              ⚡
+            <span className="w-9 h-9 rounded-full bg-[#3674B5] text-white flex items-center justify-center font-bold text-lg shadow-sm transition-transform group-hover:rotate-12">
+              <Zap className="w-4.5 h-4.5 text-white fill-current" />
             </span>
-            <span className="font-display font-extrabold text-xl tracking-tight text-[#1A1917]">
-              Power<span className="text-[#C39281]">Hub</span>
+            <span className="font-display font-extrabold text-xl tracking-tight text-[#1E293B]">
+              Power<span className="text-[#3674B5]">Hub</span>
             </span>
           </a>
 
@@ -81,7 +82,7 @@ export default function Navbar() {
               <a
                 key={link.name}
                 href={link.href}
-                className="text-sm font-semibold text-[#1A1917]/70 hover:text-[#1A1917] relative py-1 transition-colors after:absolute after:bottom-0 after:left-1/2 after:w-0 after:h-[2px] after:bg-[#C39281] after:transition-all hover:after:w-full hover:after:left-0"
+                className="text-sm font-semibold text-[#1E293B]/70 hover:text-[#1E293B] relative py-1 transition-colors after:absolute after:bottom-0 after:left-1/2 after:w-0 after:h-[2px] after:bg-[#3674B5] after:transition-all hover:after:w-full hover:after:left-0"
               >
                 {link.name}
               </a>
@@ -93,7 +94,7 @@ export default function Navbar() {
             {/* Search Icon */}
             <button 
               onClick={() => setIsSearchOpen(true)}
-              className="p-2 rounded-full hover:bg-[#1A1917]/5 text-[#1A1917]/70 hover:text-[#1A1917] transition-all hover:scale-105 active:scale-95"
+              className="p-2 rounded-full hover:bg-[#3674B5]/5 text-[#1E293B]/70 hover:text-[#1E293B] transition-all hover:scale-105 active:scale-95"
               aria-label="Search Products"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -104,14 +105,14 @@ export default function Navbar() {
             {/* Wishlist Button */}
             <button 
               onClick={() => alert(`Your Wishlist contains ${wishlist.length} item(s)`)}
-              className="p-2 rounded-full hover:bg-[#1A1917]/5 text-[#1A1917]/70 hover:text-[#1A1917] transition-all relative hover:scale-105 active:scale-95"
+              className="p-2 rounded-full hover:bg-[#3674B5]/5 text-[#1E293B]/70 hover:text-[#1E293B] transition-all relative hover:scale-105 active:scale-95"
               aria-label="Wishlist"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
               {wishlist.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-[#C39281] text-white text-[10px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center animate-pulse">
+                <span className="absolute -top-1 -right-1 bg-[#3674B5] text-white text-[10px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center animate-pulse">
                   {wishlist.length}
                 </span>
               )}
@@ -120,14 +121,14 @@ export default function Navbar() {
             {/* Cart Button */}
             <button 
               onClick={() => setIsCartOpen(true)}
-              className="p-2 rounded-full hover:bg-[#1A1917]/5 text-[#1A1917]/70 hover:text-[#1A1917] transition-all relative hover:scale-105 active:scale-95"
+              className="p-2 rounded-full hover:bg-[#3674B5]/5 text-[#1E293B]/70 hover:text-[#1E293B] transition-all relative hover:scale-105 active:scale-95"
               aria-label="Cart"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
               {getCartCount() > 0 && (
-                <span className="absolute -top-1 -right-1 bg-[#8C9985] text-white text-[10px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 bg-[#3674B5] text-white text-[10px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center">
                   {getCartCount()}
                 </span>
               )}
@@ -139,7 +140,7 @@ export default function Navbar() {
                 setAuthMode("login");
                 setAuthOpen(true);
               }}
-              className="hidden sm:inline-flex px-5 py-2.5 rounded-full bg-[#1A1917] hover:bg-[#8C9985] text-white text-xs font-bold transition-all hover:scale-105 active:scale-95"
+              className="hidden sm:inline-flex px-5 py-2.5 rounded-full bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-bold transition-all hover:scale-105 active:scale-95"
             >
               Login / Sign Up
             </button>
@@ -147,7 +148,7 @@ export default function Navbar() {
             {/* Mobile Menu Toggle */}
             <button 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-full hover:bg-[#1A1917]/5 text-[#1A1917]/70 hover:text-[#1A1917]"
+              className="md:hidden p-2 rounded-full hover:bg-[#3674B5]/5 text-[#1E293B]/70 hover:text-[#1E293B]"
               aria-label="Toggle Menu"
             >
               {mobileMenuOpen ? (
@@ -165,13 +166,13 @@ export default function Navbar() {
 
         {/* Mobile Navigation Dropdown */}
         {mobileMenuOpen && (
-          <div className="md:hidden mt-2 mx-4 max-w-5xl rounded-3xl glass-panel p-4 flex flex-col gap-3 shadow-lg animate-fade-in-up">
+          <div className="md:hidden mt-2 mx-4 max-w-5xl rounded-3xl bg-[#FFFFFF] border border-[#1E293B]/10 p-4 flex flex-col gap-3 shadow-lg animate-fade-in-up">
             {navLinks.map((link) => (
               <a
                 key={link.name}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className="px-4 py-2 rounded-xl hover:bg-[#1A1917]/5 text-sm font-bold text-[#1A1917]/80 hover:text-[#1A1917] transition-all"
+                className="px-4 py-2 rounded-xl hover:bg-[#3674B5]/5 text-sm font-bold text-[#1E293B]/80 hover:text-[#1E293B] transition-all"
               >
                 {link.name}
               </a>
@@ -182,7 +183,7 @@ export default function Navbar() {
                 setAuthMode("login");
                 setAuthOpen(true);
               }}
-              className="w-full py-3 rounded-xl bg-[#1A1917] text-white text-sm font-bold transition-all text-center"
+              className="w-full py-3 rounded-xl bg-[#3674B5] text-white text-sm font-bold transition-all text-center"
             >
               Login / Sign Up
             </button>
@@ -192,53 +193,53 @@ export default function Navbar() {
 
       {/* Authentication Modal Popup */}
       {authOpen && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center px-4 bg-[#1A1917]/40 backdrop-blur-md">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center px-4 bg-[#3674B5]/40 backdrop-blur-md">
           <div className="w-full max-w-md rounded-2xl glass-panel p-8 shadow-2xl relative">
             <button 
               onClick={() => setAuthOpen(false)}
-              className="absolute top-4 right-4 p-2 rounded-full hover:bg-[#1A1917]/5 text-[#1A1917]/60"
+              className="absolute top-4 right-4 p-2 rounded-full hover:bg-[#3674B5]/5 text-[#1E293B]/60"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
 
-            <h3 className="text-2xl font-bold font-display text-[#1A1917] text-center mb-6">
+            <h3 className="text-2xl font-bold font-display text-[#1E293B] text-center mb-6">
               {authMode === "login" ? "Welcome Back" : "Create Account"}
             </h3>
 
             <form onSubmit={handleAuthSubmit} className="space-y-4">
               {authMode === "signup" && (
                 <div>
-                  <label className="block text-xs font-bold text-[#1A1917]/60 uppercase mb-1.5">Full Name</label>
+                  <label className="block text-xs font-bold text-[#1E293B]/60 uppercase mb-1.5">Full Name</label>
                   <input
                     type="text"
                     required
                     placeholder="John Doe"
-                    className="w-full bg-[#F3F4F6] border border-[#1A1917]/5 rounded-xl px-4 py-3 text-sm font-medium text-[#1A1917] outline-none focus:border-[#C39281]"
+                    className="w-full bg-[#F8F9FA] border border-[#1E293B]/10 rounded-xl px-4 py-3 text-sm font-medium text-[#1E293B] outline-none focus:border-[#3674B5]"
                     value={authName}
                     onChange={(e) => setAuthName(e.target.value)}
                   />
                 </div>
               )}
               <div>
-                <label className="block text-xs font-bold text-[#1A1917]/60 uppercase mb-1.5">Email Address</label>
+                <label className="block text-xs font-bold text-[#1E293B]/60 uppercase mb-1.5">Email Address</label>
                 <input
                   type="email"
                   required
                   placeholder="john@example.com"
-                  className="w-full bg-[#F3F4F6] border border-[#1A1917]/5 rounded-xl px-4 py-3 text-sm font-medium text-[#1A1917] outline-none focus:border-[#C39281]"
+                  className="w-full bg-[#F8F9FA] border border-[#1E293B]/10 rounded-xl px-4 py-3 text-sm font-medium text-[#1E293B] outline-none focus:border-[#3674B5]"
                   value={authEmail}
                   onChange={(e) => setAuthEmail(e.target.value)}
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-[#1A1917]/60 uppercase mb-1.5">Password</label>
+                <label className="block text-xs font-bold text-[#1E293B]/60 uppercase mb-1.5">Password</label>
                 <input
                   type="password"
                   required
                   placeholder="••••••••"
-                  className="w-full bg-[#F3F4F6] border border-[#1A1917]/5 rounded-xl px-4 py-3 text-sm font-medium text-[#1A1917] outline-none focus:border-[#C39281]"
+                  className="w-full bg-[#F8F9FA] border border-[#1E293B]/10 rounded-xl px-4 py-3 text-sm font-medium text-[#1E293B] outline-none focus:border-[#3674B5]"
                   value={authPassword}
                   onChange={(e) => setAuthPassword(e.target.value)}
                 />
@@ -246,19 +247,19 @@ export default function Navbar() {
 
               <button
                 type="submit"
-                className="w-full py-3.5 rounded-xl bg-[#1A1917] hover:bg-[#8C9985] text-white text-sm font-bold shadow-lg transition-all hover:scale-[1.02] active:scale-95 mt-2"
+                className="w-full py-3.5 rounded-xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-sm font-bold shadow-lg transition-all hover:scale-[1.02] active:scale-95 mt-2"
               >
                 {authMode === "login" ? "Login" : "Sign Up"}
               </button>
             </form>
 
-            <div className="mt-6 text-center text-xs text-[#1A1917]/60">
+            <div className="mt-6 text-center text-xs text-[#1E293B]/60">
               {authMode === "login" ? (
                 <p>
                   Don't have an account?{" "}
                   <button 
                     onClick={() => setAuthMode("signup")}
-                    className="text-[#C39281] font-bold hover:underline"
+                    className="text-[#3674B5] font-bold hover:underline"
                   >
                     Sign Up
                   </button>
@@ -268,7 +269,7 @@ export default function Navbar() {
                   Already have an account?{" "}
                   <button 
                     onClick={() => setAuthMode("login")}
-                    className="text-[#C39281] font-bold hover:underline"
+                    className="text-[#3674B5] font-bold hover:underline"
                   >
                     Login
                   </button>
