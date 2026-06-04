@@ -2,7 +2,7 @@ import "./globals.css";
 import { CartProvider } from "./context/CartContext";
 
 export const metadata = {
-  title: "PowerHub — Premium GaN Fast Charging & Accessories",
+  title: "Ravtron — Premium GaN Fast Charging & Accessories",
   description: "State-of-the-art Gallium Nitride engineering packed into a premium minimalist sand aesthetic.",
 };
 

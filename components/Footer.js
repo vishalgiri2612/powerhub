@@ -1,15 +1,14 @@
-"use client";
-
 import React from "react";
 import { Zap, MessageCircle, CreditCard } from "lucide-react";
+import Link from "next/link";
 
 export default function Footer() {
   const shopLinks = [
-    { name: "Power Banks", href: "#categories" },
-    { name: "Wall Chargers", href: "#categories" },
-    { name: "Charging Cables", href: "#categories" },
-    { name: "Webcams", href: "#categories" },
-    { name: "Accessories", href: "#categories" }
+    { name: "Power Banks", href: "/shop?category=Power Banks" },
+    { name: "Wall Chargers", href: "/shop?category=Wall Chargers" },
+    { name: "Charging Cables", href: "/shop?category=Charging Cables" },
+    { name: "Webcams", href: "/shop?category=Webcams" },
+    { name: "Accessories", href: "/shop?category=Smart Accessories" }
   ];
 
   const supportLinks = [
@@ -22,7 +21,6 @@ export default function Footer() {
 
   const companyLinks = [
     { name: "About Our Brand", href: "#about" },
-    { name: "Technology Blog", href: "#blog" },
     { name: "Career Opportunities", href: "#" },
     { name: "Press & Media Kit", href: "#" },
     { name: "Privacy & Terms", href: "#" }
@@ -44,14 +42,13 @@ export default function Footer() {
           
           {/* Brand Info Column */}
           <div className="space-y-4 lg:col-span-2">
-            <a href="#home" className="flex items-center gap-2.5">
-              <span className="w-9 h-9 rounded-full bg-[#3674B5] text-white flex items-center justify-center font-bold text-lg shadow-sm">
-                <Zap className="w-4.5 h-4.5 text-white fill-current" />
-              </span>
-              <span className="font-display font-extrabold text-xl tracking-tight text-[#1E293B]">
-                Power<span className="text-[#3674B5]">Hub</span>
-              </span>
-            </a>
+            <Link href="/" className="flex items-center group">
+              <img 
+                src="/images/logo.png" 
+                alt="RAVTRON®" 
+                className="h-[28px] w-auto object-contain mix-blend-multiply transition-all duration-300 group-hover:scale-105"
+              />
+            </Link>
             <p className="text-sm font-semibold text-[#1E293B]/60 leading-relaxed max-w-sm">
               We engineer state-of-the-art Gallium Nitride (GaN) charging hardware and lifestyle workspace accessories, prioritizing tactile textures and absolute safety.
             </p>
@@ -99,12 +96,12 @@ export default function Footer() {
             <ul className="space-y-2.5">
               {shopLinks.map((link) => (
                 <li key={link.name}>
-                  <a
+                  <Link
                     href={link.href}
                     className="text-sm font-semibold text-[#1E293B]/60 hover:text-[#3674B5] transition-colors"
                   >
                     {link.name}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -133,8 +130,8 @@ export default function Footer() {
             <ul className="space-y-3.5 text-sm font-semibold text-[#1E293B]/70">
               <li className="flex flex-col">
                 <span className="text-[10px] font-bold text-[#1E293B]/40 uppercase tracking-wide">Write to Us</span>
-                <a href="mailto:support@powerhub.co" className="hover:text-[#3674B5] transition-colors mt-0.5">
-                  support@powerhub.co
+                <a href="mailto:support@ravtron.co" className="hover:text-[#3674B5] transition-colors mt-0.5">
+                  support@ravtron.co
                 </a>
               </li>
               <li className="flex flex-col">
@@ -162,7 +159,7 @@ export default function Footer() {
         {/* Bottom copyright and payment gateway strip */}
         <div className="pt-8 border-t border-[#1E293B]/15 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs font-semibold text-[#1E293B]/50 text-center sm:text-left">
-            © {new Date().getFullYear()} PowerHub India. All rights reserved. Made for premium workspace aesthetics.
+            © {new Date().getFullYear()} Ravtron India. All rights reserved. Made for premium workspace aesthetics.
           </p>
           
           {/* Payment gateway icons */}

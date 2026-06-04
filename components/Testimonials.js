@@ -10,28 +10,28 @@ export default function Testimonials() {
       initials: "AM",
       rating: 5,
       text: "The GaN charger is a total lifesaver. It charges my MacBook Pro and iPhone simultaneously without breaking a sweat, and it fits into my pocket easily! The sand cream finish looks incredibly premium on my desk.",
-      product: "PowerHub 65W GaN Wall Charger"
+      product: "Ravtron 65W GaN Wall Charger"
     },
     {
       name: "Priya Sharma",
       initials: "PS",
       rating: 5,
       text: "Absolutely stunning power bank. The smart OLED screen is so helpful to see exactly how much speed is entering my iPad. Highly recommend this brand for premium aesthetics!",
-      product: "PowerHub Smart OLED 20K Power Bank"
+      product: "Ravtron Smart OLED 20K Power Bank"
     },
     {
       name: "Rohan Das",
       initials: "RD",
       rating: 5,
       text: "This display cable is amazing. Seeing the live charging wattage in real-time is fascinating. The braided fabric feels like it will last for ages, doesn't tangle at all.",
-      product: "PowerHub Braided 100W Wattage Cable"
+      product: "Ravtron Braided 100W Wattage Cable"
     },
     {
       name: "Karan Johar",
       initials: "KJ",
       rating: 5,
       text: "Fitted the 4K webcam onto my monitor. The built-in ring light has completely changed how I look in zoom calls. Absolute value for money and beautiful design.",
-      product: "PowerHub Ultra HD 4K Ringlight Webcam"
+      product: "Ravtron Ultra HD 4K Ringlight Webcam"
     }
   ];
 
@@ -56,11 +56,14 @@ export default function Testimonials() {
           </p>
         </div>
 
-        {/* Reviews Marquee */}
-        <div className="relative w-full overflow-hidden py-4 -my-4">
-          {/* Subtle fade effect on the left and right edges */}
-          <div className="absolute top-0 bottom-0 left-0 w-16 bg-gradient-to-r from-[#F8F9FA] to-transparent z-10 pointer-events-none"></div>
-          <div className="absolute top-0 bottom-0 right-0 w-16 bg-gradient-to-l from-[#F8F9FA] to-transparent z-10 pointer-events-none"></div>
+        {/* Reviews Marquee with dynamic side fading mask */}
+        <div 
+          className="relative w-full overflow-hidden py-4 -my-4"
+          style={{
+            maskImage: "linear-gradient(to right, transparent, #fff 4%, #fff 96%, transparent)",
+            WebkitMaskImage: "linear-gradient(to right, transparent, #fff 4%, #fff 96%, transparent)"
+          }}
+        >
 
           <div className="animate-marquee flex gap-8">
             {[...reviews, ...reviews].map((rev, index) => (
@@ -89,7 +92,7 @@ export default function Testimonials() {
                   <div className="min-w-0">
                     <h4 className="font-bold text-sm text-[#1E293B] truncate">{rev.name}</h4>
                     <span className="text-[10px] font-bold text-[#3674B5] truncate block mt-0.5 uppercase tracking-wide">
-                      Verified Purchase: {rev.product.replace("PowerHub ", "")}
+                      Verified Purchase: {rev.product.replace("Ravtron ", "")}
                     </span>
                   </div>
                 </div>

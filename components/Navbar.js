@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useCart } from "../app/context/CartContext";
 import { Zap } from "lucide-react";
+import Link from "next/link";
 
 export default function Navbar() {
   const { 
@@ -30,12 +31,10 @@ export default function Navbar() {
   };
 
   const navLinks = [
-    { name: "Home", href: "#home" },
-    { name: "Store", href: "#store" },
-    { name: "Categories", href: "#categories" },
-    { name: "Deals", href: "#deals" },
-    { name: "About Us", href: "#about" },
-    { name: "Blog", href: "#blog" }
+    { name: "Home", href: "/" },
+    { name: "Shop", href: "/shop" },
+    { name: "Categories", href: "/categories" },
+    { name: "About Us", href: "/about" }
   ];
 
   const [isScrolled, setIsScrolled] = useState(false);
@@ -67,25 +66,24 @@ export default function Navbar() {
         }>
           
           {/* Logo Brand */}
-          <a href="#home" className="flex items-center gap-2.5 group">
-            <span className="w-9 h-9 rounded-full bg-[#3674B5] text-white flex items-center justify-center font-bold text-lg shadow-sm transition-transform group-hover:rotate-12">
-              <Zap className="w-4.5 h-4.5 text-white fill-current" />
-            </span>
-            <span className="font-display font-extrabold text-xl tracking-tight text-[#1E293B]">
-              Power<span className="text-[#3674B5]">Hub</span>
-            </span>
-          </a>
+          <Link href="/" className="flex items-center group">
+            <img 
+              src="/images/logo.png" 
+              alt="RAVTRON®" 
+              className="h-[28px] w-auto object-contain mix-blend-multiply transition-all duration-300 group-hover:scale-105"
+            />
+          </Link>
 
           {/* Desktop Navigation Links */}
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
-              <a
+              <Link
                 key={link.name}
                 href={link.href}
                 className="text-sm font-semibold text-[#1E293B]/70 hover:text-[#1E293B] relative py-1 transition-colors after:absolute after:bottom-0 after:left-1/2 after:w-0 after:h-[2px] after:bg-[#3674B5] after:transition-all hover:after:w-full hover:after:left-0"
               >
                 {link.name}
-              </a>
+              </Link>
             ))}
           </div>
 
@@ -168,14 +166,14 @@ export default function Navbar() {
         {mobileMenuOpen && (
           <div className="md:hidden mt-2 mx-4 max-w-5xl rounded-3xl bg-[#FFFFFF] border border-[#1E293B]/10 p-4 flex flex-col gap-3 shadow-lg animate-fade-in-up">
             {navLinks.map((link) => (
-              <a
+              <Link
                 key={link.name}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
                 className="px-4 py-2 rounded-xl hover:bg-[#3674B5]/5 text-sm font-bold text-[#1E293B]/80 hover:text-[#1E293B] transition-all"
               >
                 {link.name}
-              </a>
+              </Link>
             ))}
             <button 
               onClick={() => {

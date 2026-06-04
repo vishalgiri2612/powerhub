@@ -2,7 +2,11 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { categories } from "../app/data/products";
+import { categories } from "../data/products";
+import Navbar from "../../components/Navbar";
+import Footer from "../../components/Footer";
+import SearchModal from "../../components/SearchModal";
+import CartDrawer from "../../components/CartDrawer";
 
 const themeMap = {
   "Cables": {
@@ -49,7 +53,7 @@ const themeMap = {
   }
 };
 
-export default function Categories() {
+export default function CategoriesPage() {
   const router = useRouter();
 
   const handleCategoryClick = (categoryName) => {
@@ -57,30 +61,29 @@ export default function Categories() {
   };
 
   return (
-    <section id="categories" className="py-20 px-4 sm:px-6 lg:px-8 bg-bg-brand relative overflow-hidden">
-      {/* Decorative background gradients */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[70%] bg-radial from-[#F3F4F6] to-transparent opacity-40 pointer-events-none -z-10" />
+    <div className="min-h-screen bg-bg-brand text-text-brand antialiased selection:bg-[#3674B5] selection:text-white">
+      <Navbar />
 
-      <div className="max-w-7xl mx-auto space-y-12">
-
-        {/* Section Header */}
-        <div className="text-center space-y-5 max-w-2xl mx-auto pb-5 border-b border-[#1E293B]/10">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/30">
+      <main className="max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-16 pt-12 pb-24 space-y-12 relative z-10">
+        
+        {/* Page Header */}
+        <div className="text-center space-y-4 max-w-2xl mx-auto border-b border-[#1E293B]/10 pb-8">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/30">
             <span className="w-1.5 h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
             <span className="text-[10px] font-extrabold text-[#3674B5] uppercase tracking-wider">
-              Explore Our Collection
+              Product Categories
             </span>
           </div>
-          <h2 className="font-display font-black text-4xl sm:text-5xl lg:text-6xl text-[#1E293B] tracking-tight leading-tight">
+          <h1 className="font-display font-black text-4xl sm:text-5xl lg:text-6xl text-[#1E293B] tracking-tight leading-tight">
             Shop by <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#3674B5] to-[#578FCA]">Category</span>
-          </h2>
-          <p className="text-sm sm:text-base font-semibold text-[#1E293B]/50 leading-relaxed">
-            Tailored hardware designed specifically to match your creative ecosystem and lifestyle.
+          </h1>
+          <p className="text-sm font-semibold text-[#1E293B]/50 leading-relaxed">
+            Select a category card below to browse products engineered specifically for that hardware setup.
           </p>
         </div>
 
-        {/* Categories Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        {/* Categories Grid - 4 Columns on Large Screens */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {categories.map((category) => {
             const theme = themeMap[category.name] || {
               bg: "bg-[#3674B5]/5",
@@ -92,10 +95,7 @@ export default function Categories() {
             return (
               <div
                 key={category.name}
-                className="group relative rounded-[2rem] bg-white border border-[#1E293B]/10 overflow-hidden flex flex-col justify-between hover-lift transition-all duration-500 cursor-pointer h-full"
-                style={{
-                  boxShadow: "0 10px 30px -15px rgba(26, 25, 23, 0.03)"
-                }}
+                className="group relative rounded-[2rem] bg-white border border-[#1E293B]/10 overflow-hidden flex flex-col justify-between hover-lift transition-all duration-500 cursor-pointer h-full shadow-2xs"
                 onClick={() => handleCategoryClick(category.name)}
               >
                 {/* Ambient Glow */}
@@ -122,7 +122,7 @@ export default function Categories() {
                 {/* Text Content Block */}
                 <div className="p-6 flex-grow flex flex-col justify-between space-y-5">
                   <div className="space-y-3">
-                    <h3 className="font-display font-black text-xl text-[#1E293B] group-hover:text-[#3674B5] transition-colors duration-300">
+                    <h3 className="font-display font-black text-xl sm:text-2xl text-[#1E293B] group-hover:text-[#3674B5] transition-colors duration-300">
                       {category.name}
                     </h3>
                     {/* Inline list of subcategories */}
@@ -138,7 +138,7 @@ export default function Categories() {
                     </div>
                   </div>
 
-                  {/* Bottom Explore CTA */}
+                  {/* Bottom Browse CTA Link */}
                   <div className="pt-2 flex items-center gap-1.5 text-xs font-extrabold text-[#3674B5] uppercase tracking-wider">
                     <span>Explore Category</span>
                     <span className="transform translate-x-0 group-hover:translate-x-1.5 transition-transform duration-300">→</span>
@@ -149,7 +149,11 @@ export default function Categories() {
           })}
         </div>
 
-      </div>
-    </section>
+      </main>
+
+      <Footer />
+      <SearchModal />
+      <CartDrawer />
+    </div>
   );
 }

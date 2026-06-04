@@ -53,6 +53,21 @@ export default function ProductDetailPage({ params }) {
     window.scrollTo(0, 0);
   }, [id, product]);
 
+  // Auto-cycle gallery images every 3 seconds
+  useEffect(() => {
+    if (!product || !product.gallery || product.gallery.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setSelectedImage((currentImg) => {
+        const currentIndex = product.gallery.indexOf(currentImg);
+        const nextIndex = (currentIndex + 1) % product.gallery.length;
+        return product.gallery[nextIndex];
+      });
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [product, selectedImage]);
+
   if (!product) {
     return (
       <div className="min-h-screen bg-bg-brand text-text-brand antialiased">
@@ -106,11 +121,11 @@ export default function ProductDetailPage({ params }) {
         {/* Back navigation */}
         <div className="pb-8">
           <button 
-            onClick={() => router.push("/")}
+            onClick={() => router.push("/shop")}
             className="group inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest text-[#1E293B]/50 hover:text-[#1E293B] transition-all bg-white border border-[#1E293B]/10 rounded-full px-5 py-2.5 hover-lift shadow-2xs"
           >
             <span className="group-hover:-translate-x-1.5 transition-transform duration-300">←</span>
-            <span>Back to Store</span>
+            <span>Back to Shop</span>
           </button>
         </div>
 
@@ -155,20 +170,7 @@ export default function ProductDetailPage({ params }) {
                 </svg>
               </button>
 
-              {/* Dynamic Swatch badge floating at top-right */}
-              <div className="absolute top-6 right-6 z-20 inline-flex items-center gap-2 px-4.5 py-2 rounded-full bg-white/85 backdrop-blur-sm border border-[#1E293B]/10 shadow-2xs">
-                <span 
-                  className="w-2.5 h-2.5 rounded-full border border-[#1E293B]/15"
-                  style={{
-                    backgroundColor: 
-                      product.color.includes("Sage") ? "#8C9985" :
-                      product.color.includes("Sand") || product.color.includes("Gold") ? "#DEC89E" :
-                      product.color.includes("Clay") ? "#C39281" :
-                      product.color.includes("Cream") ? "#EDECE6" : "#1A1917"
-                  }}
-                />
-                <span className="text-[10px] font-extrabold text-[#1E293B]/70 uppercase tracking-widest">{product.color}</span>
-              </div>
+
 
               {/* Full-Frame Edge-to-Edge Image */}
               <img

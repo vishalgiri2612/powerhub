@@ -1,65 +1,96 @@
 "use client";
 
-import React from "react";
-import { useRouter } from "next/navigation";
-import { useCart } from "../app/context/CartContext";
-import { products } from "../app/data/products";
+import React, { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCart } from "../context/CartContext";
+import { products, categories } from "../data/products";
+import Navbar from "../../components/Navbar";
+import Footer from "../../components/Footer";
+import SearchModal from "../../components/SearchModal";
+import CartDrawer from "../../components/CartDrawer";
 
-export default function Bestsellers() {
+function ShopContent() {
   const router = useRouter();
-  const { addToCart, toggleWishlist, wishlist } = useCart();
+  const searchParams = useSearchParams();
+  const categoryParam = searchParams.get("category");
 
-  // Show all products in the shop section
-  const bestsellerProducts = products;
+  const { addToCart, toggleWishlist, wishlist } = useCart();
+  const [activeCategory, setActiveCategory] = useState("All");
+
+  // Sync category state with query parameter
+  useEffect(() => {
+    if (categoryParam) {
+      setActiveCategory(categoryParam);
+    } else {
+      setActiveCategory("All");
+    }
+  }, [categoryParam]);
+
+  const handleFilterClick = (categoryName) => {
+    if (categoryName === "All") {
+      router.push("/shop");
+    } else {
+      router.push(`/shop?category=${encodeURIComponent(categoryName)}`);
+    }
+  };
+
+  const filteredProducts = activeCategory === "All"
+    ? products
+    : products.filter((p) => p.category === activeCategory);
+
+  const filterOptions = ["All", ...categories.map((c) => c.name)];
 
   return (
-    <section id="store" className="py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-bg-brand">
-      {/* Decorative subtle background ambient glows */}
-      <div className="absolute top-1/4 left-1/10 w-96 h-96 rounded-full bg-[#E5D0C6] opacity-35 blur-3xl pointer-events-none z-0" />
-      <div className="absolute bottom-1/4 right-1/10 w-96 h-96 rounded-full bg-[#E8EFE5] opacity-25 blur-3xl pointer-events-none z-0" />
+    <div className="min-h-screen bg-bg-brand text-text-brand antialiased selection:bg-[#3674B5] selection:text-white">
+      <Navbar />
 
-      <div className="max-w-7xl mx-auto space-y-16 relative z-10">
-
-        {/* Section Header with Premium Styling */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-[#1E293B]/10 pb-8">
-          <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/30">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
-              <span className="text-[10px] font-extrabold text-[#3674B5] uppercase tracking-wider">
-                Ravtron Shop
-              </span>
-            </div>
-            <h2 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-[#1E293B] tracking-tight leading-tight">
-              Shop All <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#3674B5] to-[#578FCA]">Products</span>
-            </h2>
+      <main className="max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-16 pt-12 pb-24 relative z-10 space-y-12">
+        {/* Page Header */}
+        <div className="text-center space-y-4 max-w-2xl mx-auto border-b border-[#1E293B]/10 pb-8">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/30">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
+            <span className="text-[10px] font-extrabold text-[#3674B5] uppercase tracking-wider">
+              Browse Ravtron
+            </span>
           </div>
-          <p className="text-sm font-semibold text-[#1E293B]/50 max-w-sm leading-relaxed">
-            Explore our complete ecosystem of premium, high-performance electronics and workspace accessories.
+          <h1 className="font-display font-black text-4xl sm:text-5xl lg:text-6xl text-[#1E293B] tracking-tight leading-tight">
+            Ravtron <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#3674B5] to-[#578FCA]">Shop</span>
+          </h1>
+          <p className="text-sm font-semibold text-[#1E293B]/50 leading-relaxed">
+            Our complete catalog of professional GaN power delivery adapters, display cabling, and workstation gear.
           </p>
         </div>
 
-        {/* Products Marquee Container with dynamic side fading mask */}
-        <div 
-          className="relative w-full overflow-hidden py-4 -my-4"
-          style={{
-            maskImage: "linear-gradient(to right, transparent, #fff 4%, #fff 96%, transparent)",
-            WebkitMaskImage: "linear-gradient(to right, transparent, #fff 4%, #fff 96%, transparent)"
-          }}
-        >
+        {/* Filter Pills */}
+        <div className="flex flex-wrap items-center justify-center gap-3 py-2 border-y border-[#1E293B]/5">
+          {filterOptions.map((opt) => (
+            <button
+              key={opt}
+              onClick={() => handleFilterClick(opt)}
+              className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all duration-300 hover:scale-[1.03] active:scale-97 border ${
+                activeCategory === opt
+                  ? "bg-[#3674B5] text-white border-[#3674B5] shadow-md shadow-[#3674B5]/15"
+                  : "bg-white text-[#1E293B]/60 border-[#1E293B]/10 hover:text-[#1E293B] hover:border-[#1E293B]/20"
+              }`}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
 
-          <div className="animate-marquee-triple flex gap-8">
-            {[...bestsellerProducts, ...bestsellerProducts, ...bestsellerProducts].map((product, idx) => {
+        {/* Products Grid */}
+        {filteredProducts.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+            {filteredProducts.map((product) => {
               const isWishlisted = wishlist.some((item) => item.id === product.id);
               const specItems = product.shortSpec.split(" · ");
 
-              // Determine ambient glow color based on product ID/theme
-              const glowColor = 
-                product.id === "p1" ? "rgba(140, 153, 133, 0.15)" : 
-                product.id === "p2" ? "rgba(222, 200, 158, 0.25)" : 
+              const glowColor =
+                product.id === "p1" ? "rgba(140, 153, 133, 0.15)" :
+                product.id === "p2" ? "rgba(222, 200, 158, 0.25)" :
                 "rgba(195, 146, 129, 0.15)";
 
-              // Determine swatch color
-              const swatchColor = 
+              const swatchColor =
                 product.color.includes("Sage") ? "#8C9985" :
                 product.color.includes("Sand") || product.color.includes("Gold") ? "#DEC89E" :
                 product.color.includes("Clay") ? "#C39281" :
@@ -67,15 +98,12 @@ export default function Bestsellers() {
 
               return (
                 <div
-                  key={`${product.id}-${idx}`}
-                  className="group relative w-[280px] sm:w-[340px] lg:w-[384px] flex-shrink-0 rounded-[2.5rem] bg-white border border-[#1E293B]/10 p-5 flex flex-col justify-between hover-lift transition-all duration-500 overflow-hidden cursor-pointer"
-                  style={{
-                    boxShadow: "0 10px 30px -15px rgba(26, 25, 23, 0.03)"
-                  }}
+                  key={product.id}
+                  className="group relative rounded-[2.5rem] bg-white border border-[#1E293B]/10 p-6 flex flex-col justify-between hover-lift transition-all duration-500 overflow-hidden cursor-pointer shadow-2xs"
                   onClick={() => router.push(`/product/${product.id}`)}
                 >
-                  {/* Floating Ambient Hover Glow */}
-                  <div 
+                  {/* Hover ambient light */}
+                  <div
                     className="absolute -top-20 -left-20 w-56 h-56 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
                     style={{
                       background: `radial-gradient(circle, ${glowColor} 0%, transparent 70%)`
@@ -83,7 +111,7 @@ export default function Bestsellers() {
                   />
 
                   <div>
-                    {/* Product Card Top: Badges & Wishlist */}
+                    {/* Top Row: Badges & Wishlist */}
                     <div className="flex items-center justify-between z-10 relative">
                       <span className="text-[10px] font-extrabold uppercase px-3 py-1 rounded-full backdrop-blur-md bg-white/80 border border-[#1E293B]/10 text-[#1E293B] tracking-wider flex items-center gap-1.5 shadow-xs">
                         <span className="w-1.5 h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
@@ -118,7 +146,7 @@ export default function Bestsellers() {
                       </button>
                     </div>
 
-                    {/* Product Image Frame */}
+                    {/* Image Area */}
                     <div className="relative aspect-square w-full rounded-[2rem] bg-[#FFFFFF] overflow-hidden mt-3 mb-5 transition-colors duration-500 group-hover:bg-[#F8F9FA]">
                       <div className="absolute inset-0 bg-gradient-to-tr from-[#1A1917]/0 to-[#1A1917]/2 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                       <img
@@ -131,14 +159,13 @@ export default function Bestsellers() {
                       />
                     </div>
 
-                    {/* Info Container */}
+                    {/* Meta row */}
                     <div className="space-y-4">
-                      {/* Category & Color Indicator Row */}
                       <div className="flex items-center justify-between text-[10px] font-bold text-[#1E293B]/40 uppercase tracking-widest">
                         <span>{product.category}</span>
                         <span className="flex items-center gap-1.5">
-                          <span 
-                            className="w-2.5 h-2.5 rounded-full border border-[#1E293B]/15 shadow-xs" 
+                          <span
+                            className="w-2.5 h-2.5 rounded-full border border-[#1E293B]/15 shadow-xs"
                             style={{ backgroundColor: swatchColor }}
                             title={product.color}
                           />
@@ -146,16 +173,14 @@ export default function Bestsellers() {
                         </span>
                       </div>
 
-                      {/* Name */}
                       <h3 className="font-display font-bold text-lg text-[#1E293B] tracking-tight line-clamp-1 group-hover:text-[#3674B5] transition-colors duration-300">
                         {product.name}
                       </h3>
 
-                      {/* Specifications Grid Tags */}
                       <div className="flex flex-wrap gap-1.5">
                         {specItems.map((spec, i) => (
-                          <span 
-                            key={i} 
+                          <span
+                            key={i}
                             className="text-[10px] font-semibold text-[#1E293B]/60 bg-[#F8F9FA] px-2.5 py-1 rounded-lg border border-[#1E293B]/2"
                           >
                             {spec}
@@ -163,7 +188,6 @@ export default function Bestsellers() {
                         ))}
                       </div>
 
-                      {/* Star Rating & Reviews */}
                       <div className="flex items-center gap-2">
                         <div className="flex items-center text-amber-400">
                           {Array.from({ length: 5 }).map((_, i) => (
@@ -184,12 +208,12 @@ export default function Bestsellers() {
                           ))}
                         </div>
                         <span className="text-xs font-bold text-[#1E293B]">{product.rating}</span>
-                        <span className="text-[10px] text-[#1E293B]/40 font-medium">({product.reviewsCount} verified reviews)</span>
+                        <span className="text-[10px] text-[#1E293B]/40 font-medium">({product.reviewsCount} reviews)</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Pricing and Button row */}
+                  {/* Price & Add to Cart */}
                   <div className="flex items-center justify-between pt-4 border-t border-[#1E293B]/10 mt-6 relative z-10">
                     <div className="space-y-0.5">
                       <span className="text-[9px] font-extrabold text-[#3674B5] uppercase tracking-wider">
@@ -218,15 +242,29 @@ export default function Bestsellers() {
                       </svg>
                     </button>
                   </div>
-
                 </div>
               );
             })}
           </div>
-        </div>
+        ) : (
+          <div className="text-center py-24 space-y-4">
+            <h2 className="font-display font-black text-2xl text-[#1E293B]">No products found</h2>
+            <p className="text-sm font-semibold text-[#1E293B]/40">We currently don't have items in this category.</p>
+          </div>
+        )}
+      </main>
 
-      </div>
-    </section>
+      <Footer />
+      <SearchModal />
+      <CartDrawer />
+    </div>
   );
 }
 
+export default function ShopPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-bg-brand flex items-center justify-center text-sm font-bold text-[#1E293B]/40 uppercase tracking-widest">Loading Ravtron Shop...</div>}>
+      <ShopContent />
+    </Suspense>
+  );
+}

@@ -22,14 +22,14 @@ export default function BrandTrust() {
         </span>
       </div>
 
-      {/* Infinite scrolling marquee wrapper */}
-      <div className="relative w-full flex items-center overflow-hidden pointer-events-none">
-        
-        {/* Left Blur Overlay */}
-        <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-white to-transparent z-10"></div>
-        
-        {/* Right Blur Overlay */}
-        <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-white to-transparent z-10"></div>
+      {/* Infinite scrolling marquee wrapper with dynamic side fading mask */}
+      <div 
+        className="relative w-full flex items-center overflow-hidden pointer-events-none"
+        style={{
+          maskImage: "linear-gradient(to right, transparent, #fff 4%, #fff 96%, transparent)",
+          WebkitMaskImage: "linear-gradient(to right, transparent, #fff 4%, #fff 96%, transparent)"
+        }}
+      >
 
         {/* Marquee Body */}
         <div className="animate-marquee whitespace-nowrap flex gap-12 sm:gap-20 items-center">
