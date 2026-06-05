@@ -6,26 +6,27 @@ import Link from "next/link";
 
 export default function Hero() {
   const [animationState, setAnimationState] = useState("retracted"); // "retracted" | "connecting" | "connected" | "disconnecting"
-  const [cycleIndex, setCycleIndex] = useState(0);
+  const [disconnectedIndex, setDisconnectedIndex] = useState(0);
+  const [connectedIndex, setConnectedIndex] = useState(0);
 
   // Gallery of product pairs (Disconnected state vs Connected state)
   const products = [
-    { 
-      disconnected: "/images/hero.png", 
+    {
+      disconnected: "/images/hero.png",
       connected: "/images/cable.png",
       tag1: "Pro HDMI 2.1", tag1Desc: "8K Resolution",
       tag2: "Docking Hub", tag2Desc: "10-in-1 output",
       tag3: "CAT6 SFTP", tag3Desc: "10Gbps Speed"
     },
-    { 
-      disconnected: "/images/charger.png", 
+    {
+      disconnected: "/images/charger.png",
       connected: "/images/webcam.png",
       tag1: "GaN Pro 65W", tag1Desc: "Fast Charging",
       tag2: "Ring Webcam", tag2Desc: "4K Video Stream",
       tag3: "Power Cord", tag3Desc: "Heavy Duty"
     },
-    { 
-      disconnected: "/images/powerbank.png", 
+    {
+      disconnected: "/images/powerbank.png",
       connected: "/images/earbuds.png",
       tag1: "Smart Bank", tag1Desc: "OLED Diagnostics",
       tag2: "Hi-Fi Buds", tag2Desc: "ANC Workspace",
@@ -39,38 +40,39 @@ export default function Hero() {
 
     const runSequence = () => {
       if (!active) return;
-      
+
       // Step 1: Retracted (start of cycle)
       setAnimationState("retracted");
-      
+
       // After 2000ms, start connecting
       timerId = setTimeout(() => {
         if (!active) return;
         setAnimationState("connecting");
-        
+
         // After 1000ms (cables meet), set connected (triggers image change, spark, text, pulse)
         timerId = setTimeout(() => {
           if (!active) return;
           setAnimationState("connected");
-          
+
           // After 3200ms (stay connected), start disconnecting
           timerId = setTimeout(() => {
             if (!active) return;
             setAnimationState("disconnecting");
-            
-            // After 1000ms (cables fully retracted), reset to retracted and switch product pair
+            setDisconnectedIndex((prev) => (prev + 1) % products.length);
+
+            // After 1000ms (cables fully retracted), reset to retracted and update connected index
             timerId = setTimeout(() => {
               if (!active) return;
               setAnimationState("retracted");
-              setCycleIndex((prev) => (prev + 1) % products.length);
-              
+              setConnectedIndex((prev) => (prev + 1) % products.length);
+
               // Wait 800ms before starting the next cycle
               timerId = setTimeout(() => {
                 if (active) {
                   runSequence();
                 }
               }, 800);
-              
+
             }, 1000);
           }, 3200);
         }, 1000);
@@ -86,8 +88,8 @@ export default function Hero() {
   }, []);
 
   return (
-    <section 
-      id="home" 
+    <section
+      id="home"
       className="hero-radial-bg pt-16 pb-24 px-4 sm:px-8 lg:px-16 overflow-hidden relative"
     >
       {/* Dynamic Cable Connection Animation Background */}
@@ -124,63 +126,176 @@ export default function Hero() {
           </defs>
 
           {/* Faint background grid lines */}
-          <path d="M 0 400 L 1440 400" stroke="#3674B5" strokeWidth="1" strokeDasharray="8 8" opacity="0.08" />
-          
+          <path d="M 0 730 L 1440 730" stroke="#3674B5" strokeWidth="1" strokeDasharray="8 8" opacity="0.08" />
+
           {/* PCB Circuit Tracks (Background Details) */}
           <g 
             style={{ 
-              opacity: (animationState === "connected") ? 0.35 : 0.12, 
-              transition: "opacity 0.5s ease-in-out" 
+              opacity: (animationState === "connected") ? 0.35 : 0.08, 
+              transition: "opacity 0.8s ease-in-out",
+              filter: (animationState === "connected") ? "drop-shadow(0 0 3px rgba(54, 116, 181, 0.3))" : "none"
             }}
           >
-            {/* Top Left Track */}
-            <path d="M 100 150 L 400 150 L 500 250 L 700 250" stroke="#3674B5" strokeWidth="1.5" strokeLinecap="round" />
-            {/* Bottom Right Track */}
-            <path d="M 1340 650 L 1040 650 L 940 550 L 740 550" stroke="#DEC89E" strokeWidth="1.5" strokeLinecap="round" />
-            {/* Top Right Track */}
-            <path d="M 1200 200 L 1000 200 L 900 300 L 800 300" stroke="#3674B5" strokeWidth="1.5" strokeLinecap="round" />
-            {/* Bottom Left Track */}
-            <path d="M 200 600 L 450 600 L 550 500 L 650 500" stroke="#DEC89E" strokeWidth="1.5" strokeLinecap="round" />
+            {/* Track 1 (Left Wing Top) */}
+            <path d="M 720 730 L 600 610 L 400 610 L 250 460 L -100 460" stroke="#3674B5" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+            {/* Track 2 (Left Wing Bottom) */}
+            <path d="M 720 730 L 640 810 L -100 810" stroke="#DEC89E" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+            {/* Track 3 (Right Wing Top) */}
+            <path d="M 720 730 L 840 610 L 1040 610 L 1190 460 L 1540 460" stroke="#3674B5" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+            {/* Track 4 (Right Wing Bottom) */}
+            <path d="M 720 730 L 800 810 L 1540 810" stroke="#DEC89E" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+            {/* Track 5 (Center Upward Spine) */}
+            <path d="M 720 730 L 720 200 L 680 160 L 680 -50" stroke="#3674B5" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+            {/* Track 6 (Center Upward Spine Branch) */}
+            <path d="M 720 450 L 760 410 L 760 -50" stroke="#3674B5" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+
+            {/* Soldered Motherboard Joints / Node Dots */}
+            {/* Left Track Nodes */}
+            <circle cx="600" cy="610" r="2.5" fill="#3674B5" />
+            <circle cx="400" cy="610" r="2.5" fill="#3674B5" />
+            <circle cx="250" cy="460" r="2.5" fill="#3674B5" />
+            <circle cx="640" cy="810" r="2.5" fill="#DEC89E" />
+            
+            {/* Right Track Nodes */}
+            <circle cx="840" cy="610" r="2.5" fill="#3674B5" />
+            <circle cx="1040" cy="610" r="2.5" fill="#3674B5" />
+            <circle cx="1190" cy="460" r="2.5" fill="#3674B5" />
+            <circle cx="800" cy="810" r="2.5" fill="#DEC89E" />
+            
+            {/* Center Upward Nodes */}
+            <circle cx="720" cy="200" r="2.5" fill="#3674B5" />
+            <circle cx="680" cy="160" r="2.5" fill="#3674B5" />
+            <circle cx="760" cy="410" r="2.5" fill="#3674B5" />
+          </g>
+ 
+          {/* Glowing Electric Light-Orbs (SMIL animateMotion) */}
+          <g 
+            className={(animationState === "connected") ? "opacity-100" : "opacity-0"} 
+            style={{ transition: "opacity 0.6s ease-in-out" }}
+          >
+            {/* Orb 1 (Path 1) */}
+            <circle r="3.5" fill="#38BDF8" style={{ filter: "drop-shadow(0 0 5px #38BDF8)" }}>
+              <animateMotion 
+                path="M 720 730 L 600 610 L 400 610 L 250 460 L -100 460" 
+                dur="4s" 
+                begin="0s" 
+                repeatCount="indefinite" 
+              />
+            </circle>
+            {/* Orb 2 (Path 2) */}
+            <circle r="3.5" fill="#FFECA1" style={{ filter: "drop-shadow(0 0 5px #FFECA1)" }}>
+              <animateMotion 
+                path="M 720 730 L 640 810 L -100 810" 
+                dur="4.5s" 
+                begin="1.2s" 
+                repeatCount="indefinite" 
+              />
+            </circle>
+            {/* Orb 3 (Path 3) */}
+            <circle r="3.5" fill="#38BDF8" style={{ filter: "drop-shadow(0 0 5px #38BDF8)" }}>
+              <animateMotion 
+                path="M 720 730 L 840 610 L 1040 610 L 1190 460 L 1540 460" 
+                dur="3.8s" 
+                begin="0.6s" 
+                repeatCount="indefinite" 
+              />
+            </circle>
+            {/* Orb 4 (Path 4) */}
+            <circle r="3.5" fill="#FFECA1" style={{ filter: "drop-shadow(0 0 5px #FFECA1)" }}>
+              <animateMotion 
+                path="M 720 730 L 800 810 L 1540 810" 
+                dur="4.8s" 
+                begin="1.8s" 
+                repeatCount="indefinite" 
+              />
+            </circle>
+            {/* Orb 5 (Path 5) */}
+            <circle r="3.5" fill="#38BDF8" style={{ filter: "drop-shadow(0 0 5px #38BDF8)" }}>
+              <animateMotion 
+                path="M 720 730 L 720 200 L 680 160 L 680 -50" 
+                dur="4.2s" 
+                begin="0.3s" 
+                repeatCount="indefinite" 
+              />
+            </circle>
+            {/* Orb 6 (Path 6) */}
+            <circle r="3.5" fill="#38BDF8" style={{ filter: "drop-shadow(0 0 5px #38BDF8)" }}>
+              <animateMotion 
+                path="M 720 450 L 760 410 L 760 -50" 
+                dur="3.5s" 
+                begin="1.5s" 
+                repeatCount="indefinite" 
+              />
+            </circle>
+          </g>
+ 
+          {/* Central Power Core Chip (Diamond shape rotated 45 degrees) */}
+          <g 
+            style={{ 
+              transform: "translate(720px, 730px)", 
+              opacity: (animationState === "connected") ? 1 : 0.2, 
+              scale: (animationState === "connected") ? "1.05" : "0.8",
+              transition: "all 0.8s cubic-bezier(0.16, 1, 0.3, 1)"
+            }}
+          >
+            {/* Surrounding Motherboard Components (Resistors/Caps) */}
+            <g opacity={animationState === "connected" ? 0.9 : 0.4} style={{ transition: "opacity 0.5s" }}>
+              <rect x="-32" y="-4" width="8" height="4" fill="#64748B" rx="1" transform="rotate(45)" />
+              <rect x="24" y="-4" width="8" height="4" fill="#DEC89E" rx="1" transform="rotate(45)" />
+              <rect x="-4" y="-32" width="4" height="8" fill="#DEC89E" rx="1" transform="rotate(45)" />
+              <rect x="-4" y="24" width="4" height="8" fill="#64748B" rx="1" transform="rotate(45)" />
+            </g>
+ 
+            {/* Outer Chip Shield */}
+            <rect x="-20" y="-20" width="40" height="40" rx="6" fill="#1E293B" stroke="#334155" strokeWidth="1.5" transform="rotate(45)" />
+            
+            {/* Inner Core Glow */}
+            <rect x="-12" y="-12" width="24" height="24" rx="4" fill={animationState === "connected" ? "#FFFFFF" : "#3674B5"} transform="rotate(45)" 
+              style={{
+                filter: animationState === "connected" ? "drop-shadow(0 0 10px #38BDF8)" : "none",
+                transition: "fill 0.5s, filter 0.5s"
+              }}
+            />
           </g>
 
           {/* Glowing pulse rings at connection point */}
-          <g 
+          <g
             className={(animationState === "connected") ? "animate-pulse-ring-once" : "opacity-0"}
-            style={{ transformOrigin: "720px 400px" }}
+            style={{ transformOrigin: "720px 730px" }}
           >
             <circle cx="0" cy="0" r="100" fill="url(#connection-glow)" />
           </g>
-          <g 
+          <g
             className={(animationState === "connected") ? "animate-pulse-ring-once" : "opacity-0"}
-            style={{ transformOrigin: "720px 400px", animationDelay: "0.4s" }}
+            style={{ transformOrigin: "720px 730px", animationDelay: "0.4s" }}
           >
             <circle cx="0" cy="0" r="100" fill="url(#connection-glow)" />
           </g>
-          <g 
+          <g
             className={(animationState === "connected") ? "animate-pulse-ring-stroke-once" : "opacity-0"}
-            style={{ transformOrigin: "720px 400px" }}
+            style={{ transformOrigin: "720px 730px" }}
           >
             <circle cx="0" cy="0" r="60" fill="none" stroke="#38BDF8" strokeWidth="1.5" />
           </g>
 
           {/* Left Cable Group (Sleek USB-C Male Connector) */}
-          <g 
-            style={{ 
-              transform: (animationState === "connecting" || animationState === "connected") ? "translateX(14px)" : "translateX(-95px)", 
-              transition: "transform 1s cubic-bezier(0.25, 1, 0.5, 1)" 
+          <g
+            style={{
+              transform: (animationState === "connecting" || animationState === "connected") ? "translateX(14px)" : "translateX(-280px)",
+              transition: "transform 1s cubic-bezier(0.25, 1, 0.5, 1)"
             }}
           >
             {/* Outer main cable */}
-            <path d="M -100 400 C 150 420 350 380 500 400 H 620" stroke="url(#left-cable-grad)" strokeWidth="7" strokeLinecap="round" />
+            <path d="M -100 730 C 150 750 350 710 500 730 H 620" stroke="url(#left-cable-grad)" strokeWidth="7" strokeLinecap="round" />
             {/* Inner glowing braided texture wire */}
-            <path d="M -100 400 C 150 420 350 380 500 400 H 620" stroke="#578FCA" strokeWidth="2" strokeLinecap="round" strokeDasharray="6 4" opacity="0.75" />
+            <path d="M -100 730 C 150 750 350 710 500 730 H 620" stroke="#578FCA" strokeWidth="2" strokeLinecap="round" strokeDasharray="6 4" opacity="0.75" />
             {/* Data flow packet stream overlay */}
-            <path 
-              d="M -100 400 C 150 420 350 380 500 400 H 620" 
-              stroke="#38BDF8" 
-              strokeWidth="2.5" 
-              strokeLinecap="round" 
-              strokeDasharray="15 45" 
+            <path
+              d="M -100 730 C 150 750 350 710 500 730 H 620"
+              stroke="#38BDF8"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeDasharray="15 45"
               className="animate-flow-left"
               style={{
                 opacity: (animationState === "connected") ? 0.9 : 0,
@@ -189,41 +304,41 @@ export default function Hero() {
             />
 
             {/* Strain relief ribbing */}
-            <rect x="606" y="394" width="5" height="12" rx="1.5" fill="#334155" />
-            <rect x="614" y="393" width="6" height="14" rx="2" fill="#1E293B" />
-            <rect x="623" y="392" width="7" height="16" rx="2" fill="#0F172A" />
+            <rect x="606" y="724" width="5" height="12" rx="1.5" fill="#334155" />
+            <rect x="614" y="723" width="6" height="14" rx="2" fill="#1E293B" />
+            <rect x="623" y="722" width="7" height="16" rx="2" fill="#0F172A" />
 
             {/* Metal connector body */}
-            <rect x="633" y="389" width="36" height="22" rx="5" fill="url(#metal-dark)" stroke="#334155" strokeWidth="1.5" />
+            <rect x="633" y="719" width="36" height="22" rx="5" fill="url(#metal-dark)" stroke="#334155" strokeWidth="1.5" />
             {/* Specular high-tech highlight */}
-            <rect x="637" y="391" width="28" height="2" rx="1" fill="#64748B" opacity="0.4" />
+            <rect x="637" y="721" width="28" height="2" rx="1" fill="#64748B" opacity="0.4" />
             {/* LED Indicator Light */}
-            <circle cx="651" cy="400" r="2" fill="#38BDF8" className="animate-led" />
+            <circle cx="651" cy="730" r="2" fill="#38BDF8" className="animate-led" />
 
             {/* Gold-plated tip (USB-C profile) */}
-            <rect x="669" y="394" width="18" height="12" rx="3.5" fill="url(#gold-plated)" stroke="#D9B46C" strokeWidth="1" />
+            <rect x="669" y="724" width="18" height="12" rx="3.5" fill="url(#gold-plated)" stroke="#D9B46C" strokeWidth="1" />
             {/* Internal USB-C pin divide line */}
-            <line x1="673" y1="400" x2="683" y2="400" stroke="#1E293B" strokeWidth="1" />
+            <line x1="673" y1="730" x2="683" y2="730" stroke="#1E293B" strokeWidth="1" />
           </g>
 
           {/* Right Cable Group (Blocky HDMI Female Port) */}
-          <g 
-            style={{ 
-              transform: (animationState === "connecting" || animationState === "connected") ? "translateX(-14px)" : "translateX(95px)", 
-              transition: "transform 1s cubic-bezier(0.25, 1, 0.5, 1)" 
+          <g
+            style={{
+              transform: (animationState === "connecting" || animationState === "connected") ? "translateX(-14px)" : "translateX(280px)",
+              transition: "transform 1s cubic-bezier(0.25, 1, 0.5, 1)"
             }}
           >
             {/* Outer main cable */}
-            <path d="M 1540 400 C 1290 380 1090 420 940 400 H 820" stroke="url(#right-cable-grad)" strokeWidth="9" strokeLinecap="round" />
+            <path d="M 1540 730 C 1290 710 1090 750 940 730 H 820" stroke="url(#right-cable-grad)" strokeWidth="9" strokeLinecap="round" />
             {/* Inner glowing braided texture wire */}
-            <path d="M 1540 400 C 1290 380 1090 420 940 400 H 820" stroke="#DEC89E" strokeWidth="2.5" strokeLinecap="round" strokeDasharray="6 4" opacity="0.75" />
+            <path d="M 1540 730 C 1290 710 1090 750 940 730 H 820" stroke="#DEC89E" strokeWidth="2.5" strokeLinecap="round" strokeDasharray="6 4" opacity="0.75" />
             {/* Data flow packet stream overlay */}
-            <path 
-              d="M 1540 400 C 1290 380 1090 420 940 400 H 820" 
-              stroke="#DEC89E" 
-              strokeWidth="3" 
-              strokeLinecap="round" 
-              strokeDasharray="15 45" 
+            <path
+              d="M 1540 730 C 1290 710 1090 750 940 730 H 820"
+              stroke="#DEC89E"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeDasharray="15 45"
               className="animate-flow-right"
               style={{
                 opacity: (animationState === "connected") ? 0.9 : 0,
@@ -232,28 +347,28 @@ export default function Hero() {
             />
 
             {/* Strain relief ribbing */}
-            <rect x="819" y="393" width="5" height="14" rx="1.5" fill="#334155" />
-            <rect x="810" y="392" width="6" height="16" rx="2" fill="#1E293B" />
-            <rect x="800" y="391" width="7" height="18" rx="2" fill="#0F172A" />
+            <rect x="819" y="723" width="5" height="14" rx="1.5" fill="#334155" />
+            <rect x="810" y="722" width="6" height="16" rx="2" fill="#1E293B" />
+            <rect x="800" y="721" width="7" height="18" rx="2" fill="#0F172A" />
 
             {/* Metal connector body (Boxy receptacle adapter) */}
-            <rect x="734" y="384" width="46" height="32" rx="4" fill="url(#metal-dark)" stroke="#334155" strokeWidth="1.5" />
+            <rect x="734" y="714" width="46" height="32" rx="4" fill="url(#metal-dark)" stroke="#334155" strokeWidth="1.5" />
             {/* Specular highlight */}
-            <rect x="738" y="387" width="38" height="2" rx="1" fill="#64748B" opacity="0.4" />
+            <rect x="738" y="717" width="38" height="2" rx="1" fill="#64748B" opacity="0.4" />
             {/* LED Indicator Light */}
-            <circle cx="757" cy="400" r="2" fill="#FBBF24" className="animate-led" />
+            <circle cx="757" cy="730" r="2" fill="#FBBF24" className="animate-led" />
 
             {/* Gold-plated socket collar (receptacle entrance) */}
-            <rect x="711" y="390" width="6" height="20" rx="1.5" fill="url(#gold-plated)" stroke="#D9B46C" strokeWidth="1" />
+            <rect x="711" y="720" width="6" height="20" rx="1.5" fill="url(#gold-plated)" stroke="#D9B46C" strokeWidth="1" />
             {/* Hollow port opening */}
-            <rect x="717" y="392" width="17" height="16" rx="1" fill="#060A12" />
+            <rect x="717" y="722" width="17" height="16" rx="1" fill="#060A12" />
           </g>
 
           {/* Connection Sparkle Flash */}
-          <g 
-            style={{ 
-              transform: "translate(720px, 400px)",
-              opacity: (animationState === "connected") ? 1 : 0, 
+          <g
+            style={{
+              transform: "translate(720px, 730px)",
+              opacity: (animationState === "connected") ? 1 : 0,
               scale: (animationState === "connected") ? "1.4" : "0",
               transition: "opacity 0.2s ease-out, scale 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)"
             }}
@@ -279,16 +394,17 @@ export default function Hero() {
           </g>
         </svg>
 
-        <style dangerouslySetInnerHTML={{__html: `
+        <style dangerouslySetInnerHTML={{
+          __html: `
           @keyframes pulse-ring-grows-once {
-            0% { transform: translate(720px, 400px) scale(0.1); opacity: 0; }
-            10% { transform: translate(720px, 400px) scale(0.2); opacity: 1; }
-            100% { transform: translate(720px, 400px) scale(3.5); opacity: 0; }
+            0% { transform: translate(720px, 730px) scale(0.1); opacity: 0; }
+            10% { transform: translate(720px, 730px) scale(0.2); opacity: 1; }
+            100% { transform: translate(720px, 730px) scale(3.5); opacity: 0; }
           }
           @keyframes pulse-ring-stroke-once {
-            0% { transform: translate(720px, 400px) scale(0.1); opacity: 0; }
-            10% { transform: translate(720px, 400px) scale(0.25); opacity: 0.8; }
-            100% { transform: translate(720px, 400px) scale(3); opacity: 0; }
+            0% { transform: translate(720px, 730px) scale(0.1); opacity: 0; }
+            10% { transform: translate(720px, 730px) scale(0.25); opacity: 0.8; }
+            100% { transform: translate(720px, 730px) scale(3); opacity: 0; }
           }
           @keyframes flow-left-loop {
             from { stroke-dashoffset: 0; }
@@ -388,7 +504,7 @@ export default function Hero() {
             <div className="relative z-10 rounded-[2.5rem] bg-[#F8F9FA] p-4 shadow-xl border border-white/40 overflow-hidden group hover:scale-[1.01] transition-all duration-700 h-[300px] sm:h-[380px] lg:h-[400px]">
               {/* Disconnected Image */}
               <img
-                src={products[cycleIndex].disconnected}
+                src={products[disconnectedIndex].disconnected}
                 alt="Ravtron B2B Solutions"
                 className="w-full h-full rounded-[2rem] object-cover absolute inset-4"
                 style={{
@@ -401,7 +517,7 @@ export default function Hero() {
               />
               {/* Connected Image */}
               <img
-                src={products[cycleIndex].connected}
+                src={products[connectedIndex].connected}
                 alt="Ravtron Connected Active State"
                 className="w-full h-full rounded-[2rem] object-cover absolute inset-4"
                 style={{
@@ -421,10 +537,10 @@ export default function Hero() {
               </span>
               <div>
                 <h4 className="text-xs font-bold text-[#1E293B] transition-all">
-                  {animationState === "connected" ? products[cycleIndex].tag1 : "Pro HDMI 2.1"}
+                  {animationState === "connected" ? products[connectedIndex].tag1 : products[disconnectedIndex].tag1}
                 </h4>
                 <p className="text-[10px] text-[#1E293B]/60">
-                  {animationState === "connected" ? products[cycleIndex].tag1Desc : "8K Resolution"}
+                  {animationState === "connected" ? products[connectedIndex].tag1Desc : products[disconnectedIndex].tag1Desc}
                 </p>
               </div>
             </div>
@@ -435,10 +551,10 @@ export default function Hero() {
               </span>
               <div>
                 <h4 className="text-xs font-bold text-[#1E293B] transition-all">
-                  {animationState === "connected" ? products[cycleIndex].tag2 : "Docking Hub"}
+                  {animationState === "connected" ? products[connectedIndex].tag2 : products[disconnectedIndex].tag2}
                 </h4>
                 <p className="text-[10px] text-[#1E293B]/60">
-                  {animationState === "connected" ? products[cycleIndex].tag2Desc : "10-in-1 output"}
+                  {animationState === "connected" ? products[connectedIndex].tag2Desc : products[disconnectedIndex].tag2Desc}
                 </p>
               </div>
             </div>
@@ -449,10 +565,10 @@ export default function Hero() {
               </span>
               <div>
                 <h4 className="text-xs font-bold text-[#1E293B] transition-all">
-                  {animationState === "connected" ? products[cycleIndex].tag3 : "CAT6 SFTP"}
+                  {animationState === "connected" ? products[connectedIndex].tag3 : products[disconnectedIndex].tag3}
                 </h4>
                 <p className="text-[10px] text-[#1E293B]/60">
-                  {animationState === "connected" ? products[cycleIndex].tag3Desc : "10Gbps Speed"}
+                  {animationState === "connected" ? products[connectedIndex].tag3Desc : products[disconnectedIndex].tag3Desc}
                 </p>
               </div>
             </div>

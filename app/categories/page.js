@@ -148,7 +148,20 @@ export default function CategoriesPage() {
             );
           })}
         </div>
-
+ 
+        {/* Explore All Shop Products CTA Button */}
+        <div className="pt-16 text-center">
+          <button
+            onClick={() => router.push("/shop")}
+            className="inline-flex items-center gap-3 px-8 py-4.5 rounded-full bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-black uppercase tracking-widest transition-all duration-300 hover:scale-[1.03] active:scale-97 shadow-lg shadow-[#3674B5]/15"
+          >
+            <span>Explore All Products</span>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </button>
+        </div>
+ 
       </main>
 
       <Footer />
