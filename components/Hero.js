@@ -85,10 +85,10 @@ export default function Hero() {
   return (
     <section
       id="home"
-      className="hero-radial-bg pt-12 pb-8 md:pt-16 md:pb-16 px-4 sm:px-8 lg:px-16 overflow-hidden relative"
+      className="hero-radial-bg pt-6 pb-4 md:pt-16 md:pb-16 px-4 sm:px-8 lg:px-16 overflow-hidden relative"
     >
       {/* Dynamic Cable Connection Animation Background - Desktop */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 select-none opacity-95 hidden md:block">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 select-none opacity-95 hidden md:block translate-y-8">
         <svg className="absolute inset-0 w-full h-full" viewBox="0 0 1440 800" fill="none" xmlns="http://www.w3.org/2000/svg">
           {/* Gradients */}
           <defs>
@@ -394,10 +394,10 @@ export default function Hero() {
 
 
 
-      <div className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center relative z-10">
+      <div className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-8 items-center relative z-10">
 
         {/* Left Text Column */}
-        <div className="lg:col-span-6 flex flex-col items-start text-left space-y-6 max-w-xl">
+        <div className="lg:col-span-6 flex flex-col items-start text-left space-y-3 md:space-y-6 max-w-xl">
 
           {/* Tagline Badge */}
           <div className="inline-flex items-center gap-2 px-4.5 py-1.5 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/30 shadow-sm">
@@ -412,11 +412,6 @@ export default function Hero() {
             Connecting Every <span className="text-[#3674B5]">Device</span>.<br />Powering Every Business.
           </h1>
 
-          {/* Short Subtext */}
-          <p className="text-base sm:text-lg text-[#1E293B]/70 leading-relaxed font-semibold max-w-lg">
-            Enterprise-grade connectivity, networking, surveillance, and workspace solutions built for the modern digital world.
-          </p>
-
           {/* CTA Buttons (Desktop) */}
           <div className="hidden md:flex flex-wrap items-center gap-4 pt-2 w-full sm:w-auto">
             <Link
@@ -429,16 +424,15 @@ export default function Hero() {
 
         </div>
 
-
         {/* Right Image Column */}
-        <div className="lg:col-span-6 relative flex flex-col items-center justify-center lg:justify-end">
+        <div className="lg:col-span-6 relative flex flex-col items-center justify-center lg:justify-end gap-3 md:gap-0 mt-0 lg:mt-0">
           <div className="relative w-full max-w-[480px] lg:max-w-[450px]">
 
             {/* Floating Ambient Glow Background Ring */}
             <div className="absolute inset-0 bg-[#E5D0C6]/40 rounded-full blur-3xl scale-95 z-0"></div>
 
             {/* Realistic Hero Image Frame */}
-            <div className="relative z-10 rounded-[2.5rem] bg-[#F8F9FA] p-4 shadow-xl border border-white/40 overflow-hidden group hover:scale-[1.01] transition-all duration-700 h-[300px] sm:h-[380px] lg:h-[400px]">
+            <div className="relative z-10 rounded-[2rem] bg-[#F8F9FA] p-3 shadow-xl border border-white/40 overflow-hidden group hover:scale-[1.01] transition-all duration-700 h-[280px] sm:h-[320px] lg:h-[400px]">
               {/* Disconnected Image */}
               <img
                 src={products[disconnectedIndex].disconnected}
@@ -513,7 +507,7 @@ export default function Hero() {
           </div>
 
           {/* Feature Badges (Mobile Only - Row below the frame to prevent overlap) */}
-          <div className="flex md:hidden flex-wrap items-center justify-center gap-2.5 mt-6 w-full max-w-[480px]">
+          <div className="flex md:hidden flex-wrap items-center justify-center gap-2 mt-4 w-full max-w-[480px]">
             <div className="glass-pill px-3.5 py-2 rounded-xl border flex items-center gap-2 shadow-sm">
               <span className="p-1.5 rounded-lg bg-[#3674B5]/10 text-[#3674B5] flex items-center justify-center">
                 <Plug className="w-3.5 h-3.5 fill-current" />
@@ -557,18 +551,8 @@ export default function Hero() {
             </div>
           </div>
 
-          {/* CTA Buttons (Mobile - Below the Frame and Feature Badges) */}
-          <div className="flex md:hidden flex-col sm:flex-row items-center justify-center gap-4 pt-6 w-full max-w-[480px] z-20">
-            <Link
-              href="/shop"
-              className="w-full sm:w-auto px-8 py-4 rounded-full bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-extrabold shadow-lg transition-all hover:scale-105 active:scale-95 text-center"
-            >
-              Explore Products
-            </Link>
-          </div>
-
-          {/* Mobile Cable Animation (Placed below the mobile Explore Products button) */}
-          <div className="block md:hidden w-full h-[60px] relative overflow-hidden pointer-events-none select-none mt-6 mb-2 z-10">
+          {/* Mobile Cable Animation (Placed below the Feature Badges) */}
+          <div className="block md:hidden w-full h-[50px] relative overflow-hidden pointer-events-none select-none mt-2 mb-2 z-10">
             <svg className="absolute inset-0 w-full h-full" viewBox="460 680 520 100" preserveAspectRatio="xMidYMid meet" fill="none" xmlns="http://www.w3.org/2000/svg">
               {/* Gradients */}
               <defs>
@@ -838,8 +822,18 @@ export default function Hero() {
               .particle-float-3 { animation: particle-float-3 11s ease-in-out infinite; }
             `}} />
           </div>
-        </div>
 
+          {/* CTA Buttons (Mobile - Below the Cable Animation) */}
+          <div className="flex md:hidden flex-col sm:flex-row items-center justify-center gap-4 pt-3 w-full max-w-[480px] z-20">
+            <Link
+              href="/shop"
+              className="w-full sm:w-auto px-8 py-4 rounded-full bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-extrabold shadow-lg transition-all hover:scale-105 active:scale-95 text-center"
+            >
+              Explore Products
+            </Link>
+          </div>
+
+        </div>
       </div>
     </section>
   );
