@@ -13,15 +13,15 @@ export default function Bestsellers() {
   const bestsellerProducts = products;
 
   return (
-    <section id="store" className="py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-bg-brand">
+    <section id="store" className="py-8 md:py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-bg-brand">
       {/* Decorative subtle background ambient glows */}
       <div className="absolute top-1/4 left-1/10 w-96 h-96 rounded-full bg-[#E5D0C6] opacity-35 blur-3xl pointer-events-none z-0" />
       <div className="absolute bottom-1/4 right-1/10 w-96 h-96 rounded-full bg-[#E8EFE5] opacity-25 blur-3xl pointer-events-none z-0" />
 
-      <div className="max-w-7xl mx-auto space-y-16 relative z-10">
+      <div className="max-w-7xl mx-auto space-y-8 md:space-y-12 relative z-10">
 
         {/* Section Header with Premium Styling */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-[#1E293B]/10 pb-8">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-[#1E293B]/10 pb-4 md:pb-8">
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/30">
               <span className="w-1.5 h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
@@ -39,7 +39,7 @@ export default function Bestsellers() {
         </div>
 
         {/* Products Marquee Container with dynamic side fading mask */}
-        <div 
+        <div
           className="relative w-full overflow-hidden py-4 -my-4"
           style={{
             maskImage: "linear-gradient(to right, transparent, #fff 4%, #fff 96%, transparent)",
@@ -53,17 +53,17 @@ export default function Bestsellers() {
               const specItems = product.shortSpec.split(" · ");
 
               // Determine ambient glow color based on product ID/theme
-              const glowColor = 
-                product.id === "p1" ? "rgba(140, 153, 133, 0.15)" : 
-                product.id === "p2" ? "rgba(222, 200, 158, 0.25)" : 
-                "rgba(195, 146, 129, 0.15)";
+              const glowColor =
+                product.id === "p1" ? "rgba(140, 153, 133, 0.15)" :
+                  product.id === "p2" ? "rgba(222, 200, 158, 0.25)" :
+                    "rgba(195, 146, 129, 0.15)";
 
               // Determine swatch color
-              const swatchColor = 
+              const swatchColor =
                 product.color.includes("Sage") ? "#8C9985" :
-                product.color.includes("Sand") || product.color.includes("Gold") ? "#DEC89E" :
-                product.color.includes("Clay") ? "#C39281" :
-                product.color.includes("Cream") ? "#EDECE6" : "#1A1917";
+                  product.color.includes("Sand") || product.color.includes("Gold") ? "#DEC89E" :
+                    product.color.includes("Clay") ? "#C39281" :
+                      product.color.includes("Cream") ? "#EDECE6" : "#1A1917";
 
               return (
                 <div
@@ -75,7 +75,7 @@ export default function Bestsellers() {
                   onClick={() => router.push(`/product/${product.id}`)}
                 >
                   {/* Floating Ambient Hover Glow */}
-                  <div 
+                  <div
                     className="absolute -top-20 -left-20 w-56 h-56 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
                     style={{
                       background: `radial-gradient(circle, ${glowColor} 0%, transparent 70%)`
@@ -95,11 +95,10 @@ export default function Bestsellers() {
                           e.stopPropagation();
                           toggleWishlist(product);
                         }}
-                        className={`p-2.5 rounded-full border backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-xs ${
-                          isWishlisted
-                            ? "bg-[#3674B5]/15 border-[#3674B5]/40 text-[#3674B5]"
-                            : "bg-white/80 border-[#1E293B]/10 text-[#1E293B]/40 hover:text-[#1E293B] hover:bg-white"
-                        }`}
+                        className={`p-2.5 rounded-full border backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-xs ${isWishlisted
+                          ? "bg-[#3674B5]/15 border-[#3674B5]/40 text-[#3674B5]"
+                          : "bg-white/80 border-[#1E293B]/10 text-[#1E293B]/40 hover:text-[#1E293B] hover:bg-white"
+                          }`}
                         aria-label="Add to Wishlist"
                       >
                         <svg
@@ -137,8 +136,8 @@ export default function Bestsellers() {
                       <div className="flex items-center justify-between text-[10px] font-bold text-[#1E293B]/40 uppercase tracking-widest">
                         <span>{product.category}</span>
                         <span className="flex items-center gap-1.5">
-                          <span 
-                            className="w-2.5 h-2.5 rounded-full border border-[#1E293B]/15 shadow-xs" 
+                          <span
+                            className="w-2.5 h-2.5 rounded-full border border-[#1E293B]/15 shadow-xs"
                             style={{ backgroundColor: swatchColor }}
                             title={product.color}
                           />
@@ -154,8 +153,8 @@ export default function Bestsellers() {
                       {/* Specifications Grid Tags */}
                       <div className="flex flex-wrap gap-1.5">
                         {specItems.map((spec, i) => (
-                          <span 
-                            key={i} 
+                          <span
+                            key={i}
                             className="text-[10px] font-semibold text-[#1E293B]/60 bg-[#F8F9FA] px-2.5 py-1 rounded-lg border border-[#1E293B]/2"
                           >
                             {spec}
@@ -169,9 +168,8 @@ export default function Bestsellers() {
                           {Array.from({ length: 5 }).map((_, i) => (
                             <svg
                               key={i}
-                              className={`w-3.5 h-3.5 ${
-                                i < Math.floor(product.rating) ? "fill-current" : "stroke-current fill-none"
-                              }`}
+                              className={`w-3.5 h-3.5 ${i < Math.floor(product.rating) ? "fill-current" : "stroke-current fill-none"
+                                }`}
                               viewBox="0 0 24 24"
                             >
                               <path

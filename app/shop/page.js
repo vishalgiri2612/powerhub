@@ -44,30 +44,30 @@ function ShopContent() {
     <div className="min-h-screen bg-bg-brand text-text-brand antialiased selection:bg-[#3674B5] selection:text-white">
       <Navbar />
 
-      <main className="max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-16 pt-12 pb-24 relative z-10 space-y-12">
+      <main className="max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-16 pt-6 md:pt-12 pb-16 md:pb-24 relative z-10 space-y-6 md:space-y-12">
         {/* Page Header */}
-        <div className="text-center space-y-4 max-w-2xl mx-auto border-b border-[#1E293B]/10 pb-8">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/30">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
-            <span className="text-[10px] font-extrabold text-[#3674B5] uppercase tracking-wider">
+        <div className="text-center space-y-2 md:space-y-4 max-w-2xl mx-auto border-b border-[#1E293B]/10 pb-4 md:pb-8">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 md:px-3.5 md:py-1 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/30">
+            <span className="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
+            <span className="text-[9px] md:text-[10px] font-extrabold text-[#3674B5] uppercase tracking-wider">
               Browse Ravtron
             </span>
           </div>
-          <h1 className="font-display font-black text-4xl sm:text-5xl lg:text-6xl text-[#1E293B] tracking-tight leading-tight">
+          <h1 className="font-display font-black text-2xl sm:text-5xl lg:text-6xl text-[#1E293B] tracking-tight leading-tight">
             Ravtron <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#3674B5] to-[#578FCA]">Shop</span>
           </h1>
-          <p className="text-sm font-semibold text-[#1E293B]/50 leading-relaxed">
+          <p className="text-xs md:text-sm font-semibold text-[#1E293B]/50 leading-relaxed max-w-md mx-auto">
             Our complete catalog of professional GaN power delivery adapters, display cabling, and workstation gear.
           </p>
         </div>
 
-        {/* Filter Pills */}
-        <div className="flex flex-wrap items-center justify-center gap-3 py-2 border-y border-[#1E293B]/5">
+        {/* Filter Pills (Horizontal Scroll on Mobile, Flex Wrap on Desktop) */}
+        <div className="flex overflow-x-auto justify-start md:justify-center gap-2 md:gap-3 py-2.5 border-y border-[#1E293B]/5 scrollbar-none -mx-4 px-4 md:mx-0 md:px-0 scroll-smooth">
           {filterOptions.map((opt) => (
             <button
               key={opt}
               onClick={() => handleFilterClick(opt)}
-              className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all duration-300 hover:scale-[1.03] active:scale-97 border ${
+              className={`px-4 py-2 md:px-5 md:py-2.5 rounded-full text-[11px] md:text-xs font-bold transition-all duration-300 hover:scale-[1.03] active:scale-97 border flex-shrink-0 ${
                 activeCategory === opt
                   ? "bg-[#3674B5] text-white border-[#3674B5] shadow-md shadow-[#3674B5]/15"
                   : "bg-white text-[#1E293B]/60 border-[#1E293B]/10 hover:text-[#1E293B] hover:border-[#1E293B]/20"
@@ -78,9 +78,9 @@ function ShopContent() {
           ))}
         </div>
 
-        {/* Products Grid */}
+        {/* Products Grid (2 columns on mobile, 4 columns on desktop) */}
         {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-8">
             {filteredProducts.map((product) => {
               const isWishlisted = wishlist.some((item) => item.id === product.id);
               const specItems = product.shortSpec.split(" · ");
@@ -99,7 +99,7 @@ function ShopContent() {
               return (
                 <div
                   key={product.id}
-                  className="group relative rounded-[2.5rem] bg-white border border-[#1E293B]/10 p-6 flex flex-col justify-between hover-lift transition-all duration-500 overflow-hidden cursor-pointer shadow-2xs"
+                  className="group relative rounded-2xl md:rounded-[2.5rem] bg-white border border-[#1E293B]/10 p-3 md:p-6 flex flex-col justify-between hover-lift transition-all duration-500 overflow-hidden cursor-pointer shadow-2xs"
                   onClick={() => router.push(`/product/${product.id}`)}
                 >
                   {/* Hover ambient light */}
@@ -113,8 +113,8 @@ function ShopContent() {
                   <div>
                     {/* Top Row: Badges & Wishlist */}
                     <div className="flex items-center justify-between z-10 relative">
-                      <span className="text-[10px] font-extrabold uppercase px-3 py-1 rounded-full backdrop-blur-md bg-white/80 border border-[#1E293B]/10 text-[#1E293B] tracking-wider flex items-center gap-1.5 shadow-xs">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
+                      <span className="text-[8px] md:text-[10px] font-extrabold uppercase px-2 py-0.5 md:px-3 md:py-1 rounded-full backdrop-blur-md bg-white/80 border border-[#1E293B]/10 text-[#1E293B] tracking-wider flex items-center gap-1.5 shadow-xs">
+                        <span className="w-1 md:w-1.5 h-1 md:h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
                         {product.discountBadge}
                       </span>
 
@@ -123,7 +123,7 @@ function ShopContent() {
                           e.stopPropagation();
                           toggleWishlist(product);
                         }}
-                        className={`p-2.5 rounded-full border backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-xs ${
+                        className={`p-2 md:p-2.5 rounded-full border backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-xs ${
                           isWishlisted
                             ? "bg-[#3674B5]/15 border-[#3674B5]/40 text-[#3674B5]"
                             : "bg-white/80 border-[#1E293B]/10 text-[#1E293B]/40 hover:text-[#1E293B] hover:bg-white"
@@ -131,7 +131,7 @@ function ShopContent() {
                         aria-label="Add to Wishlist"
                       >
                         <svg
-                          className="w-4.5 h-4.5"
+                          className="w-3.5 h-3.5 md:w-4.5 md:h-4.5"
                           fill={isWishlisted ? "currentColor" : "none"}
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -147,7 +147,7 @@ function ShopContent() {
                     </div>
 
                     {/* Image Area */}
-                    <div className="relative aspect-square w-full rounded-[2rem] bg-[#FFFFFF] overflow-hidden mt-3 mb-5 transition-colors duration-500 group-hover:bg-[#F8F9FA]">
+                    <div className="relative aspect-square w-full rounded-xl md:rounded-[2rem] bg-[#FFFFFF] overflow-hidden mt-2 md:mt-3 mb-3 md:mb-5 transition-colors duration-500 group-hover:bg-[#F8F9FA]">
                       <div className="absolute inset-0 bg-gradient-to-tr from-[#1A1917]/0 to-[#1A1917]/2 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                       <img
                         src={product.image}
@@ -159,25 +159,26 @@ function ShopContent() {
                       />
                     </div>
 
-                    {/* Meta row */}
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between text-[10px] font-bold text-[#1E293B]/40 uppercase tracking-widest">
+                    {/* Meta info block */}
+                    <div className="space-y-2 md:space-y-4">
+                      <div className="flex items-center justify-between text-[8px] md:text-[10px] font-bold text-[#1E293B]/40 uppercase tracking-widest">
                         <span>{product.category}</span>
-                        <span className="flex items-center gap-1.5">
+                        <span className="flex items-center gap-1 md:gap-1.5">
                           <span
-                            className="w-2.5 h-2.5 rounded-full border border-[#1E293B]/15 shadow-xs"
+                            className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full border border-[#1E293B]/15 shadow-xs"
                             style={{ backgroundColor: swatchColor }}
                             title={product.color}
                           />
-                          <span className="text-[9px] font-semibold tracking-normal text-[#1E293B]/50 lowercase first-letter:uppercase">{product.color}</span>
+                          <span className="text-[8px] md:text-[9px] font-semibold tracking-normal text-[#1E293B]/50 lowercase first-letter:uppercase">{product.color}</span>
                         </span>
                       </div>
 
-                      <h3 className="font-display font-bold text-lg text-[#1E293B] tracking-tight line-clamp-1 group-hover:text-[#3674B5] transition-colors duration-300">
+                      <h3 className="font-display font-bold text-xs md:text-lg text-[#1E293B] tracking-tight line-clamp-1 group-hover:text-[#3674B5] transition-colors duration-300">
                         {product.name}
                       </h3>
 
-                      <div className="flex flex-wrap gap-1.5">
+                      {/* Hidden on mobile to fit 2-column grid cleanly */}
+                      <div className="hidden sm:flex flex-wrap gap-1.5">
                         {specItems.map((spec, i) => (
                           <span
                             key={i}
@@ -188,13 +189,13 @@ function ShopContent() {
                         ))}
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 md:gap-2">
                         <div className="flex items-center text-amber-400">
                           {Array.from({ length: 5 }).map((_, i) => (
                             <svg
                               key={i}
-                              className={`w-3.5 h-3.5 ${
-                                i < Math.floor(product.rating) ? "fill-current" : "stroke-current fill-none"
+                              className={`w-2.5 h-2.5 md:w-3.5 md:h-3.5 ${
+                                  i < Math.floor(product.rating) ? "fill-current" : "stroke-current fill-none"
                               }`}
                               viewBox="0 0 24 24"
                             >
@@ -207,23 +208,23 @@ function ShopContent() {
                             </svg>
                           ))}
                         </div>
-                        <span className="text-xs font-bold text-[#1E293B]">{product.rating}</span>
-                        <span className="text-[10px] text-[#1E293B]/40 font-medium">({product.reviewsCount} reviews)</span>
+                        <span className="text-[10px] md:text-xs font-bold text-[#1E293B]">{product.rating}</span>
+                        <span className="text-[9px] md:text-[10px] text-[#1E293B]/40 font-medium">({product.reviewsCount})</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Price & Add to Cart */}
-                  <div className="flex items-center justify-between pt-4 border-t border-[#1E293B]/10 mt-6 relative z-10">
+                  <div className="flex items-center justify-between pt-2.5 md:pt-4 border-t border-[#1E293B]/10 mt-3 md:mt-6 relative z-10">
                     <div className="space-y-0.5">
-                      <span className="text-[9px] font-extrabold text-[#3674B5] uppercase tracking-wider">
+                      <span className="text-[8px] md:text-[9px] font-extrabold text-[#3674B5] uppercase tracking-wider">
                         Save ₹{(product.originalPrice - product.price).toLocaleString()}
                       </span>
-                      <div className="flex items-baseline gap-1.5">
-                        <span className="text-xl font-black text-[#3674B5]">
+                      <div className="flex items-baseline gap-1 md:gap-1.5">
+                        <span className="text-sm md:text-xl font-black text-[#3674B5]">
                           ₹{product.price.toLocaleString()}
                         </span>
-                        <span className="text-xs text-[#1E293B]/30 line-through font-medium">
+                        <span className="text-[10px] md:text-xs text-[#1E293B]/30 line-through font-medium">
                           ₹{product.originalPrice.toLocaleString()}
                         </span>
                       </div>
@@ -234,10 +235,10 @@ function ShopContent() {
                         e.stopPropagation();
                         addToCart(product);
                       }}
-                      className="px-5 py-3 rounded-2xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-bold transition-all duration-300 hover:scale-[1.03] active:scale-97 flex items-center gap-1.5 shadow-md shadow-[#1A1917]/5"
+                      className="px-3 py-2 md:px-5 md:py-3 rounded-xl md:rounded-2xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-[10px] md:text-xs font-bold transition-all duration-300 hover:scale-[1.03] active:scale-97 flex items-center gap-1 shadow-md shadow-[#1A1917]/5"
                     >
                       <span>Add</span>
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="w-3 h-3 md:w-3.5 md:h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
                       </svg>
                     </button>

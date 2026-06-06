@@ -31,7 +31,7 @@ export default function Newsletter() {
   };
 
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8">
+    <section className="py-8 md:py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto rounded-[2.5rem] bg-[#F8F9FA] border border-[#1E293B]/10 p-8 sm:p-16 text-center space-y-6 relative overflow-hidden shadow-sm">
         
         {/* Ambient background light */}

@@ -22,8 +22,8 @@ export default function HowItWorks() {
   ];
 
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-16">
+    <section className="py-8 md:py-16 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto space-y-8 md:space-y-12">
         
         {/* Section Header */}
         <div className="text-center space-y-3 max-w-2xl mx-auto">
@@ -40,11 +40,11 @@ export default function HowItWorks() {
           </p>
         </div>
 
-        {/* Steps Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16 relative">
+        {/* Steps Grid - Desktop View */}
+        <div className="hidden md:grid md:grid-cols-3 gap-12 lg:gap-16 relative">
           
           {/* Connector Line on Desktop */}
-          <div className="hidden md:block absolute top-12 left-[15%] right-[15%] h-[1px] bg-[#3674B5]/10 z-0"></div>
+          <div className="absolute top-12 left-[15%] right-[15%] h-[1px] bg-[#3674B5]/10 z-0"></div>
 
           {steps.map((step) => (
             <div key={step.num} className="relative z-10 flex flex-col items-center text-center space-y-4">
@@ -63,6 +63,35 @@ export default function HowItWorks() {
               <p className="text-sm text-[#1E293B]/60 leading-relaxed max-w-xs font-medium">
                 {step.description}
               </p>
+
+            </div>
+          ))}
+        </div>
+
+        {/* Mobile View - Vertical Steps Timeline */}
+        <div className="md:hidden relative pl-6 space-y-8">
+          {/* Vertical Connector Line */}
+          <div className="absolute top-3 bottom-3 left-[15px] w-[2px] bg-[#3674B5]/15 z-0"></div>
+
+          {steps.map((step) => (
+            <div key={step.num} className="relative z-10 flex items-start gap-4 text-left">
+              
+              {/* Number Circle Badge */}
+              <div className="w-8 h-8 rounded-full bg-[#F8F9FA] border border-white flex items-center justify-center shadow-sm flex-shrink-0">
+                <span className="font-display font-black text-xs text-[#3674B5]">
+                  {step.num}
+                </span>
+              </div>
+
+              {/* Title & Description */}
+              <div className="space-y-1">
+                <h3 className="font-bold text-base text-[#1E293B]">
+                  {step.title}
+                </h3>
+                <p className="text-xs text-[#1E293B]/60 leading-relaxed font-medium">
+                  {step.description}
+                </p>
+              </div>
 
             </div>
           ))}

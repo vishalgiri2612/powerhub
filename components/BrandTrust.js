@@ -15,8 +15,8 @@ export default function BrandTrust() {
   ];
 
   return (
-    <section className="py-12 bg-white border-y border-[#1E293B]/10 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6 flex flex-col items-center text-center">
+    <section className="py-4 md:py-8 bg-white border-y border-[#1E293B]/10 overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4 flex flex-col items-center text-center">
         <span className="text-[10px] font-extrabold text-[#1E293B]/40 uppercase tracking-widest">
           Universal Compatibility & Safety Standards
         </span>

@@ -65,7 +65,7 @@ export default function Stats() {
   }, [visible]);
 
   return (
-    <section ref={sectionRef} className="px-4 sm:px-6 lg:px-8 py-6">
+    <section ref={sectionRef} className="px-4 sm:px-6 lg:px-8 py-4 md:py-6">
       <div className="max-w-7xl mx-auto rounded-3xl bg-[#F8F9FA]/60 border border-[#1E293B]/10 p-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-4 items-center">
           {statsList.map((stat, idx) => {

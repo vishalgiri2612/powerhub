@@ -13,15 +13,15 @@ export default function NewArrivals() {
   const newProducts = products.filter((p) => p.isNew);
 
   return (
-    <section className="py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-bg-brand">
+    <section className="py-8 md:py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-bg-brand">
       {/* Decorative subtle background ambient glows */}
       <div className="absolute top-1/4 right-1/10 w-96 h-96 rounded-full bg-[#E8EFE5] opacity-35 blur-3xl pointer-events-none z-0" />
       <div className="absolute bottom-1/4 left-1/10 w-96 h-96 rounded-full bg-[#E5D0C6] opacity-25 blur-3xl pointer-events-none z-0" />
 
-      <div className="max-w-7xl mx-auto space-y-16 relative z-10">
-        
+      <div className="max-w-7xl mx-auto space-y-8 md:space-y-12 relative z-10">
+
         {/* Section Header with Premium Sage theme */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-[#1E293B]/10 pb-8">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-[#1E293B]/10 pb-4 md:pb-8">
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/30">
               <span className="w-1.5 h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
@@ -34,7 +34,7 @@ export default function NewArrivals() {
             </h2>
           </div>
           <div>
-            <button 
+            <button
               onClick={() => alert("Loading all new arrivals...")}
               className="group text-xs font-extrabold uppercase tracking-widest text-[#3674B5] hover:text-[#1E293B] transition-all flex items-center gap-2 bg-white border border-[#1E293B]/10 rounded-full px-5 py-3 hover-lift shadow-xs"
             >
@@ -45,35 +45,36 @@ export default function NewArrivals() {
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        {/* Products Grid (Horizontal Scroll on Mobile, Grid on Desktop) */}
+        <div className="flex overflow-x-auto md:grid md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 pb-6 -mx-4 px-4 md:mx-0 md:px-0 snap-x snap-mandatory scrollbar-none">
           {newProducts.map((product) => {
             const isWishlisted = wishlist.some((item) => item.id === product.id);
             const specItems = product.shortSpec.split(" · ");
 
             // Determine ambient glow color based on product ID/theme
-            const glowColor = 
-              product.id === "p5" ? "rgba(195, 146, 129, 0.15)" : 
-              product.id === "p3" ? "rgba(222, 200, 158, 0.25)" : 
-              "rgba(140, 153, 133, 0.15)";
+            const glowColor =
+              product.id === "p5" ? "rgba(195, 146, 129, 0.15)" :
+                product.id === "p3" ? "rgba(222, 200, 158, 0.25)" :
+                  "rgba(140, 153, 133, 0.15)";
 
             // Determine swatch color
-            const swatchColor = 
+            const swatchColor =
               product.color.includes("Sage") ? "#8C9985" :
-              product.color.includes("Sand") || product.color.includes("Gold") ? "#DEC89E" :
-              product.color.includes("Clay") ? "#C39281" :
-              product.color.includes("Cream") ? "#EDECE6" : "#1A1917";
+                product.color.includes("Sand") || product.color.includes("Gold") ? "#DEC89E" :
+                  product.color.includes("Clay") ? "#C39281" :
+                    product.color.includes("Cream") ? "#EDECE6" : "#1A1917";
 
             return (
               <div
                 key={product.id}
-                className="group relative rounded-[2.5rem] bg-white border border-[#1E293B]/10 p-5 flex flex-col justify-between hover-lift transition-all duration-500 overflow-hidden cursor-pointer"
+                className="group relative rounded-[2.5rem] bg-white border border-[#1E293B]/10 p-5 flex flex-col justify-between hover-lift transition-all duration-500 overflow-hidden cursor-pointer flex-shrink-0 w-[280px] sm:w-[320px] md:w-auto snap-center"
                 style={{
                   boxShadow: "0 10px 30px -15px rgba(26, 25, 23, 0.03)"
                 }}
                 onClick={() => router.push(`/product/${product.id}`)}
               >
                 {/* Floating Ambient Hover Glow */}
-                <div 
+                <div
                   className="absolute -top-20 -left-20 w-56 h-56 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
                   style={{
                     background: `radial-gradient(circle, ${glowColor} 0%, transparent 70%)`
@@ -87,30 +88,29 @@ export default function NewArrivals() {
                       <span className="w-1.5 h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
                       NEW RELEASE
                     </span>
-                    
+
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleWishlist(product);
                       }}
-                      className={`p-2.5 rounded-full border backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-xs ${
-                        isWishlisted 
-                          ? "bg-[#3674B5]/15 border-[#3674B5]/40 text-[#3674B5]" 
-                          : "bg-white/80 border-[#1E293B]/10 text-[#1E293B]/40 hover:text-[#1E293B] hover:bg-white"
-                      }`}
+                      className={`p-2.5 rounded-full border backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-xs ${isWishlisted
+                        ? "bg-[#3674B5]/15 border-[#3674B5]/40 text-[#3674B5]"
+                        : "bg-white/80 border-[#1E293B]/10 text-[#1E293B]/40 hover:text-[#1E293B] hover:bg-white"
+                        }`}
                       aria-label="Add to Wishlist"
                     >
-                      <svg 
-                        className="w-4.5 h-4.5" 
-                        fill={isWishlisted ? "currentColor" : "none"} 
-                        viewBox="0 0 24 24" 
+                      <svg
+                        className="w-4.5 h-4.5"
+                        fill={isWishlisted ? "currentColor" : "none"}
+                        viewBox="0 0 24 24"
                         stroke="currentColor"
                       >
-                        <path 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round" 
-                          strokeWidth={2} 
-                          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
                         />
                       </svg>
                     </button>
@@ -135,25 +135,25 @@ export default function NewArrivals() {
                     <div className="flex items-center justify-between text-[10px] font-bold text-[#1E293B]/40 uppercase tracking-widest">
                       <span>{product.category}</span>
                       <span className="flex items-center gap-1.5">
-                        <span 
-                          className="w-2.5 h-2.5 rounded-full border border-[#1E293B]/15 shadow-xs" 
+                        <span
+                          className="w-2.5 h-2.5 rounded-full border border-[#1E293B]/15 shadow-xs"
                           style={{ backgroundColor: swatchColor }}
                           title={product.color}
                         />
                         <span className="text-[9px] font-semibold tracking-normal text-[#1E293B]/50 lowercase first-letter:uppercase">{product.color}</span>
                       </span>
                     </div>
-                    
+
                     {/* Name */}
                     <h3 className="font-display font-bold text-lg text-[#1E293B] tracking-tight line-clamp-1 group-hover:text-[#3674B5] transition-colors duration-300">
                       {product.name}
                     </h3>
-                    
+
                     {/* Specifications Grid Tags */}
                     <div className="flex flex-wrap gap-1.5">
                       {specItems.map((spec, i) => (
-                        <span 
-                          key={i} 
+                        <span
+                          key={i}
                           className="text-[10px] font-semibold text-[#1E293B]/60 bg-[#F8F9FA] px-2.5 py-1 rounded-lg border border-[#1E293B]/2"
                         >
                           {spec}
@@ -167,9 +167,8 @@ export default function NewArrivals() {
                         {Array.from({ length: 5 }).map((_, i) => (
                           <svg
                             key={i}
-                            className={`w-3.5 h-3.5 ${
-                              i < Math.floor(product.rating) ? "fill-current" : "stroke-current fill-none"
-                            }`}
+                            className={`w-3.5 h-3.5 ${i < Math.floor(product.rating) ? "fill-current" : "stroke-current fill-none"
+                              }`}
                             viewBox="0 0 24 24"
                           >
                             <path
@@ -203,7 +202,7 @@ export default function NewArrivals() {
                       </span>
                     </div>
                   </div>
-                  
+
                   <button
                     onClick={(e) => {
                       e.stopPropagation();

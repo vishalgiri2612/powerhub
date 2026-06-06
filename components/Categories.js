@@ -57,14 +57,14 @@ export default function Categories() {
   };
 
   return (
-    <section id="categories" className="py-20 px-4 sm:px-6 lg:px-8 bg-bg-brand relative overflow-hidden">
+    <section id="categories" className="pt-4 pb-4 md:py-16 px-4 sm:px-6 lg:px-8 bg-bg-brand relative overflow-hidden">
       {/* Decorative background gradients */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[70%] bg-radial from-[#F3F4F6] to-transparent opacity-40 pointer-events-none -z-10" />
 
-      <div className="max-w-7xl mx-auto space-y-12">
+      <div className="max-w-7xl mx-auto space-y-8 md:space-y-12">
 
         {/* Section Header */}
-        <div className="text-center space-y-5 max-w-2xl mx-auto pb-5 border-b border-[#1E293B]/10">
+        <div className="text-center space-y-3 md:space-y-5 max-w-2xl mx-auto pb-4 md:pb-5 border-b border-[#1E293B]/10">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/30">
             <span className="w-1.5 h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
             <span className="text-[10px] font-extrabold text-[#3674B5] uppercase tracking-wider">
@@ -79,8 +79,8 @@ export default function Categories() {
           </p>
         </div>
 
-        {/* Categories Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        {/* Categories Grid (Horizontal Scroll on Mobile, Grid on Desktop) */}
+        <div className="flex overflow-x-auto md:grid md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 pb-2 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 snap-x snap-mandatory scrollbar-none">
           {categories.map((category) => {
             const theme = themeMap[category.name] || {
               bg: "bg-[#3674B5]/5",
@@ -92,7 +92,7 @@ export default function Categories() {
             return (
               <div
                 key={category.name}
-                className="group relative rounded-[2rem] bg-white border border-[#1E293B]/10 overflow-hidden flex flex-col justify-between hover-lift transition-all duration-500 cursor-pointer h-full"
+                className="group relative rounded-[2rem] bg-white border border-[#1E293B]/10 overflow-hidden flex flex-col justify-between hover-lift transition-all duration-500 cursor-pointer h-full flex-shrink-0 w-[280px] sm:w-[320px] md:w-auto snap-center"
                 style={{
                   boxShadow: "0 10px 30px -15px rgba(26, 25, 23, 0.03)"
                 }}

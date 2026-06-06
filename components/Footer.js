@@ -1,5 +1,7 @@
-import React from "react";
-import { Zap, MessageCircle, CreditCard } from "lucide-react";
+"use client";
+
+import React, { useState } from "react";
+import { Zap, MessageCircle, CreditCard, ChevronDown, ChevronUp } from "lucide-react";
 import Link from "next/link";
 
 export default function Footer() {
@@ -33,15 +35,28 @@ export default function Footer() {
     { name: "LinkedIn", href: "#" }
   ];
 
+  const [openSections, setOpenSections] = useState({
+    shop: false,
+    support: false,
+    contact: false,
+  });
+
+  const toggleSection = (section) => {
+    setOpenSections((prev) => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
   return (
-    <footer className="bg-[#F8F9FA] border-t border-[#1E293B]/15 pt-16 pb-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-12">
+    <footer className="bg-[#F8F9FA] border-t border-[#1E293B]/15 pt-8 pb-8 md:pt-16 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto space-y-8 md:space-y-12">
         
         {/* Main Footer Links Block */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-8 lg:gap-12">
           
           {/* Brand Info Column */}
-          <div className="space-y-4 lg:col-span-2">
+          <div className="space-y-4 md:col-span-2 border-b border-[#1E293B]/10 md:border-0 pb-6 md:pb-0">
             <Link href="/" className="flex items-center group">
               <img 
                 src="/images/logo.png" 
@@ -91,9 +106,21 @@ export default function Footer() {
           </div>
 
           {/* Shop Column */}
-          <div className="space-y-4">
-            <h4 className="text-xs font-black text-[#1E293B] uppercase tracking-widest">Shop Gear</h4>
-            <ul className="space-y-2.5">
+          <div className="space-y-0 md:space-y-4 border-b border-[#1E293B]/10 md:border-0 pb-2 md:pb-0">
+            <button 
+              onClick={() => toggleSection("shop")} 
+              className="w-full flex items-center justify-between py-3 text-left md:pointer-events-none md:py-0 focus:outline-none"
+            >
+              <h4 className="text-xs font-black text-[#1E293B] uppercase tracking-widest">Shop Gear</h4>
+              <span className="md:hidden text-[#1E293B]/50">
+                {openSections.shop ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
+              </span>
+            </button>
+            <ul className={`${openSections.shop ? "block" : "hidden"} md:block space-y-2.5 mt-1 md:mt-4 pb-4 md:pb-0`}>
               {shopLinks.map((link) => (
                 <li key={link.name}>
                   <Link
@@ -108,9 +135,21 @@ export default function Footer() {
           </div>
 
           {/* Support Column */}
-          <div className="space-y-4">
-            <h4 className="text-xs font-black text-[#1E293B] uppercase tracking-widest">Customer Care</h4>
-            <ul className="space-y-2.5">
+          <div className="space-y-0 md:space-y-4 border-b border-[#1E293B]/10 md:border-0 pb-2 md:pb-0">
+            <button 
+              onClick={() => toggleSection("support")} 
+              className="w-full flex items-center justify-between py-3 text-left md:pointer-events-none md:py-0 focus:outline-none"
+            >
+              <h4 className="text-xs font-black text-[#1E293B] uppercase tracking-widest">Customer Care</h4>
+              <span className="md:hidden text-[#1E293B]/50">
+                {openSections.support ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
+              </span>
+            </button>
+            <ul className={`${openSections.support ? "block" : "hidden"} md:block space-y-2.5 mt-1 md:mt-4 pb-4 md:pb-0`}>
               {supportLinks.map((link) => (
                 <li key={link.name}>
                   <a
@@ -125,9 +164,21 @@ export default function Footer() {
           </div>
 
           {/* Company & Contact Column */}
-          <div className="space-y-4">
-            <h4 className="text-xs font-black text-[#1E293B] uppercase tracking-widest">Contact Details</h4>
-            <ul className="space-y-3.5 text-sm font-semibold text-[#1E293B]/70">
+          <div className="space-y-0 md:space-y-4 pb-2 md:pb-0">
+            <button 
+              onClick={() => toggleSection("contact")} 
+              className="w-full flex items-center justify-between py-3 text-left md:pointer-events-none md:py-0 focus:outline-none"
+            >
+              <h4 className="text-xs font-black text-[#1E293B] uppercase tracking-widest">Contact Details</h4>
+              <span className="md:hidden text-[#1E293B]/50">
+                {openSections.contact ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
+              </span>
+            </button>
+            <ul className={`${openSections.contact ? "block" : "hidden"} md:block space-y-3.5 mt-2 md:mt-4 pb-4 md:pb-0 text-sm font-semibold text-[#1E293B]/70`}>
               <li className="flex flex-col">
                 <span className="text-[10px] font-bold text-[#1E293B]/40 uppercase tracking-wide">Write to Us</span>
                 <a href="mailto:support@ravtron.co" className="hover:text-[#3674B5] transition-colors mt-0.5">

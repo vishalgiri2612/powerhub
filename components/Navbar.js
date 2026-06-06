@@ -61,8 +61,8 @@ export default function Navbar() {
       }>
         <nav className={
           isScrolled
-            ? "max-w-5xl mx-auto bg-[#FFFFFF] border border-[#1E293B]/10 rounded-full px-6 py-2.5 flex items-center justify-between shadow-lg hover:shadow-xl navbar-transition"
-            : "max-w-full mx-auto bg-[#FFFFFF] border-b border-[#1E293B]/10 rounded-none px-8 sm:px-12 py-5 flex items-center justify-between navbar-transition"
+            ? "max-w-5xl mx-auto bg-[#FFFFFF] border border-[#1E293B]/10 rounded-full px-4 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between shadow-lg hover:shadow-xl navbar-transition"
+            : "max-w-full mx-auto bg-[#FFFFFF] border-b border-[#1E293B]/10 rounded-none px-4 sm:px-12 py-3.5 sm:py-5 flex items-center justify-between navbar-transition"
         }>
           
           {/* Logo Brand */}
@@ -70,7 +70,7 @@ export default function Navbar() {
             <img 
               src="/images/logo.png" 
               alt="RAVTRON®" 
-              className="h-[28px] w-auto object-contain mix-blend-multiply transition-all duration-300 group-hover:scale-105"
+              className="h-[24px] sm:h-[28px] w-auto object-contain mix-blend-multiply transition-all duration-300 group-hover:scale-105"
             />
           </Link>
 
@@ -88,11 +88,11 @@ export default function Navbar() {
           </div>
 
           {/* Action Icons & CTAs */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1 sm:gap-4">
             {/* Search Icon */}
             <button 
               onClick={() => setIsSearchOpen(true)}
-              className="p-2 rounded-full hover:bg-[#3674B5]/5 text-[#1E293B]/70 hover:text-[#1E293B] transition-all hover:scale-105 active:scale-95"
+              className="p-1.5 sm:p-2 rounded-full hover:bg-[#3674B5]/5 text-[#1E293B]/70 hover:text-[#1E293B] transition-all hover:scale-105 active:scale-95"
               aria-label="Search Products"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -103,14 +103,14 @@ export default function Navbar() {
             {/* Wishlist Button */}
             <button 
               onClick={() => alert(`Your Wishlist contains ${wishlist.length} item(s)`)}
-              className="p-2 rounded-full hover:bg-[#3674B5]/5 text-[#1E293B]/70 hover:text-[#1E293B] transition-all relative hover:scale-105 active:scale-95"
+              className="p-1.5 sm:p-2 rounded-full hover:bg-[#3674B5]/5 text-[#1E293B]/70 hover:text-[#1E293B] transition-all relative hover:scale-105 active:scale-95"
               aria-label="Wishlist"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
               {wishlist.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-[#3674B5] text-white text-[10px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center animate-pulse">
+                <span className="absolute -top-0.5 -right-0.5 bg-[#3674B5] text-white text-[9px] font-extrabold w-3.5 h-3.5 rounded-full flex items-center justify-center animate-pulse">
                   {wishlist.length}
                 </span>
               )}
@@ -119,14 +119,14 @@ export default function Navbar() {
             {/* Cart Button */}
             <button 
               onClick={() => setIsCartOpen(true)}
-              className="p-2 rounded-full hover:bg-[#3674B5]/5 text-[#1E293B]/70 hover:text-[#1E293B] transition-all relative hover:scale-105 active:scale-95"
+              className="p-1.5 sm:p-2 rounded-full hover:bg-[#3674B5]/5 text-[#1E293B]/70 hover:text-[#1E293B] transition-all relative hover:scale-105 active:scale-95"
               aria-label="Cart"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
               {getCartCount() > 0 && (
-                <span className="absolute -top-1 -right-1 bg-[#3674B5] text-white text-[10px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center">
+                <span className="absolute -top-0.5 -right-0.5 bg-[#3674B5] text-white text-[9px] font-extrabold w-3.5 h-3.5 rounded-full flex items-center justify-center">
                   {getCartCount()}
                 </span>
               )}
@@ -146,7 +146,7 @@ export default function Navbar() {
             {/* Mobile Menu Toggle */}
             <button 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-full hover:bg-[#3674B5]/5 text-[#1E293B]/70 hover:text-[#1E293B]"
+              className="md:hidden p-1.5 sm:p-2 rounded-full hover:bg-[#3674B5]/5 text-[#1E293B]/70 hover:text-[#1E293B]"
               aria-label="Toggle Menu"
             >
               {mobileMenuOpen ? (

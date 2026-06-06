@@ -36,8 +36,8 @@ export default function Testimonials() {
   ];
 
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-[#F8F9FA]/40">
-      <div className="max-w-7xl mx-auto space-y-12">
+    <section className="py-8 md:py-16 px-4 sm:px-6 lg:px-8 bg-[#F8F9FA]/40">
+      <div className="max-w-7xl mx-auto space-y-8 md:space-y-12">
         
         {/* Section Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">

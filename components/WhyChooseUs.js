@@ -4,6 +4,18 @@ import React from "react";
 import { Zap, Shield, Truck, RotateCcw, Award, Headphones } from "lucide-react";
 
 export default function WhyChooseUs() {
+  const [activeIndex, setActiveIndex] = React.useState(0);
+  const scrollRef = React.useRef(null);
+
+  const handleScroll = (e) => {
+    const container = e.currentTarget;
+    const cardWidth = container.scrollWidth / features.length;
+    const index = Math.round(container.scrollLeft / cardWidth);
+    if (index >= 0 && index < features.length) {
+      setActiveIndex(index);
+    }
+  };
+
   const features = [
     {
       icon: Zap,
@@ -38,8 +50,8 @@ export default function WhyChooseUs() {
   ];
 
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-[#F8F9FA]/20">
-      <div className="max-w-7xl mx-auto space-y-12">
+    <section className="py-8 md:py-16 px-4 sm:px-6 lg:px-8 bg-[#F8F9FA]/20">
+      <div className="max-w-7xl mx-auto space-y-8 md:space-y-12">
 
         {/* Section Header */}
         <div className="text-center space-y-3 max-w-2xl mx-auto">
@@ -56,14 +68,18 @@ export default function WhyChooseUs() {
           </p>
         </div>
 
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {/* Features Grid (Horizontal Scroll on Mobile, Grid on Desktop) */}
+        <div
+          ref={scrollRef}
+          onScroll={handleScroll}
+          className="flex overflow-x-auto md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 pb-4 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 snap-x snap-mandatory scrollbar-none"
+        >
           {features.map((feat) => {
             const IconComponent = feat.icon;
             return (
               <div
                 key={feat.title}
-                className="group rounded-3xl bg-white border border-[#1E293B]/10 p-8 hover-lift transition-all"
+                className="group rounded-3xl bg-white border border-[#1E293B]/10 p-6 md:p-8 hover-lift transition-all flex-shrink-0 w-[270px] sm:w-[320px] md:w-auto snap-center"
               >
                 {/* Icon Sphere */}
                 <div className="w-12 h-12 rounded-2xl bg-[#FFFFFF] group-hover:bg-[#578FCA] text-[#3674B5] group-hover:text-white flex items-center justify-center transition-all duration-300">
@@ -71,15 +87,37 @@ export default function WhyChooseUs() {
                 </div>
 
                 {/* Title & Description */}
-                <h3 className="font-bold text-lg text-[#1E293B] mt-6 transition-colors group-hover:text-[#3674B5]">
+                <h3 className="font-bold text-lg text-[#1E293B] mt-4 md:mt-6 transition-colors group-hover:text-[#3674B5]">
                   {feat.title}
                 </h3>
-                <p className="text-sm text-[#1E293B]/60 leading-relaxed mt-2.5 font-medium">
+                <p className="text-sm text-[#1E293B]/60 leading-relaxed mt-2 md:mt-2.5 font-medium">
                   {feat.description}
                 </p>
               </div>
             );
           })}
+        </div>
+
+        {/* Mobile Page Indicators */}
+        <div className="flex justify-center gap-1.5 pt-2 md:hidden">
+          {features.map((_, idx) => (
+            <button
+              key={idx}
+              className={`h-1.5 rounded-full transition-all duration-300 ${
+                activeIndex === idx ? "w-6 bg-[#3674B5]" : "w-1.5 bg-[#3674B5]/20"
+              }`}
+              onClick={() => {
+                if (scrollRef.current) {
+                  const cardWidth = scrollRef.current.scrollWidth / features.length;
+                  scrollRef.current.scrollTo({
+                    left: idx * cardWidth,
+                    behavior: "smooth"
+                  });
+                }
+              }}
+              aria-label={`Go to slide ${idx + 1}`}
+            />
+          ))}
         </div>
 
       </div>
