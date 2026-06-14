@@ -89,15 +89,15 @@ export default function Hero() {
     >
       {/* Dynamic Cable Connection Animation Background - Desktop */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 select-none opacity-95 hidden md:block translate-y-8">
-        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 1440 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 1440 800" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ overflow: "visible" }}>
           {/* Gradients */}
           <defs>
-            <linearGradient id="left-cable-grad" x1="0" y1="0" x2="1" y2="0">
+            <linearGradient id="left-cable-grad" x1="-100" y1="730" x2="620" y2="730" gradientUnits="userSpaceOnUse">
               <stop offset="0%" stopColor="#1E293B" />
               <stop offset="60%" stopColor="#3674B5" />
               <stop offset="100%" stopColor="#1E293B" />
             </linearGradient>
-            <linearGradient id="right-cable-grad" x1="0" y1="0" x2="1" y2="0">
+            <linearGradient id="right-cable-grad" x1="820" y1="730" x2="1540" y2="730" gradientUnits="userSpaceOnUse">
               <stop offset="0%" stopColor="#1E293B" />
               <stop offset="40%" stopColor="#DEC89E" />
               <stop offset="100%" stopColor="#1E293B" />
@@ -244,10 +244,10 @@ export default function Hero() {
               transition: "transform 1s cubic-bezier(0.25, 1, 0.5, 1)"
             }}
           >
-            <path d="M -100 730 C 150 750 350 710 500 730 H 620" stroke="url(#left-cable-grad)" strokeWidth="7" strokeLinecap="round" />
-            <path d="M -100 730 C 150 750 350 710 500 730 H 620" stroke="#578FCA" strokeWidth="2" strokeLinecap="round" strokeDasharray="6 4" opacity="0.75" />
+            <path d="M -1000 730 H -100 C 150 750 350 710 500 730 H 620" stroke="url(#left-cable-grad)" strokeWidth="7" strokeLinecap="round" />
+            <path d="M -1000 730 H -100 C 150 750 350 710 500 730 H 620" stroke="#578FCA" strokeWidth="2" strokeLinecap="round" strokeDasharray="6 4" opacity="0.75" />
             <path
-              d="M -100 730 C 150 750 350 710 500 730 H 620"
+              d="M -1000 730 H -100 C 150 750 350 710 500 730 H 620"
               stroke="#38BDF8"
               strokeWidth="2.5"
               strokeLinecap="round"
@@ -278,10 +278,10 @@ export default function Hero() {
               transition: "transform 1s cubic-bezier(0.25, 1, 0.5, 1)"
             }}
           >
-            <path d="M 1540 730 C 1290 710 1090 750 940 730 H 820" stroke="url(#right-cable-grad)" strokeWidth="9" strokeLinecap="round" />
-            <path d="M 1540 730 C 1290 710 1090 750 940 730 H 820" stroke="#DEC89E" strokeWidth="2.5" strokeLinecap="round" strokeDasharray="6 4" opacity="0.75" />
+            <path d="M 2440 730 H 1540 C 1290 710 1090 750 940 730 H 820" stroke="url(#right-cable-grad)" strokeWidth="9" strokeLinecap="round" />
+            <path d="M 2440 730 H 1540 C 1290 710 1090 750 940 730 H 820" stroke="#DEC89E" strokeWidth="2.5" strokeLinecap="round" strokeDasharray="6 4" opacity="0.75" />
             <path
-              d="M 1540 730 C 1290 710 1090 750 940 730 H 820"
+              d="M 2440 730 H 1540 C 1290 710 1090 750 940 730 H 820"
               stroke="#DEC89E"
               strokeWidth="3"
               strokeLinecap="round"
@@ -426,7 +426,7 @@ export default function Hero() {
 
         {/* Right Image Column */}
         <div className="lg:col-span-6 relative flex flex-col items-center justify-center lg:justify-end gap-3 md:gap-0 mt-0 lg:mt-0">
-          <div className="relative w-full max-w-[480px] lg:max-w-[450px]">
+          <div className="relative z-10 w-full max-w-[480px] lg:max-w-[450px]">
 
             {/* Floating Ambient Glow Background Ring */}
             <div className="absolute inset-0 bg-[#E5D0C6]/40 rounded-full blur-3xl scale-95 z-0"></div>
@@ -507,7 +507,7 @@ export default function Hero() {
           </div>
 
           {/* Feature Badges (Mobile Only - Row below the frame to prevent overlap) */}
-          <div className="flex md:hidden flex-wrap items-center justify-center gap-2 mt-4 w-full max-w-[480px]">
+          <div className="flex md:hidden flex-wrap items-center justify-center gap-2 mt-4 w-full max-w-[480px] relative z-10">
             <div className="glass-pill px-3.5 py-2 rounded-xl border flex items-center gap-2 shadow-sm">
               <span className="p-1.5 rounded-lg bg-[#3674B5]/10 text-[#3674B5] flex items-center justify-center">
                 <Plug className="w-3.5 h-3.5 fill-current" />
@@ -552,16 +552,16 @@ export default function Hero() {
           </div>
 
           {/* Mobile Cable Animation (Placed below the Feature Badges) */}
-          <div className="block md:hidden w-full h-[50px] relative overflow-hidden pointer-events-none select-none mt-2 mb-2 z-10">
-            <svg className="absolute inset-0 w-full h-full" viewBox="460 680 520 100" preserveAspectRatio="xMidYMid meet" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <div className="block md:hidden w-full h-[90px] relative overflow-visible pointer-events-none select-none mt-4 mb-4 z-0">
+            <svg className="absolute inset-0 w-full h-full" viewBox="530 685 380 90" preserveAspectRatio="xMidYMid meet" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ overflow: "visible" }}>
               {/* Gradients */}
               <defs>
-                <linearGradient id="left-cable-grad-mobile" x1="0" y1="0" x2="1" y2="0">
+                <linearGradient id="left-cable-grad-mobile" x1="-100" y1="730" x2="620" y2="730" gradientUnits="userSpaceOnUse">
                   <stop offset="0%" stopColor="#1E293B" />
                   <stop offset="60%" stopColor="#3674B5" />
                   <stop offset="100%" stopColor="#1E293B" />
                 </linearGradient>
-                <linearGradient id="right-cable-grad-mobile" x1="0" y1="0" x2="1" y2="0">
+                <linearGradient id="right-cable-grad-mobile" x1="820" y1="730" x2="1540" y2="730" gradientUnits="userSpaceOnUse">
                   <stop offset="0%" stopColor="#1E293B" />
                   <stop offset="40%" stopColor="#DEC89E" />
                   <stop offset="100%" stopColor="#1E293B" />
@@ -699,10 +699,10 @@ export default function Hero() {
                   transition: "transform 1s cubic-bezier(0.25, 1, 0.5, 1)"
                 }}
               >
-                <path d="M -100 730 C 150 750 350 710 500 730 H 620" stroke="url(#left-cable-grad-mobile)" strokeWidth="7" strokeLinecap="round" />
-                <path d="M -100 730 C 150 750 350 710 500 730 H 620" stroke="#578FCA" strokeWidth="2" strokeLinecap="round" strokeDasharray="6 4" opacity="0.75" />
+                <path d="M -1000 730 H -100 C 150 750 350 710 500 730 H 620" stroke="url(#left-cable-grad-mobile)" strokeWidth="7" strokeLinecap="round" />
+                <path d="M -1000 730 H -100 C 150 750 350 710 500 730 H 620" stroke="#578FCA" strokeWidth="2" strokeLinecap="round" strokeDasharray="6 4" opacity="0.75" />
                 <path
-                  d="M -100 730 C 150 750 350 710 500 730 H 620"
+                  d="M -1000 730 H -100 C 150 750 350 710 500 730 H 620"
                   stroke="#38BDF8"
                   strokeWidth="2.5"
                   strokeLinecap="round"
@@ -733,10 +733,10 @@ export default function Hero() {
                   transition: "transform 1s cubic-bezier(0.25, 1, 0.5, 1)"
                 }}
               >
-                <path d="M 1540 730 C 1290 710 1090 750 940 730 H 820" stroke="url(#right-cable-grad-mobile)" strokeWidth="9" strokeLinecap="round" />
-                <path d="M 1540 730 C 1290 710 1090 750 940 730 H 820" stroke="#DEC89E" strokeWidth="2.5" strokeLinecap="round" strokeDasharray="6 4" opacity="0.75" />
+                <path d="M 2440 730 H 1540 C 1290 710 1090 750 940 730 H 820" stroke="url(#right-cable-grad-mobile)" strokeWidth="9" strokeLinecap="round" />
+                <path d="M 2440 730 H 1540 C 1290 710 1090 750 940 730 H 820" stroke="#DEC89E" strokeWidth="2.5" strokeLinecap="round" strokeDasharray="6 4" opacity="0.75" />
                 <path
-                  d="M 1540 730 C 1290 710 1090 750 940 730 H 820"
+                  d="M 2440 730 H 1540 C 1290 710 1090 750 940 730 H 820"
                   stroke="#DEC89E"
                   strokeWidth="3"
                   strokeLinecap="round"

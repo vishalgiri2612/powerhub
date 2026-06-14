@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "../app/context/CartContext";
-import { products } from "../app/data/products";
 import { Search } from "lucide-react";
 
 export default function SearchModal() {
@@ -13,10 +12,18 @@ export default function SearchModal() {
   const [filtered, setFiltered] = useState([]);
   const inputRef = useRef(null);
 
+  const [productList, setProductList] = useState([]);
+
   useEffect(() => {
     if (isSearchOpen) {
       inputRef.current?.focus();
       document.body.style.overflow = "hidden";
+      
+      // Load dynamic products from API
+      fetch("/api/products")
+        .then((res) => res.json())
+        .then((data) => setProductList(data))
+        .catch((e) => console.error("Failed to fetch products for search", e));
     } else {
       document.body.style.overflow = "";
     }
@@ -29,7 +36,7 @@ export default function SearchModal() {
     if (query.trim() === "") {
       setFiltered([]);
     } else {
-      const match = products.filter(
+      const match = productList.filter(
         (p) =>
           p.name.toLowerCase().includes(query.toLowerCase()) ||
           p.category.toLowerCase().includes(query.toLowerCase()) ||
@@ -37,7 +44,7 @@ export default function SearchModal() {
       );
       setFiltered(match);
     }
-  }, [query]);
+  }, [query, productList]);
 
   // Handle escape key
   useEffect(() => {

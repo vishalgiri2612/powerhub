@@ -15,20 +15,29 @@ export default function Navbar() {
   } = useCart();
   
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [authOpen, setAuthOpen] = useState(false);
-  const [authMode, setAuthMode] = useState("login"); // 'login' | 'signup'
-  const [authEmail, setAuthEmail] = useState("");
-  const [authPassword, setAuthPassword] = useState("");
-  const [authName, setAuthName] = useState("");
+  const [user, setUser] = useState(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  const handleAuthSubmit = (e) => {
-    e.preventDefault();
-    alert(`Success: Logged in as ${authEmail}`);
-    setAuthOpen(false);
-    setAuthEmail("");
-    setAuthPassword("");
-    setAuthName("");
-  };
+  useEffect(() => {
+    const checkUser = () => {
+      const session = localStorage.getItem("ravtron_session");
+      if (session) {
+        setUser(JSON.parse(session));
+      } else {
+        setUser(null);
+      }
+    };
+
+    checkUser();
+
+    window.addEventListener("storage", checkUser);
+    window.addEventListener("ravtron_auth_change", checkUser);
+
+    return () => {
+      window.removeEventListener("storage", checkUser);
+      window.removeEventListener("ravtron_auth_change", checkUser);
+    };
+  }, []);
 
   const navLinks = [
     { name: "Home", href: "/" },
@@ -41,11 +50,12 @@ export default function Navbar() {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 20) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
+      // Hysteresis threshold to prevent scroll jitter/flicker at boundaries
+      setIsScrolled((prev) => {
+        if (window.scrollY > 60) return true;
+        if (window.scrollY < 15) return false;
+        return prev;
+      });
     };
     window.addEventListener("scroll", handleScroll);
     handleScroll();
@@ -54,16 +64,16 @@ export default function Navbar() {
 
   return (
     <>
-      <header className={
+      <header className={`sticky z-[90] w-full transition-all duration-500 ease-in-out ${
         isScrolled
-          ? "sticky top-4 z-[90] w-full px-4 sm:px-6 lg:px-8 navbar-transition"
-          : "sticky top-0 z-[90] w-full px-0 navbar-transition"
-      }>
-        <nav className={
+          ? "top-3 px-4 sm:px-6 lg:px-8"
+          : "top-0 px-0"
+      }`}>
+        <nav className={`mx-auto flex items-center justify-between transition-all duration-500 ease-in-out ${
           isScrolled
-            ? "max-w-5xl mx-auto bg-[#FFFFFF] border border-[#1E293B]/10 rounded-full px-4 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between shadow-lg hover:shadow-xl navbar-transition"
-            : "max-w-full mx-auto bg-[#FFFFFF] border-b border-[#1E293B]/10 rounded-none px-4 sm:px-12 py-3.5 sm:py-5 flex items-center justify-between navbar-transition"
-        }>
+            ? "max-w-5xl bg-white/95 backdrop-blur-md border border-[#1E293B]/10 rounded-full px-4 sm:px-6 py-2 shadow-lg hover:shadow-xl"
+            : "max-w-full bg-white border-b border-[#1E293B]/10 rounded-none px-4 sm:px-12 py-3.5 sm:py-5 shadow-none"
+        }`}>
           
           {/* Logo Brand */}
           <Link href="/" className="flex items-center group">
@@ -132,16 +142,78 @@ export default function Navbar() {
               )}
             </button>
 
-            {/* Login / Sign Up Button */}
-            <button 
-              onClick={() => {
-                setAuthMode("login");
-                setAuthOpen(true);
-              }}
-              className="hidden sm:inline-flex px-5 py-2.5 rounded-full bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-bold transition-all hover:scale-105 active:scale-95"
-            >
-              Login / Sign Up
-            </button>
+            {/* Login / Sign Up or Profile Dropdown */}
+            {user ? (
+              <div className="relative">
+                <button
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="flex items-center gap-2 p-1 rounded-full hover:bg-[#3674B5]/5 border border-[#1E293B]/5 transition-all text-[#1E293B] hover:scale-102"
+                >
+                  {user.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt={user.name}
+                      className="w-8 h-8 rounded-full object-cover border border-[#3674B5]/20"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full border border-[#3674B5]/20 bg-[#3674B5]/10 text-[#3674B5] flex items-center justify-center font-display font-extrabold text-xs uppercase">
+                      {user.name ? user.name.charAt(0) : "U"}
+                    </div>
+                  )}
+                  <span className="hidden lg:inline text-xs font-extrabold pr-2">{user.name ? user.name.split(" ")[0] : "User"}</span>
+                </button>
+
+                {dropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 rounded-2xl bg-white border border-[#1E293B]/10 p-2.5 shadow-xl z-[999] animate-fade-in-up flex flex-col gap-1">
+                    <div className="px-3 py-2 border-b border-[#1E293B]/5 mb-1.5 text-left">
+                      <p className="text-[10px] font-bold text-[#1E293B]/40 uppercase tracking-wider">Account</p>
+                      <p className="text-xs font-black text-[#1E293B] truncate">{user.name}</p>
+                    </div>
+                    <Link
+                      href="/profile"
+                      onClick={() => setDropdownOpen(false)}
+                      className="px-3 py-2.5 rounded-xl hover:bg-[#3674B5]/5 text-xs font-extrabold text-[#1E293B]/70 hover:text-[#1E293B] transition-all flex items-center gap-2 text-left"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      <span>Dashboard</span>
+                    </Link>
+                    <Link
+                      href="/admin"
+                      onClick={() => setDropdownOpen(false)}
+                      className="px-3 py-2.5 rounded-xl hover:bg-[#3674B5]/5 text-xs font-extrabold text-[#1E293B]/70 hover:text-[#1E293B] transition-all flex items-center gap-2 text-left"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                      <span>Admin Panel</span>
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setDropdownOpen(false);
+                        localStorage.removeItem("ravtron_session");
+                        window.dispatchEvent(new Event("ravtron_auth_change"));
+                        window.location.href = "/";
+                      }}
+                      className="px-3 py-2.5 rounded-xl hover:bg-rose-50 text-xs font-extrabold text-rose-600 hover:text-rose-700 transition-all flex items-center gap-2 text-left w-full"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="hidden sm:inline-flex px-5 py-2.5 rounded-full bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-bold transition-all hover:scale-105 active:scale-95 text-center"
+              >
+                Login / Sign Up
+              </Link>
+            )}
 
             {/* Mobile Menu Toggle */}
             <button 
@@ -175,108 +247,39 @@ export default function Navbar() {
                 {link.name}
               </Link>
             ))}
-            <button 
-              onClick={() => {
-                setMobileMenuOpen(false);
-                setAuthMode("login");
-                setAuthOpen(true);
-              }}
-              className="w-full py-3 rounded-xl bg-[#3674B5] text-white text-sm font-bold transition-all text-center"
-            >
-              Login / Sign Up
-            </button>
+            {user ? (
+              <div className="flex flex-col gap-2 pt-2 border-t border-[#1E293B]/5 w-full">
+                <Link
+                  href="/profile"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full py-3 rounded-xl bg-[#3674B5]/5 hover:bg-[#3674B5]/10 text-[#3674B5] text-sm font-bold transition-all text-center block"
+                >
+                  My Profile Dashboard
+                </Link>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    localStorage.removeItem("ravtron_session");
+                    window.dispatchEvent(new Event("ravtron_auth_change"));
+                    window.location.href = "/";
+                  }}
+                  className="w-full py-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-sm font-bold transition-all text-center"
+                >
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full py-3 rounded-xl bg-[#3674B5] text-white text-sm font-bold transition-all text-center"
+              >
+                Login / Sign Up
+              </Link>
+            )}
           </div>
         )}
       </header>
-
-      {/* Authentication Modal Popup */}
-      {authOpen && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center px-4 bg-[#3674B5]/40 backdrop-blur-md">
-          <div className="w-full max-w-md rounded-2xl glass-panel p-8 shadow-2xl relative">
-            <button 
-              onClick={() => setAuthOpen(false)}
-              className="absolute top-4 right-4 p-2 rounded-full hover:bg-[#3674B5]/5 text-[#1E293B]/60"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-
-            <h3 className="text-2xl font-bold font-display text-[#1E293B] text-center mb-6">
-              {authMode === "login" ? "Welcome Back" : "Create Account"}
-            </h3>
-
-            <form onSubmit={handleAuthSubmit} className="space-y-4">
-              {authMode === "signup" && (
-                <div>
-                  <label className="block text-xs font-bold text-[#1E293B]/60 uppercase mb-1.5">Full Name</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="John Doe"
-                    className="w-full bg-[#F8F9FA] border border-[#1E293B]/10 rounded-xl px-4 py-3 text-sm font-medium text-[#1E293B] outline-none focus:border-[#3674B5]"
-                    value={authName}
-                    onChange={(e) => setAuthName(e.target.value)}
-                  />
-                </div>
-              )}
-              <div>
-                <label className="block text-xs font-bold text-[#1E293B]/60 uppercase mb-1.5">Email Address</label>
-                <input
-                  type="email"
-                  required
-                  placeholder="john@example.com"
-                  className="w-full bg-[#F8F9FA] border border-[#1E293B]/10 rounded-xl px-4 py-3 text-sm font-medium text-[#1E293B] outline-none focus:border-[#3674B5]"
-                  value={authEmail}
-                  onChange={(e) => setAuthEmail(e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-[#1E293B]/60 uppercase mb-1.5">Password</label>
-                <input
-                  type="password"
-                  required
-                  placeholder="••••••••"
-                  className="w-full bg-[#F8F9FA] border border-[#1E293B]/10 rounded-xl px-4 py-3 text-sm font-medium text-[#1E293B] outline-none focus:border-[#3674B5]"
-                  value={authPassword}
-                  onChange={(e) => setAuthPassword(e.target.value)}
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full py-3.5 rounded-xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-sm font-bold shadow-lg transition-all hover:scale-[1.02] active:scale-95 mt-2"
-              >
-                {authMode === "login" ? "Login" : "Sign Up"}
-              </button>
-            </form>
-
-            <div className="mt-6 text-center text-xs text-[#1E293B]/60">
-              {authMode === "login" ? (
-                <p>
-                  Don't have an account?{" "}
-                  <button 
-                    onClick={() => setAuthMode("signup")}
-                    className="text-[#3674B5] font-bold hover:underline"
-                  >
-                    Sign Up
-                  </button>
-                </p>
-              ) : (
-                <p>
-                  Already have an account?{" "}
-                  <button 
-                    onClick={() => setAuthMode("login")}
-                    className="text-[#3674B5] font-bold hover:underline"
-                  >
-                    Login
-                  </button>
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }

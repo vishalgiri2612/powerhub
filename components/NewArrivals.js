@@ -1,16 +1,23 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "../app/context/CartContext";
-import { products } from "../app/data/products";
 
 export default function NewArrivals() {
   const router = useRouter();
   const { addToCart, toggleWishlist, wishlist } = useCart();
+  const [productList, setProductList] = useState([]);
+
+  useEffect(() => {
+    fetch("/api/products")
+      .then((res) => res.json())
+      .then((data) => setProductList(data))
+      .catch((e) => console.error("Failed to fetch products for arrivals", e));
+  }, []);
 
   // Filter to show new products
-  const newProducts = products.filter((p) => p.isNew);
+  const newProducts = productList.filter((p) => p.isNew);
 
   return (
     <section className="py-8 md:py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-bg-brand">
@@ -117,7 +124,7 @@ export default function NewArrivals() {
                   </div>
 
                   {/* Product Image Frame */}
-                  <div className="relative aspect-square w-full rounded-[2rem] bg-[#FFFFFF] overflow-hidden mt-3 mb-5 transition-colors duration-500 group-hover:bg-[#F8F9FA]">
+                  <div className="relative aspect-square w-full rounded-[2rem] bg-[#FFFFFF] overflow-hidden mt-3 mb-3 transition-colors duration-500 group-hover:bg-[#F8F9FA]">
                     <div className="absolute inset-0 bg-gradient-to-tr from-[#1A1917]/0 to-[#1A1917]/2 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     <img
                       src={product.image}
@@ -130,7 +137,7 @@ export default function NewArrivals() {
                   </div>
 
                   {/* Info Container */}
-                  <div className="space-y-4">
+                  <div className="space-y-2">
                     {/* Category & Color Indicator Row */}
                     <div className="flex items-center justify-between text-[10px] font-bold text-[#1E293B]/40 uppercase tracking-widest">
                       <span>{product.category}</span>
@@ -188,7 +195,7 @@ export default function NewArrivals() {
                 </div>
 
                 {/* Pricing and Button row */}
-                <div className="flex items-center justify-between pt-4 border-t border-[#1E293B]/10 mt-6 relative z-10">
+                <div className="flex items-center justify-between pt-3 border-t border-[#1E293B]/10 mt-4 relative z-10">
                   <div className="space-y-0.5">
                     <span className="text-[9px] font-extrabold text-[#3674B5] uppercase tracking-wider">
                       Save ₹{(product.originalPrice - product.price).toLocaleString()}

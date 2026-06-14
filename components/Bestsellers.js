@@ -1,16 +1,23 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "../app/context/CartContext";
-import { products } from "../app/data/products";
 
 export default function Bestsellers() {
   const router = useRouter();
   const { addToCart, toggleWishlist, wishlist } = useCart();
+  const [productList, setProductList] = useState([]);
+
+  useEffect(() => {
+    fetch("/api/products")
+      .then((res) => res.json())
+      .then((data) => setProductList(data))
+      .catch((e) => console.error("Failed to fetch products for bestsellers", e));
+  }, []);
 
   // Show all products in the shop section
-  const bestsellerProducts = products;
+  const bestsellerProducts = productList;
 
   return (
     <section id="store" className="py-8 md:py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-bg-brand">
@@ -47,7 +54,7 @@ export default function Bestsellers() {
           }}
         >
 
-          <div className="animate-marquee-triple flex gap-8">
+          <div className="animate-marquee-triple flex gap-3 sm:gap-8">
             {[...bestsellerProducts, ...bestsellerProducts, ...bestsellerProducts].map((product, idx) => {
               const isWishlisted = wishlist.some((item) => item.id === product.id);
               const specItems = product.shortSpec.split(" · ");
@@ -68,7 +75,7 @@ export default function Bestsellers() {
               return (
                 <div
                   key={`${product.id}-${idx}`}
-                  className="group relative w-[280px] sm:w-[340px] lg:w-[384px] flex-shrink-0 rounded-[2.5rem] bg-white border border-[#1E293B]/10 p-5 flex flex-col justify-between hover-lift transition-all duration-500 overflow-hidden cursor-pointer"
+                  className="group relative w-[160px] sm:w-[340px] lg:w-[384px] flex-shrink-0 rounded-[1.5rem] sm:rounded-[2.5rem] bg-white border border-[#1E293B]/10 p-3 sm:p-5 flex flex-col justify-between hover-lift transition-all duration-500 overflow-hidden cursor-pointer"
                   style={{
                     boxShadow: "0 10px 30px -15px rgba(26, 25, 23, 0.03)"
                   }}
@@ -85,8 +92,8 @@ export default function Bestsellers() {
                   <div>
                     {/* Product Card Top: Badges & Wishlist */}
                     <div className="flex items-center justify-between z-10 relative">
-                      <span className="text-[10px] font-extrabold uppercase px-3 py-1 rounded-full backdrop-blur-md bg-white/80 border border-[#1E293B]/10 text-[#1E293B] tracking-wider flex items-center gap-1.5 shadow-xs">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
+                      <span className="text-[8px] sm:text-[10px] font-extrabold uppercase px-2 py-0.5 sm:px-3 sm:py-1 rounded-full backdrop-blur-md bg-white/80 border border-[#1E293B]/10 text-[#1E293B] tracking-wider flex items-center gap-1.5 shadow-xs">
+                        <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
                         {product.discountBadge}
                       </span>
 
@@ -95,14 +102,14 @@ export default function Bestsellers() {
                           e.stopPropagation();
                           toggleWishlist(product);
                         }}
-                        className={`p-2.5 rounded-full border backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-xs ${isWishlisted
+                        className={`p-1.5 sm:p-2.5 rounded-full border backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-xs ${isWishlisted
                           ? "bg-[#3674B5]/15 border-[#3674B5]/40 text-[#3674B5]"
                           : "bg-white/80 border-[#1E293B]/10 text-[#1E293B]/40 hover:text-[#1E293B] hover:bg-white"
                           }`}
                         aria-label="Add to Wishlist"
                       >
                         <svg
-                          className="w-4.5 h-4.5"
+                          className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5"
                           fill={isWishlisted ? "currentColor" : "none"}
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -118,7 +125,7 @@ export default function Bestsellers() {
                     </div>
 
                     {/* Product Image Frame */}
-                    <div className="relative aspect-square w-full rounded-[2rem] bg-[#FFFFFF] overflow-hidden mt-3 mb-5 transition-colors duration-500 group-hover:bg-[#F8F9FA]">
+                    <div className="relative aspect-square w-full rounded-[1.2rem] sm:rounded-[2rem] bg-[#FFFFFF] overflow-hidden mt-2 mb-2 sm:mt-3 sm:mb-3 transition-colors duration-500 group-hover:bg-[#F8F9FA]">
                       <div className="absolute inset-0 bg-gradient-to-tr from-[#1A1917]/0 to-[#1A1917]/2 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                       <img
                         src={product.image}
@@ -131,31 +138,31 @@ export default function Bestsellers() {
                     </div>
 
                     {/* Info Container */}
-                    <div className="space-y-4">
+                    <div className="space-y-1.5 sm:space-y-2">
                       {/* Category & Color Indicator Row */}
-                      <div className="flex items-center justify-between text-[10px] font-bold text-[#1E293B]/40 uppercase tracking-widest">
+                      <div className="flex items-center justify-between text-[8px] sm:text-[10px] font-bold text-[#1E293B]/40 uppercase tracking-wider sm:tracking-widest">
                         <span>{product.category}</span>
-                        <span className="flex items-center gap-1.5">
+                        <span className="flex items-center gap-1 sm:gap-1.5">
                           <span
-                            className="w-2.5 h-2.5 rounded-full border border-[#1E293B]/15 shadow-xs"
+                            className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full border border-[#1E293B]/15 shadow-xs"
                             style={{ backgroundColor: swatchColor }}
                             title={product.color}
                           />
-                          <span className="text-[9px] font-semibold tracking-normal text-[#1E293B]/50 lowercase first-letter:uppercase">{product.color}</span>
+                          <span className="text-[8px] sm:text-[9px] font-semibold tracking-normal text-[#1E293B]/50 lowercase first-letter:uppercase">{product.color}</span>
                         </span>
                       </div>
 
                       {/* Name */}
-                      <h3 className="font-display font-bold text-lg text-[#1E293B] tracking-tight line-clamp-1 group-hover:text-[#3674B5] transition-colors duration-300">
+                      <h3 className="font-display font-bold text-xs sm:text-lg text-[#1E293B] tracking-tight line-clamp-1 group-hover:text-[#3674B5] transition-colors duration-300">
                         {product.name}
                       </h3>
 
                       {/* Specifications Grid Tags */}
-                      <div className="flex flex-wrap gap-1.5">
+                      <div className="flex flex-wrap gap-1 sm:gap-1.5">
                         {specItems.map((spec, i) => (
                           <span
                             key={i}
-                            className="text-[10px] font-semibold text-[#1E293B]/60 bg-[#F8F9FA] px-2.5 py-1 rounded-lg border border-[#1E293B]/2"
+                            className="text-[8px] sm:text-[10px] font-semibold text-[#1E293B]/60 bg-[#F8F9FA] px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg border border-[#1E293B]/2"
                           >
                             {spec}
                           </span>
@@ -163,12 +170,12 @@ export default function Bestsellers() {
                       </div>
 
                       {/* Star Rating & Reviews */}
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 sm:gap-2">
                         <div className="flex items-center text-amber-400">
                           {Array.from({ length: 5 }).map((_, i) => (
                             <svg
                               key={i}
-                              className={`w-3.5 h-3.5 ${i < Math.floor(product.rating) ? "fill-current" : "stroke-current fill-none"
+                              className={`w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 ${i < Math.floor(product.rating) ? "fill-current" : "stroke-current fill-none"
                                 }`}
                               viewBox="0 0 24 24"
                             >
@@ -181,23 +188,23 @@ export default function Bestsellers() {
                             </svg>
                           ))}
                         </div>
-                        <span className="text-xs font-bold text-[#1E293B]">{product.rating}</span>
-                        <span className="text-[10px] text-[#1E293B]/40 font-medium">({product.reviewsCount} verified reviews)</span>
+                        <span className="text-[10px] sm:text-xs font-bold text-[#1E293B]">{product.rating}</span>
+                        <span className="text-[8px] sm:text-[10px] text-[#1E293B]/40 font-medium line-clamp-1">({product.reviewsCount} reviews)</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Pricing and Button row */}
-                  <div className="flex items-center justify-between pt-4 border-t border-[#1E293B]/10 mt-6 relative z-10">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-2 sm:pt-3 border-t border-[#1E293B]/10 mt-2 sm:mt-4 relative z-10 gap-2 sm:gap-0">
                     <div className="space-y-0.5">
-                      <span className="text-[9px] font-extrabold text-[#3674B5] uppercase tracking-wider">
+                      <span className="text-[8px] sm:text-[9px] font-extrabold text-[#3674B5] uppercase tracking-wider">
                         Save ₹{(product.originalPrice - product.price).toLocaleString()}
                       </span>
-                      <div className="flex items-baseline gap-1.5">
-                        <span className="text-xl font-black text-[#3674B5]">
+                      <div className="flex items-baseline gap-1 sm:gap-1.5">
+                        <span className="text-sm sm:text-xl font-black text-[#3674B5]">
                           ₹{product.price.toLocaleString()}
                         </span>
-                        <span className="text-xs text-[#1E293B]/30 line-through font-medium">
+                        <span className="text-[10px] sm:text-xs text-[#1E293B]/30 line-through font-medium">
                           ₹{product.originalPrice.toLocaleString()}
                         </span>
                       </div>
@@ -208,10 +215,10 @@ export default function Bestsellers() {
                         e.stopPropagation();
                         addToCart(product);
                       }}
-                      className="px-5 py-3 rounded-2xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-bold transition-all duration-300 hover:scale-[1.03] active:scale-97 flex items-center gap-1.5 shadow-md shadow-[#1A1917]/5"
+                      className="w-full sm:w-auto px-3 py-2 sm:px-5 sm:py-3 rounded-xl sm:rounded-2xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-[10px] sm:text-xs font-bold transition-all duration-300 hover:scale-[1.03] active:scale-97 flex items-center justify-center gap-1 sm:gap-1.5 shadow-md shadow-[#1A1917]/5"
                     >
                       <span>Add</span>
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
                       </svg>
                     </button>

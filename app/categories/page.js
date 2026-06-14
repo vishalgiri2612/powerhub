@@ -1,8 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { categories } from "../data/products";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import SearchModal from "../../components/SearchModal";
@@ -78,6 +77,14 @@ const getCategoryIcon = (categoryName) => {
 
 export default function CategoriesPage() {
   const router = useRouter();
+  const [categoriesList, setCategoriesList] = useState([]);
+
+  useEffect(() => {
+    fetch("/api/categories")
+      .then((res) => res.json())
+      .then((data) => setCategoriesList(data))
+      .catch((e) => console.error("Failed to fetch categories list", e));
+  }, []);
 
   const handleCategoryClick = (categoryName) => {
     router.push(`/shop?category=${encodeURIComponent(categoryName)}`);
@@ -107,7 +114,7 @@ export default function CategoriesPage() {
 
         {/* Categories Grid (2 Columns on Mobile, 4 Columns on Large Screens) */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-8">
-          {categories.map((category) => {
+          {categoriesList.map((category) => {
             const theme = themeMap[category.name] || {
               bg: "bg-[#3674B5]/5",
               border: "border-[#1E293B]/15",

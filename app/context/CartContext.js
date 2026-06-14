@@ -17,7 +17,7 @@ export function CartProvider({ children }) {
 
   // Toast notification helper
   const showToast = (message, type = "success") => {
-    const id = Date.now();
+    const id = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     setToasts((prev) => [...prev, { id, message, type }]);
     setTimeout(() => {
       setToasts((prev) => prev.filter((toast) => toast.id !== id));
@@ -36,6 +36,7 @@ export function CartProvider({ children }) {
       showToast(`Added ${quantityToAdd}x ${product.name} to cart`);
       return [...prevCart, { ...product, quantity: quantityToAdd }];
     });
+    setIsCartOpen(true);
   };
 
   const removeFromCart = (productId) => {
@@ -93,6 +94,12 @@ export function CartProvider({ children }) {
     showToast("Coupon code removed");
   };
 
+  const clearCart = () => {
+    setCart([]);
+    setDiscount(0);
+    setCoupon("");
+  };
+
   const getSubtotal = () => {
     return cart.reduce((total, item) => total + item.price * item.quantity, 0);
   };
@@ -123,6 +130,7 @@ export function CartProvider({ children }) {
         toggleWishlist,
         applyCouponCode,
         removeCoupon,
+        clearCart,
         getSubtotal,
         getCartCount,
         showToast,

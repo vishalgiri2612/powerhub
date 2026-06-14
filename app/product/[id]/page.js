@@ -3,7 +3,6 @@
 import React, { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "../../context/CartContext";
-import { products } from "../../data/products";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
 import { Star, Package, Zap, RotateCcw } from "lucide-react";
@@ -40,18 +39,41 @@ export default function ProductDetailPage({ params }) {
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState("overview");
 
-  // Fetch product detail
-  const product = products.find((p) => p.id === id);
-  const [selectedImage, setSelectedImage] = useState(product?.image || "");
+  // Fetch product detail dynamically
+  const [product, setProduct] = useState(null);
+  const [selectedImage, setSelectedImage] = useState("");
+  const [allProductsList, setAllProductsList] = useState([]);
+
+  useEffect(() => {
+    // 1. Fetch all products (for related accessories)
+    fetch("/api/products")
+      .then((res) => res.json())
+      .then((data) => {
+        setAllProductsList(data);
+      })
+      .catch((err) => console.error("Failed to fetch all products for related", err));
+
+    // 2. Fetch specific product detail
+    fetch(`/api/products/${id}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Product not found");
+        return res.json();
+      })
+      .then((data) => {
+        setProduct(data);
+        setSelectedImage(data.image || "");
+      })
+      .catch((err) => {
+        console.error("Failed to fetch product details", err);
+        setProduct(null);
+      });
+  }, [id]);
 
   useEffect(() => {
     setQuantity(1);
     setActiveTab("overview");
-    if (product) {
-      setSelectedImage(product.image);
-    }
     window.scrollTo(0, 0);
-  }, [id, product]);
+  }, [id]);
 
   // Auto-cycle gallery images every 3 seconds
   useEffect(() => {
@@ -91,7 +113,7 @@ export default function ProductDetailPage({ params }) {
   const specItems = product.shortSpec.split(" · ");
 
   // Related products (filtered from same category or next items in the list)
-  const relatedProducts = products.filter((p) => p.id !== product.id).slice(0, 3);
+  const relatedProducts = allProductsList.filter((p) => p.id !== product.id).slice(0, 3);
 
   // Styling accents based on product ID/theme
   const isSage = product.id === "p1" || product.id === "p5";

@@ -3,7 +3,6 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCart } from "../context/CartContext";
-import { products, categories } from "../data/products";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import SearchModal from "../../components/SearchModal";
@@ -16,6 +15,21 @@ function ShopContent() {
 
   const { addToCart, toggleWishlist, wishlist } = useCart();
   const [activeCategory, setActiveCategory] = useState("All");
+  const [productList, setProductList] = useState([]);
+  const [categoriesList, setCategoriesList] = useState([]);
+
+  // Load custom products from MongoDB APIs
+  useEffect(() => {
+    fetch("/api/products")
+      .then((res) => res.json())
+      .then((data) => setProductList(data))
+      .catch((e) => console.error("Failed to fetch products for shop", e));
+
+    fetch("/api/categories")
+      .then((res) => res.json())
+      .then((data) => setCategoriesList(data))
+      .catch((e) => console.error("Failed to fetch categories for shop", e));
+  }, []);
 
   // Sync category state with query parameter
   useEffect(() => {
@@ -35,10 +49,10 @@ function ShopContent() {
   };
 
   const filteredProducts = activeCategory === "All"
-    ? products
-    : products.filter((p) => p.category === activeCategory);
+    ? productList
+    : productList.filter((p) => p.category === activeCategory);
 
-  const filterOptions = ["All", ...categories.map((c) => c.name)];
+  const filterOptions = ["All", ...categoriesList.map((c) => c.name)];
 
   return (
     <div className="min-h-screen bg-bg-brand text-text-brand antialiased selection:bg-[#3674B5] selection:text-white">
@@ -147,7 +161,7 @@ function ShopContent() {
                     </div>
 
                     {/* Image Area */}
-                    <div className="relative aspect-square w-full rounded-xl md:rounded-[2rem] bg-[#FFFFFF] overflow-hidden mt-2 md:mt-3 mb-3 md:mb-5 transition-colors duration-500 group-hover:bg-[#F8F9FA]">
+                    <div className="relative aspect-square w-full rounded-xl md:rounded-[2rem] bg-[#FFFFFF] overflow-hidden mt-2 md:mt-3 mb-2 md:mb-3 transition-colors duration-500 group-hover:bg-[#F8F9FA]">
                       <div className="absolute inset-0 bg-gradient-to-tr from-[#1A1917]/0 to-[#1A1917]/2 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                       <img
                         src={product.image}
@@ -160,7 +174,7 @@ function ShopContent() {
                     </div>
 
                     {/* Meta info block */}
-                    <div className="space-y-2 md:space-y-4">
+                    <div className="space-y-1.5 md:space-y-2">
                       <div className="flex items-center justify-between text-[8px] md:text-[10px] font-bold text-[#1E293B]/40 uppercase tracking-widest">
                         <span>{product.category}</span>
                         <span className="flex items-center gap-1 md:gap-1.5">
@@ -215,7 +229,7 @@ function ShopContent() {
                   </div>
 
                   {/* Price & Add to Cart */}
-                  <div className="flex items-center justify-between pt-2.5 md:pt-4 border-t border-[#1E293B]/10 mt-3 md:mt-6 relative z-10">
+                  <div className="flex items-center justify-between pt-2 md:pt-3 border-t border-[#1E293B]/10 mt-2 md:mt-4 relative z-10">
                     <div className="space-y-0.5">
                       <span className="text-[8px] md:text-[9px] font-extrabold text-[#3674B5] uppercase tracking-wider">
                         Save ₹{(product.originalPrice - product.price).toLocaleString()}

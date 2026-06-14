@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useCart } from "../app/context/CartContext";
 import { ShoppingBag, Tag } from "lucide-react";
 
 export default function CartDrawer() {
+  const router = useRouter();
   const {
     cart,
     isCartOpen,
@@ -16,6 +18,8 @@ export default function CartDrawer() {
     applyCouponCode,
     removeCoupon,
     getSubtotal,
+    clearCart,
+    showToast
   } = useCart();
 
   const [promoInput, setPromoInput] = useState("");
@@ -218,11 +222,21 @@ export default function CartDrawer() {
             {/* Checkout Button */}
             <button
               onClick={() => {
-                alert(`Proceeding to checkout with total amount: ₹${grandTotal.toLocaleString()}`);
+                const session = localStorage.getItem("ravtron_session");
+                if (!session) {
+                  showToast("Please log in to complete your checkout", "error");
+                  setIsCartOpen(false);
+                  router.push("/login");
+                  return;
+                }
+
+                // Close drawer and redirect to checkout page
+                setIsCartOpen(false);
+                router.push("/checkout");
               }}
               className="w-full py-4 rounded-xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-sm font-bold shadow-lg transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
             >
-              <span>Secure Checkout</span>
+              <span>Proceed to Checkout</span>
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
