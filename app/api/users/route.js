@@ -16,15 +16,20 @@ export async function PUT(request) {
   try {
     await dbConnect();
     const body = await request.json();
-    const { email, role } = body;
+    const { email, role, name, active } = body;
 
     if (!email) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
+    const updateFields = {};
+    if (role !== undefined) updateFields.role = role;
+    if (name !== undefined) updateFields.name = name;
+    if (active !== undefined) updateFields.active = active;
+
     const updatedUser = await User.findOneAndUpdate(
       { email },
-      { role },
+      updateFields,
       { new: true, runValidators: true }
     );
 

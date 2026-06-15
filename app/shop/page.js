@@ -21,13 +21,31 @@ function ShopContent() {
   // Load custom products from MongoDB APIs
   useEffect(() => {
     fetch("/api/products")
-      .then((res) => res.json())
-      .then((data) => setProductList(data))
+      .then((res) => {
+        if (!res.ok) throw new Error("API response was not ok");
+        return res.json();
+      })
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setProductList(data);
+        } else {
+          console.error("Expected array for products but got:", data);
+        }
+      })
       .catch((e) => console.error("Failed to fetch products for shop", e));
 
     fetch("/api/categories")
-      .then((res) => res.json())
-      .then((data) => setCategoriesList(data))
+      .then((res) => {
+        if (!res.ok) throw new Error("API response was not ok");
+        return res.json();
+      })
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setCategoriesList(data);
+        } else {
+          console.error("Expected array for categories but got:", data);
+        }
+      })
       .catch((e) => console.error("Failed to fetch categories for shop", e));
   }, []);
 
@@ -48,11 +66,13 @@ function ShopContent() {
     }
   };
 
-  const filteredProducts = activeCategory === "All"
+  const filteredProducts = !Array.isArray(productList)
+    ? []
+    : activeCategory === "All"
     ? productList
     : productList.filter((p) => p.category === activeCategory);
 
-  const filterOptions = ["All", ...categoriesList.map((c) => c.name)];
+  const filterOptions = ["All", ...(Array.isArray(categoriesList) ? categoriesList.map((c) => c.name) : [])];
 
   return (
     <div className="min-h-screen bg-bg-brand text-text-brand antialiased selection:bg-[#3674B5] selection:text-white">

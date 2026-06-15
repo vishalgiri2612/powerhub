@@ -81,8 +81,17 @@ export default function CategoriesPage() {
 
   useEffect(() => {
     fetch("/api/categories")
-      .then((res) => res.json())
-      .then((data) => setCategoriesList(data))
+      .then((res) => {
+        if (!res.ok) throw new Error("API response was not ok");
+        return res.json();
+      })
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setCategoriesList(data);
+        } else {
+          console.error("Expected array for categories but got:", data);
+        }
+      })
       .catch((e) => console.error("Failed to fetch categories list", e));
   }, []);
 
@@ -114,7 +123,7 @@ export default function CategoriesPage() {
 
         {/* Categories Grid (2 Columns on Mobile, 4 Columns on Large Screens) */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-8">
-          {categoriesList.map((category) => {
+          {Array.isArray(categoriesList) && categoriesList.map((category) => {
             const theme = themeMap[category.name] || {
               bg: "bg-[#3674B5]/5",
               border: "border-[#1E293B]/15",

@@ -11,13 +11,22 @@ export default function NewArrivals() {
 
   useEffect(() => {
     fetch("/api/products")
-      .then((res) => res.json())
-      .then((data) => setProductList(data))
+      .then((res) => {
+        if (!res.ok) throw new Error("API response was not ok");
+        return res.json();
+      })
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setProductList(data);
+        } else {
+          console.error("Expected array for products but got:", data);
+        }
+      })
       .catch((e) => console.error("Failed to fetch products for arrivals", e));
   }, []);
 
   // Filter to show new products
-  const newProducts = productList.filter((p) => p.isNew);
+  const newProducts = Array.isArray(productList) ? productList.filter((p) => p.isNew) : [];
 
   return (
     <section className="py-8 md:py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-bg-brand">

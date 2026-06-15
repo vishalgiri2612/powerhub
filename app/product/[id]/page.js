@@ -47,9 +47,16 @@ export default function ProductDetailPage({ params }) {
   useEffect(() => {
     // 1. Fetch all products (for related accessories)
     fetch("/api/products")
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error("API response was not ok");
+        return res.json();
+      })
       .then((data) => {
-        setAllProductsList(data);
+        if (Array.isArray(data)) {
+          setAllProductsList(data);
+        } else {
+          console.error("Expected array for products but got:", data);
+        }
       })
       .catch((err) => console.error("Failed to fetch all products for related", err));
 
@@ -113,7 +120,9 @@ export default function ProductDetailPage({ params }) {
   const specItems = product.shortSpec.split(" · ");
 
   // Related products (filtered from same category or next items in the list)
-  const relatedProducts = allProductsList.filter((p) => p.id !== product.id).slice(0, 3);
+  const relatedProducts = Array.isArray(allProductsList)
+    ? allProductsList.filter((p) => p.id !== product.id).slice(0, 3)
+    : [];
 
   // Styling accents based on product ID/theme
   const isSage = product.id === "p1" || product.id === "p5";

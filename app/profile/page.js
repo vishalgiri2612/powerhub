@@ -99,12 +99,30 @@ export default function ProfilePage() {
     }
   }, []);
 
-  const handleSaveProfile = (e) => {
+  const handleSaveProfile = async (e) => {
     e.preventDefault();
     setIsSaving(true);
     setSaveSuccess(false);
 
-    setTimeout(() => {
+    try {
+      // 1. Update user name in MongoDB database
+      const response = await fetch("/api/users", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: user.email,
+          name: profileName
+        })
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || "Failed to update profile in database");
+      }
+
+      // 2. Update local storage session
       const updatedUser = {
         ...user,
         name: profileName,
@@ -123,7 +141,11 @@ export default function ProfilePage() {
       setTimeout(() => {
         setSaveSuccess(false);
       }, 3000);
-    }, 1200);
+    } catch (err) {
+      console.error("Error saving profile details:", err);
+      showToast(err.message || "Failed to save profile details.", "error");
+      setIsSaving(false);
+    }
   };
 
   const handleSaveAddress = (e) => {

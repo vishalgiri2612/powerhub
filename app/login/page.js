@@ -13,7 +13,7 @@ import { useCart } from "../context/CartContext";
 export default function LoginPage() {
   const router = useRouter();
   const { showToast } = useCart();
-  
+
   // Login states
   const [loginMode, setLoginMode] = useState("client"); // client or admin
   const [email, setEmail] = useState("");
@@ -145,7 +145,7 @@ export default function LoginPage() {
 
         {/* Center Card */}
         <div className="w-full max-w-[460px] rounded-3xl bg-white border border-[#1E293B]/10 p-6 md:p-10 shadow-2xl relative z-10 hover-lift duration-500">
-          
+
           {/* Header */}
           <div className="text-center space-y-3 mb-6">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/30">
@@ -158,8 +158,8 @@ export default function LoginPage() {
               {loginMode === "admin" ? "Admin Auth" : "Welcome Back"}
             </h1>
             <p className="text-xs font-semibold text-[#1E293B]/50">
-              {loginMode === "admin" 
-                ? "Enter console credentials to access system directories." 
+              {loginMode === "admin"
+                ? "Enter console credentials to access system directories."
                 : "Log in to manage your orders and workspace profile."}
             </p>
           </div>
@@ -172,11 +172,10 @@ export default function LoginPage() {
                 setLoginMode("client");
                 setError("");
               }}
-              className={`flex-1 py-3 text-[10px] font-extrabold uppercase tracking-widest rounded-xl transition-all duration-300 ${
-                loginMode === "client"
+              className={`flex-1 py-3 text-[10px] font-extrabold uppercase tracking-widest rounded-xl transition-all duration-300 ${loginMode === "client"
                   ? "bg-white text-[#3674B5] shadow-xs"
                   : "text-[#1E293B]/50 hover:text-[#1E293B]"
-              }`}
+                }`}
             >
               Client Login
             </button>
@@ -186,11 +185,10 @@ export default function LoginPage() {
                 setLoginMode("admin");
                 setError("");
               }}
-              className={`flex-1 py-3 text-[10px] font-extrabold uppercase tracking-widest rounded-xl transition-all duration-300 ${
-                loginMode === "admin"
+              className={`flex-1 py-3 text-[10px] font-extrabold uppercase tracking-widest rounded-xl transition-all duration-300 ${loginMode === "admin"
                   ? "bg-white text-[#3674B5] shadow-xs"
                   : "text-[#1E293B]/50 hover:text-[#1E293B]"
-              }`}
+                }`}
             >
               Admin Login
             </button>
@@ -219,7 +217,7 @@ export default function LoginPage() {
 
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            
+
             {/* Email Field */}
             <div className="space-y-1.5">
               <label className="block text-[10px] font-extrabold text-[#1E293B]/60 uppercase tracking-wider">
@@ -232,7 +230,7 @@ export default function LoginPage() {
                 <input
                   type="email"
                   required
-                  placeholder={loginMode === "admin" ? "ravtron@admin.com" : "name@company.com"}
+                  placeholder={loginMode === "admin" ? "Enter the mail id" : "Enter the mail id"}
                   className="w-full bg-[#F8F9FA] border border-[#1E293B]/10 rounded-2xl pl-11 pr-4 py-3.5 text-xs font-semibold text-[#1E293B] placeholder-[#1E293B]/30 outline-none focus:bg-white focus:border-[#3674B5] focus:ring-1 focus:ring-[#3674B5] transition-all"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -325,27 +323,15 @@ export default function LoginPage() {
             <span className="h-[1px] bg-[#1E293B]/10 flex-grow" />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col gap-3">
             <button
               onClick={() => alert("Connecting to Google authentication...")}
-              className="py-3 px-4 border border-[#1E293B]/10 bg-[#FFFFFF] hover:bg-[#F8F9FA] rounded-2xl text-xs font-bold text-[#1E293B]/70 hover:text-[#1E293B] transition-all hover:scale-[1.02] active:scale-98 flex items-center justify-center gap-2 shadow-3xs"
+              className="w-full py-3 px-4 border border-[#1E293B]/10 bg-[#FFFFFF] hover:bg-[#F8F9FA] rounded-2xl text-xs font-bold text-[#1E293B]/70 hover:text-[#1E293B] transition-all hover:scale-[1.02] active:scale-98 flex items-center justify-center gap-2 shadow-3xs"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114A5.5 5.5 0 0 1 8.5 13a5.5 5.5 0 0 1 5.5-5.5c1.47 0 2.79.52 3.82 1.48l3.12-3.12C18.98 3.83 16.69 3 14 3 8.477 3 4 7.477 4 13s4.477 10 10 10c5.52 0 10-4.48 10-10 0-.69-.06-1.35-.18-2.015H12.24z" />
               </svg>
-              <span>Google</span>
-            </button>
-            <button
-              onClick={() => alert("Connecting to Microsoft authentication...")}
-              className="py-3 px-4 border border-[#1E293B]/10 bg-[#FFFFFF] hover:bg-[#F8F9FA] rounded-2xl text-xs font-bold text-[#1E293B]/70 hover:text-[#1E293B] transition-all hover:scale-[1.02] active:scale-98 flex items-center justify-center gap-2 shadow-3xs"
-            >
-              <svg className="w-4 h-4" viewBox="0 0 23 23">
-                <path fill="#F25022" d="M1 1h10v10H1z" />
-                <path fill="#7FBA00" d="M12 1h10v10H12z" />
-                <path fill="#00A4EF" d="M1 12h10v10H1z" />
-                <path fill="#FFB900" d="M12 12h10v10H12z" />
-              </svg>
-              <span>Microsoft</span>
+              <span>Continue with Google</span>
             </button>
           </div>
 

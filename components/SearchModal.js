@@ -21,8 +21,17 @@ export default function SearchModal() {
       
       // Load dynamic products from API
       fetch("/api/products")
-        .then((res) => res.json())
-        .then((data) => setProductList(data))
+        .then((res) => {
+          if (!res.ok) throw new Error("API response was not ok");
+          return res.json();
+        })
+        .then((data) => {
+          if (Array.isArray(data)) {
+            setProductList(data);
+          } else {
+            console.error("Expected array for products but got:", data);
+          }
+        })
         .catch((e) => console.error("Failed to fetch products for search", e));
     } else {
       document.body.style.overflow = "";
@@ -33,7 +42,7 @@ export default function SearchModal() {
   }, [isSearchOpen]);
 
   useEffect(() => {
-    if (query.trim() === "") {
+    if (query.trim() === "" || !Array.isArray(productList)) {
       setFiltered([]);
     } else {
       const match = productList.filter(
