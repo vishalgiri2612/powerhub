@@ -400,16 +400,16 @@ export default function Hero() {
         <div className="lg:col-span-6 flex flex-col items-start text-left space-y-3 md:space-y-6 max-w-xl">
 
           {/* Tagline Badge */}
-          <div className="inline-flex items-center gap-2 px-4.5 py-1.5 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/30 shadow-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#3674B5] animate-pulse"></span>
-            <span className="text-xs font-extrabold text-[#3674B5] uppercase tracking-wider">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 md:px-4.5 md:py-1.5 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/30 shadow-sm">
+            <span className="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-[#3674B5] animate-pulse"></span>
+            <span className="text-[10px] md:text-xs font-extrabold text-[#3674B5] uppercase tracking-wider">
               5,000+ Products Available
             </span>
           </div>
 
           {/* Big Headline */}
-          <h1 className="font-display font-black text-4xl sm:text-5xl lg:text-6xl tracking-tight leading-[1.05] text-[#1E293B]">
-            Connecting Every <span className="text-[#3674B5]">Device</span>.<br />Powering Every Business.
+          <h1 className="font-display font-black text-[21px] xs:text-2xl sm:text-5xl lg:text-6xl tracking-tight leading-[1.15] text-[#1E293B]">
+            Connecting Every <span className="text-[#3674B5]">Device</span>.<br className="hidden sm:inline" /> Powering Every Business.
           </h1>
 
           {/* CTA Buttons (Desktop) */}
@@ -599,8 +599,8 @@ export default function Hero() {
                 <path d="M 720 730 L 640 810 L -100 810" stroke="#DEC89E" strokeWidth="1.5" strokeLinecap="round" fill="none" />
                 <path d="M 720 730 L 840 610 L 1040 610 L 1190 460 L 1540 460" stroke="#3674B5" strokeWidth="1.5" strokeLinecap="round" fill="none" />
                 <path d="M 720 730 L 800 810 L 1540 810" stroke="#DEC89E" strokeWidth="1.5" strokeLinecap="round" fill="none" />
-                <path d="M 720 730 L 720 200 L 680 160 L 680 -50" stroke="#3674B5" strokeWidth="1.5" strokeLinecap="round" fill="none" />
-                <path d="M 720 450 L 760 410 L 760 -50" stroke="#3674B5" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+                <path d="M 720 730 L 720 600 L 680 560 L 680 500" stroke="#3674B5" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+                <path d="M 720 620 L 760 580 L 760 500" stroke="#3674B5" strokeWidth="1.5" strokeLinecap="round" fill="none" />
 
                 <circle cx="600" cy="610" r="2.5" fill="#3674B5" />
                 <circle cx="400" cy="610" r="2.5" fill="#3674B5" />
@@ -612,9 +612,9 @@ export default function Hero() {
                 <circle cx="1190" cy="460" r="2.5" fill="#3674B5" />
                 <circle cx="800" cy="810" r="2.5" fill="#DEC89E" />
 
-                <circle cx="720" cy="200" r="2.5" fill="#3674B5" />
-                <circle cx="680" cy="160" r="2.5" fill="#3674B5" />
-                <circle cx="760" cy="410" r="2.5" fill="#3674B5" />
+                <circle cx="680" cy="500" r="2.5" fill="#3674B5" />
+                <circle cx="760" cy="500" r="2.5" fill="#3674B5" />
+                <circle cx="720" cy="620" r="2.5" fill="#3674B5" />
               </g>
 
               {/* Glowing Electric Light-Orbs (SMIL animateMotion) */}
@@ -652,11 +652,11 @@ export default function Hero() {
                     dur="4.8s"
                     begin="1.8s"
                     repeatCount="indefinite"
-                />
+                  />
                 </circle>
                 <circle r="3.5" fill="#38BDF8" style={{ filter: "drop-shadow(0 0 5px #38BDF8)" }}>
                   <animateMotion
-                    path="M 720 730 L 720 200 L 680 160 L 680 -50"
+                    path="M 720 730 L 720 600 L 680 560 L 680 500"
                     dur="4.2s"
                     begin="0.3s"
                     repeatCount="indefinite"
@@ -664,7 +664,7 @@ export default function Hero() {
                 </circle>
                 <circle r="3.5" fill="#38BDF8" style={{ filter: "drop-shadow(0 0 5px #38BDF8)" }}>
                   <animateMotion
-                    path="M 720 450 L 760 410 L 760 -50"
+                    path="M 720 620 L 760 580 L 760 500"
                     dur="3.5s"
                     begin="1.5s"
                     repeatCount="indefinite"

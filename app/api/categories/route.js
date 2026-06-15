@@ -50,3 +50,29 @@ export async function DELETE(request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+export async function PUT(request) {
+  try {
+    await dbConnect();
+    const body = await request.json();
+    const { name, showOnHome } = body;
+    
+    if (!name) {
+      return NextResponse.json({ error: "Category name parameter is required" }, { status: 400 });
+    }
+    
+    const updated = await Category.findOneAndUpdate(
+      { name },
+      { showOnHome },
+      { new: true }
+    );
+    
+    if (!updated) {
+      return NextResponse.json({ error: "Category not found" }, { status: 404 });
+    }
+    
+    return NextResponse.json(updated);
+  } catch (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}

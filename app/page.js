@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import Stats from "../components/Stats";
 import Bestsellers from "../components/Bestsellers";
+import ShopSection from "../components/ShopSection";
 import Categories from "../components/Categories";
 import NewArrivals from "../components/NewArrivals";
 import WhyChooseUs from "../components/WhyChooseUs";
@@ -27,6 +28,7 @@ export default function Home() {
         <Hero />
         <Stats />
         <Bestsellers />
+        <ShopSection />
         <Categories />
         <NewArrivals />
         <WhyChooseUs />

@@ -22,10 +22,63 @@ import {
   Home,
   Search,
   ArrowLeft,
-  ChevronRight
+  ChevronRight,
+  Cable,
+  Zap,
+  Briefcase,
+  Camera,
+  Laptop,
+  Tv,
+  Network
 } from "lucide-react";
 import SearchModal from "../../components/SearchModal";
 import CartDrawer from "../../components/CartDrawer";
+
+const getCategoryIconDetails = (categoryName) => {
+  const iconClass = "w-4 h-4";
+  switch (categoryName) {
+    case "Cables":
+      return {
+        icon: <Cable className={iconClass} />,
+        bg: "bg-blue-50 text-[#3674B5] border-blue-100"
+      };
+    case "Converters":
+      return {
+        icon: <Zap className={iconClass} />,
+        bg: "bg-amber-50 text-amber-600 border-amber-100"
+      };
+    case "Accessories":
+      return {
+        icon: <Briefcase className={iconClass} />,
+        bg: "bg-slate-50 text-slate-600 border-slate-100"
+      };
+    case "Surveillance":
+      return {
+        icon: <Camera className={iconClass} />,
+        bg: "bg-rose-50 text-rose-600 border-rose-100"
+      };
+    case "Docking Stations":
+      return {
+        icon: <Laptop className={iconClass} />,
+        bg: "bg-indigo-50 text-indigo-600 border-indigo-100"
+      };
+    case "Audio Video":
+      return {
+        icon: <Tv className={iconClass} />,
+        bg: "bg-violet-50 text-violet-600 border-violet-100"
+      };
+    case "Networking":
+      return {
+        icon: <Network className={iconClass} />,
+        bg: "bg-emerald-50 text-emerald-600 border-emerald-100"
+      };
+    default:
+      return {
+        icon: <Package className={iconClass} />,
+        bg: "bg-slate-50 text-slate-500 border-slate-150"
+      };
+  }
+};
 
 export default function AdminPanelPage() {
   const router = useRouter();
@@ -52,6 +105,7 @@ export default function AdminPanelPage() {
     category: "",
     image: "",
     color: "",
+    stock: "",
     isNew: false,
     featured: false
   });
@@ -64,6 +118,7 @@ export default function AdminPanelPage() {
 
   // Category Form State
   const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategoryImage, setNewCategoryImage] = useState("");
 
   // Fetch administrator records from MongoDB APIs
   const fetchAdminData = async () => {
@@ -121,6 +176,7 @@ export default function AdminPanelPage() {
       category: productForm.category,
       image: productForm.image || "/images/charger.png",
       color: productForm.color || "Standard",
+      stock: Number(productForm.stock || 0),
       isNew: !!productForm.isNew,
       featured: !!productForm.featured
     };
@@ -267,6 +323,8 @@ export default function AdminPanelPage() {
         body: JSON.stringify({
           name: newCategoryName.trim(),
           icon: "📦",
+          image: newCategoryImage.trim() || "/images/charger.png",
+          showOnHome: true,
           subcategories: []
         })
       });
@@ -275,11 +333,33 @@ export default function AdminPanelPage() {
         throw new Error(errData.error || "Failed to add category");
       }
       setNewCategoryName("");
+      setNewCategoryImage("");
       showToast("Category added successfully!");
       await fetchAdminData();
     } catch (err) {
       console.error("Error adding category:", err);
       showToast(err.message || "Failed to add category.", "error");
+    }
+  };
+
+  const handleToggleCategoryHome = async (name, currentShowOnHome) => {
+    try {
+      const response = await fetch("/api/categories", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ name, showOnHome: !currentShowOnHome })
+      });
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || "Failed to update category visibility");
+      }
+      showToast("Category visibility on home page updated!");
+      await fetchAdminData();
+    } catch (err) {
+      console.error("Error toggling category visibility:", err);
+      showToast(err.message || "Failed to update category visibility.", "error");
     }
   };
 
@@ -327,6 +407,31 @@ export default function AdminPanelPage() {
     }
   };
 
+  const handleToggleUserActive = async (email) => {
+    const userToUpdate = adminUsers.find((u) => u.email === email);
+    if (!userToUpdate) return;
+    const nextActive = userToUpdate.active === false ? true : false;
+
+    try {
+      const response = await fetch("/api/users", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, active: nextActive })
+      });
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || "Failed to update user status");
+      }
+      showToast(nextActive ? "User activated successfully." : "User deactivated successfully.");
+      await fetchAdminData();
+    } catch (err) {
+      console.error("Error updating user status:", err);
+      showToast(err.message || "Failed to update user status.", "error");
+    }
+  };
+
   const handleResetData = async () => {
     if (confirm("This will purge all custom products, orders, categories, and reset the MongoDB database. Proceed?")) {
       try {
@@ -363,6 +468,7 @@ export default function AdminPanelPage() {
         category: productToEdit.category,
         image: productToEdit.image,
         color: productToEdit.color || "",
+        stock: productToEdit.stock ?? 0,
         isNew: productToEdit.isNew || false,
         featured: productToEdit.featured || false
       });
@@ -377,6 +483,7 @@ export default function AdminPanelPage() {
         category: adminCategories[0]?.name || "Accessories",
         image: "/images/charger.png",
         color: "Standard",
+        stock: 0,
         isNew: true,
         featured: false
       });
@@ -564,6 +671,7 @@ export default function AdminPanelPage() {
           const totalRevenue = adminOrders.reduce((sum, o) => sum + (o.status !== "Cancelled" && o.status !== "CANCELLED" ? o.total : 0), 0) || 42001;
           const ordersCount = adminOrders.length || 17;
           const customersCount = adminUsers.length || 6;
+          const lowStockProducts = adminProducts.filter((p) => typeof p.stock === "number" && p.stock <= 5);
 
           const categorySalesMap = {};
           // Pre-seed some default baseline data
@@ -640,8 +748,10 @@ export default function AdminPanelPage() {
                 {/* Low Stock */}
                 <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-2">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Low Stock</p>
-                  <h3 className="text-2xl font-bold tracking-tight text-slate-900">0</h3>
-                  <p className="text-[10px] text-amber-500 font-semibold">Requires attention</p>
+                  <h3 className="text-2xl font-bold tracking-tight text-slate-900">{lowStockProducts.length}</h3>
+                  <p className={`text-[10px] font-semibold ${lowStockProducts.length > 0 ? 'text-amber-500' : 'text-slate-400'}`}>
+                    {lowStockProducts.length > 0 ? `${lowStockProducts.length} items low` : 'Requires attention'}
+                  </p>
                 </div>
                 {/* Support */}
                 <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-2">
@@ -825,15 +935,31 @@ export default function AdminPanelPage() {
                       <h3 className="font-bold text-sm text-slate-900">Low Stock</h3>
                       <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Critical stock level notifications</p>
                     </div>
-                    <div className="py-6 text-center space-y-3">
-                      <div className="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center mx-auto text-emerald-500">
-                        <Check className="w-6 h-6" />
+                    {lowStockProducts.length === 0 ? (
+                      <div className="py-6 text-center space-y-3">
+                        <div className="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center mx-auto text-emerald-500">
+                          <Check className="w-6 h-6" />
+                        </div>
+                        <div className="space-y-1">
+                          <h4 className="text-xl font-bold text-slate-900">0 Alerts</h4>
+                          <p className="text-xs text-slate-400 font-semibold">Inventory levels healthy</p>
+                        </div>
                       </div>
-                      <div className="space-y-1">
-                        <h4 className="text-xl font-bold text-slate-900">0 Alerts</h4>
-                        <p className="text-xs text-slate-400 font-semibold">Inventory levels healthy</p>
+                    ) : (
+                      <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1 scrollbar-thin">
+                        {lowStockProducts.map((p) => (
+                          <div key={p.id} className="flex items-center justify-between p-2 rounded-xl bg-amber-50/40 border border-amber-100/60 gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <img src={p.image} alt={p.name} className="w-7 h-7 object-contain rounded bg-white p-0.5 border border-slate-100 shrink-0" />
+                              <span className="text-xs font-bold text-slate-800 truncate">{p.name}</span>
+                            </div>
+                            <span className="text-[10px] font-black text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded-md shrink-0">
+                              {p.stock} units
+                            </span>
+                          </div>
+                        ))}
                       </div>
-                    </div>
+                    )}
                   </div>
 
                   <button
@@ -960,6 +1086,7 @@ export default function AdminPanelPage() {
                       <th className="p-4">Orig Price</th>
                       <th className="p-4">Badge</th>
                       <th className="p-4">Color Accent</th>
+                      <th className="p-4">Stock</th>
                       <th className="p-4">Status</th>
                       <th className="p-4 text-center">Actions</th>
                     </tr>
@@ -992,6 +1119,19 @@ export default function AdminPanelPage() {
                           )}
                         </td>
                         <td className="p-4 text-slate-500 font-medium">{p.color}</td>
+                        <td className="p-4">
+                          {p.stock === 0 ? (
+                            <span className="px-2 py-0.5 rounded bg-rose-50 text-rose-600 border border-rose-100 text-[10px] font-black">
+                              Out of Stock
+                            </span>
+                          ) : p.stock <= 5 ? (
+                            <span className="px-2 py-0.5 rounded bg-amber-50 text-amber-600 border border-amber-100 text-[10px] font-black">
+                              {p.stock} Low
+                            </span>
+                          ) : (
+                            <span className="text-slate-900 font-bold">{p.stock}</span>
+                          )}
+                        </td>
                         <td className="p-4">
                           <div className="flex flex-col gap-1 items-start">
                             {p.isNew && (
@@ -1157,14 +1297,14 @@ export default function AdminPanelPage() {
                         <td className="p-4">
                           <div className="flex items-center justify-center">
                             <button
-                              onClick={() => handleToggleUserRole(u.email)}
+                              onClick={() => handleToggleUserActive(u.email)}
                               className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold uppercase transition-all ${
-                                u.role === "Administrator"
-                                  ? "border-rose-100 bg-rose-50/40 text-rose-600 hover:bg-rose-50"
-                                  : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100"
+                                u.active !== false
+                                  ? "border-amber-100 bg-amber-50/40 text-amber-600 hover:bg-amber-50"
+                                  : "border-emerald-100 bg-emerald-50/40 text-emerald-600 hover:bg-emerald-50"
                               }`}
                             >
-                              {u.role === "Administrator" ? "Demote" : "Promote to Admin"}
+                              {u.active !== false ? "Disable" : "Enable"}
                             </button>
                           </div>
                         </td>
@@ -1180,31 +1320,53 @@ export default function AdminPanelPage() {
         {/* TAB: CATEGORIES */}
         {activeTab === "categories" && (
           <div className="space-y-8 animate-fade-in">
-            <div className="space-y-1">
-              <h1 className="text-2xl font-bold font-display tracking-tight text-slate-900">Manage Product Categories</h1>
-              <p className="text-xs text-slate-400 font-medium">Add category classifications or modify existing configurations.</p>
+            <div className="space-y-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/25">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
+                <span className="text-[10px] font-extrabold text-[#3674B5] uppercase tracking-wider">
+                  System Catalog
+                </span>
+              </div>
+              <div className="space-y-1">
+                <h1 className="text-2xl font-bold font-display tracking-tight text-slate-900">Manage Product Categories</h1>
+                <p className="text-xs text-slate-400 font-medium">Add category classifications or modify existing configurations.</p>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               
               {/* Form card */}
-              <div className="lg:col-span-4 bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4">
-                <h3 className="font-bold text-sm text-slate-900 border-b border-slate-50 pb-3">New Category</h3>
+              <div className="lg:col-span-4 bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-6">
+                <div className="border-b border-slate-100 pb-3">
+                  <h3 className="font-bold text-sm text-slate-900">New Category</h3>
+                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Define a new category grouping.</p>
+                </div>
+
                 <form onSubmit={handleAddCategory} className="space-y-4">
                   <div className="space-y-1.5">
                     <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Category Name</label>
                     <input
                       type="text"
-                      placeholder="e.g. Cables"
-                      className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:bg-white"
+                      placeholder="e.g. Cables, Adapters..."
+                      className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-2xl px-4 py-3.5 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-[#3674B5] transition-all"
                       value={newCategoryName}
                       onChange={(e) => setNewCategoryName(e.target.value)}
                       required
                     />
                   </div>
+                  <div className="space-y-1.5">
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Category Image Path</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. /images/cable.png"
+                      className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-2xl px-4 py-3.5 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-[#3674B5] transition-all"
+                      value={newCategoryImage}
+                      onChange={(e) => setNewCategoryImage(e.target.value)}
+                    />
+                  </div>
                   <button
                     type="submit"
-                    className="w-full bg-black hover:bg-slate-800 text-white py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm"
+                    className="w-full bg-[#3674B5] hover:bg-[#578FCA] text-white py-3.5 rounded-2xl text-xs font-bold transition-all duration-300 hover:scale-[1.02] active:scale-98 flex items-center justify-center gap-2 shadow-md shadow-[#3674B5]/10"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Create Category</span>
@@ -1214,35 +1376,59 @@ export default function AdminPanelPage() {
 
               {/* Category Directory List */}
               <div className="lg:col-span-8 bg-white border border-slate-100 rounded-3xl shadow-sm overflow-hidden">
+                <div className="p-5 border-b border-slate-100">
+                  <h3 className="font-bold text-sm text-slate-900">Active Categories Directory</h3>
+                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Browse or delete product categories.</p>
+                </div>
                 <table className="w-full text-left border-collapse text-xs font-semibold text-slate-800">
                   <thead>
-                    <tr className="bg-slate-50 border-b border-slate-100 uppercase text-[9px] tracking-wider text-slate-400 font-black">
+                    <tr className="bg-slate-50/80 border-b border-slate-100 uppercase text-[9px] tracking-wider text-slate-400 font-black">
                       <th className="p-4 w-12 text-center">SNo</th>
                       <th className="p-4">Category</th>
+                      <th className="p-4 text-center">Home Visibility</th>
                       <th className="p-4 text-center">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {adminCategories.map((c, idx) => (
-                      <tr key={c.name} className="border-b border-slate-50 hover:bg-slate-50/40 transition-colors">
-                        <td className="p-4 text-center font-bold text-slate-400">{idx + 1}</td>
-                        <td className="p-4 font-bold text-slate-900 flex items-center gap-2">
-                          <span className="text-base">{c.icon || "📦"}</span>
-                          <span>{c.name}</span>
-                        </td>
-                        <td className="p-4">
-                          <div className="flex items-center justify-center">
-                            <button 
-                              onClick={() => handleDeleteCategory(c.name)}
-                              className="p-1.5 rounded-lg border border-rose-100 bg-rose-50/30 text-rose-600 hover:bg-rose-50"
-                              title="Delete Category"
+                    {adminCategories.map((c, idx) => {
+                      const iconObj = getCategoryIconDetails(c.name);
+                      return (
+                        <tr key={c.name} className="border-b border-slate-50 hover:bg-slate-50/40 transition-colors">
+                          <td className="p-4 text-center font-bold text-slate-400">{idx + 1}</td>
+                          <td className="p-4 font-bold text-slate-900">
+                            <div className="flex items-center gap-3">
+                              <span className={`flex items-center justify-center w-8 h-8 rounded-xl border ${iconObj.bg}`}>
+                                {iconObj.icon}
+                              </span>
+                              <span className="text-slate-800 text-sm font-semibold">{c.name}</span>
+                            </div>
+                          </td>
+                          <td className="p-4 text-center">
+                            <button
+                              onClick={() => handleToggleCategoryHome(c.name, c.showOnHome !== false)}
+                              className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold uppercase transition-all ${
+                                c.showOnHome !== false
+                                  ? "border-emerald-100 bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
+                                  : "border-slate-200 bg-slate-50 text-slate-400 hover:bg-slate-100"
+                              }`}
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              {c.showOnHome !== false ? "Visible on Home" : "Hidden on Home"}
                             </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                          <td className="p-4">
+                            <div className="flex items-center justify-center">
+                              <button 
+                                onClick={() => handleDeleteCategory(c.name)}
+                                className="p-2 rounded-xl border border-rose-100 bg-rose-50/30 text-rose-500 hover:bg-rose-50 hover:text-rose-600 transition-all hover:scale-105 active:scale-95"
+                                title="Delete Category"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -1350,18 +1536,20 @@ export default function AdminPanelPage() {
                 </div>
               </div>
 
-              {/* Image & Color */}
+              {/* Image Path */}
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Image Path</label>
+                <input
+                  type="text"
+                  placeholder="e.g. /images/charger.png"
+                  className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-slate-350"
+                  value={productForm.image}
+                  onChange={(e) => setProductForm({ ...productForm, image: e.target.value })}
+                />
+              </div>
+
+              {/* Color Accent & Stock */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Image Path</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. /images/charger.png"
-                    className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-slate-350"
-                    value={productForm.image}
-                    onChange={(e) => setProductForm({ ...productForm, image: e.target.value })}
-                  />
-                </div>
                 <div className="space-y-1.5">
                   <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Color Accent</label>
                   <input
@@ -1370,6 +1558,18 @@ export default function AdminPanelPage() {
                     className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-slate-350"
                     value={productForm.color}
                     onChange={(e) => setProductForm({ ...productForm, color: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Stock Quantity</label>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    placeholder="e.g. 50"
+                    className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-slate-350"
+                    value={productForm.stock}
+                    onChange={(e) => setProductForm({ ...productForm, stock: e.target.value })}
                   />
                 </div>
               </div>

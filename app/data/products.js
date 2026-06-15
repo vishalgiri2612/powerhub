@@ -17,7 +17,8 @@ export const products = [
     category: "Accessories",
     featured: true,
     isNew: false,
-    color: "Sage Green"
+    color: "Sage Green",
+    stock: 8
   },
   {
     id: "p2",
@@ -37,7 +38,8 @@ export const products = [
     category: "Accessories",
     featured: true,
     isNew: false,
-    color: "Sand Beige"
+    color: "Sand Beige",
+    stock: 25
   },
   {
     id: "p3",
@@ -57,7 +59,8 @@ export const products = [
     category: "Cables",
     featured: true,
     isNew: true,
-    color: "Cream Cord"
+    color: "Cream Cord",
+    stock: 45
   },
   {
     id: "p4",
@@ -77,7 +80,8 @@ export const products = [
     category: "Accessories",
     featured: true,
     isNew: true,
-    color: "Clay Grey"
+    color: "Clay Grey",
+    stock: 12
   },
   {
     id: "p5",
@@ -97,7 +101,8 @@ export const products = [
     category: "Accessories",
     featured: false,
     isNew: true,
-    color: "Sand & Gold"
+    color: "Sand & Gold",
+    stock: 3
   },
   {
     id: "p6",
@@ -117,7 +122,8 @@ export const products = [
     category: "Accessories",
     featured: false,
     isNew: false,
-    color: "Beechwood Sand"
+    color: "Beechwood Sand",
+    stock: 18
   }
 ];
 
@@ -125,36 +131,50 @@ export const categories = [
   {
     name: "Cables",
     icon: "🔌",
+    image: "/images/cable.png",
+    showOnHome: true,
     subcategories: ["HDMI Cables", "VGA Cables", "Power Cords", "Cable Cum Converter"]
   },
   {
     name: "Converters",
     icon: "⚡",
+    image: "/images/charger.png",
+    showOnHome: true,
     subcategories: ["HDMI", "VGA", "Display Port", "Mini DP", "Type C", "USB"]
   },
   {
     name: "Accessories",
     icon: "💼",
+    image: "/images/webcam.png",
+    showOnHome: true,
     subcategories: ["Privacy Filter", "Webcam", "Power Adapter", "Aux Cables", "SSD Enclosure", "Wall Mount", "Laptop Stand"]
   },
   {
     name: "Surveillance",
     icon: "🛡️",
+    image: "/images/ravtron_utility_dev.png",
+    showOnHome: false,
     subcategories: ["CCTV Cables", "Power Supply", "PoE Switch", "BNC Connector", "DC Pin", "Video Balun"]
   },
   {
     name: "Docking Stations",
     icon: "💻",
+    image: "/images/magsafe.png",
+    showOnHome: true,
     subcategories: ["Dual Type C", "Type C", "USB Hubs"]
   },
   {
     name: "Audio Video",
     icon: "📺",
+    image: "/images/hero.png",
+    showOnHome: true,
     subcategories: ["HDMI Extender", "HDMI Splitter", "HDMI Switcher", "Matrix"]
   },
   {
     name: "Networking",
     icon: "🌐",
+    image: "/images/ravtron_networking.png",
+    showOnHome: false,
     subcategories: ["Patch Cord", "Cat6 Cable"]
   }
 ];

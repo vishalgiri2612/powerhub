@@ -46,7 +46,7 @@ export default function Bestsellers() {
               </span>
             </div>
             <h2 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-[#1E293B] tracking-tight leading-tight">
-              Shop All <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#3674B5] to-[#578FCA]">Products</span>
+              Top Selling <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#3674B5] to-[#578FCA]">Products</span>
             </h2>
           </div>
           <p className="text-sm font-semibold text-[#1E293B]/50 max-w-sm leading-relaxed">

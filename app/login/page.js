@@ -53,6 +53,10 @@ export default function LoginPage() {
           throw new Error("Access denied. User does not possess Administrator rights.");
         }
 
+        if (adminUser.active === false) {
+          throw new Error("Access denied. This administrative profile has been disabled.");
+        }
+
         setIsLoading(false);
         setSuccess(true);
 
@@ -106,6 +110,10 @@ export default function LoginPage() {
 
         if (clientUser.role === "Administrator") {
           throw new Error("Please use the Administrator tab to log in with an admin account.");
+        }
+
+        if (clientUser.active === false) {
+          throw new Error("Access denied. Your client profile has been deactivated. Please contact support.");
         }
 
         setIsLoading(false);

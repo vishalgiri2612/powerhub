@@ -51,6 +51,26 @@ const themeMap = {
 
 export default function Categories() {
   const router = useRouter();
+  const [categoriesList, setCategoriesList] = React.useState([]);
+
+  React.useEffect(() => {
+    fetch("/api/categories")
+      .then((res) => {
+        if (!res.ok) throw new Error("API response was not ok");
+        return res.json();
+      })
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setCategoriesList(data.filter((c) => c.showOnHome !== false));
+        } else {
+          setCategoriesList(categories.filter((c) => c.showOnHome !== false));
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch categories list dynamically for home", err);
+        setCategoriesList(categories.filter((c) => c.showOnHome !== false));
+      });
+  }, []);
 
   const handleCategoryClick = (categoryName) => {
     router.push(`/shop?category=${encodeURIComponent(categoryName)}`);
@@ -81,13 +101,15 @@ export default function Categories() {
 
         {/* Categories Grid (Horizontal Scroll on Mobile, Grid on Desktop) */}
         <div className="flex overflow-x-auto md:grid md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 pb-2 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 snap-x snap-mandatory scrollbar-none">
-          {categories.map((category) => {
+          {categoriesList.map((category) => {
             const theme = themeMap[category.name] || {
               bg: "bg-[#3674B5]/5",
               border: "border-[#1E293B]/15",
               glow: "rgba(26, 25, 23, 0.05)",
               image: "/images/charger.png"
             };
+
+            const categoryImage = category.image || theme.image;
 
             return (
               <div
@@ -110,7 +132,7 @@ export default function Categories() {
                 <div className="relative w-full h-56 bg-[#F8F9FA] flex items-center justify-center p-0 border-b border-[#1E293B]/5 overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-tr from-[#1A1917]/0 to-[#1A1917]/2 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   <img 
-                    src={theme.image} 
+                    src={categoryImage} 
                     alt={category.name}
                     className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-108 group-hover:rotate-1"
                     style={{

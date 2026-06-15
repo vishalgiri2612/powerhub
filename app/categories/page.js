@@ -131,6 +131,8 @@ export default function CategoriesPage() {
               image: "/images/charger.png"
             };
 
+            const categoryImage = category.image || theme.image;
+
             return (
               <div
                 key={category.name}
@@ -155,7 +157,7 @@ export default function CategoriesPage() {
                   </div>
 
                   <img 
-                    src={theme.image} 
+                    src={categoryImage} 
                     alt={category.name}
                     className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-108 group-hover:rotate-1"
                     style={{
