@@ -399,13 +399,6 @@ export default function Hero() {
         {/* Left Text Column */}
         <div className="lg:col-span-6 flex flex-col items-start text-left space-y-3 md:space-y-6 max-w-xl">
 
-          {/* Tagline Badge */}
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 md:px-4.5 md:py-1.5 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/30 shadow-sm">
-            <span className="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-[#3674B5] animate-pulse"></span>
-            <span className="text-[10px] md:text-xs font-extrabold text-[#3674B5] uppercase tracking-wider">
-              5,000+ Products Available
-            </span>
-          </div>
 
           {/* Big Headline */}
           <h1 className="font-display font-black text-[21px] xs:text-2xl sm:text-5xl lg:text-6xl tracking-tight leading-[1.15] text-[#1E293B]">
