@@ -15,6 +15,43 @@ export function CartProvider({ children }) {
   const [discount, setDiscount] = useState(0);
   const [toasts, setToasts] = useState([]);
 
+  const isInitialized = React.useRef(false);
+
+  // Load initial cart and wishlist from localStorage on client mount
+  useEffect(() => {
+    const savedCart = localStorage.getItem("ravtron_cart");
+    const savedWishlist = localStorage.getItem("ravtron_wishlist");
+    if (savedCart) {
+      try {
+        setCart(JSON.parse(savedCart));
+      } catch (e) {
+        console.error("Failed to parse cart from localStorage", e);
+      }
+    }
+    if (savedWishlist) {
+      try {
+        setWishlist(JSON.parse(savedWishlist));
+      } catch (e) {
+        console.error("Failed to parse wishlist from localStorage", e);
+      }
+    }
+    isInitialized.current = true;
+  }, []);
+
+  // Save cart to localStorage on changes
+  useEffect(() => {
+    if (isInitialized.current) {
+      localStorage.setItem("ravtron_cart", JSON.stringify(cart));
+    }
+  }, [cart]);
+
+  // Save wishlist to localStorage on changes
+  useEffect(() => {
+    if (isInitialized.current) {
+      localStorage.setItem("ravtron_wishlist", JSON.stringify(wishlist));
+    }
+  }, [wishlist]);
+
   // Toast notification helper
   const showToast = (message, type = "success") => {
     const id = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;

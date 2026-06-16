@@ -1,27 +1,56 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
+:root {
+  /* Default: Dark Mode */
+  --background: #080C16;
+  --foreground: #CBD5E1;
+  --bg-brand: #080C16;
+  --text-brand: #94A3B8;
+  --surface-brand: #0F1626;
+  --muted-brand: #1E293B;
+  --card-brand: #0F1626;
+  --border-brand: rgba(255, 255, 255, 0.08);
+  --card-border: rgba(255, 255, 255, 0.05);
+  --text-heading: #F8FAFC;
+  --logo-blend: normal;
+  --logo-filter: brightness(0) invert(1);
+  --font-geist-sans: "Inter", sans-serif;
+}
+
+:root.light-mode {
+  /* Connected State: Light Mode */
+  --background: #FFFFFF;
+  --foreground: #334155;
+  --bg-brand: #FFFFFF;
+  --text-brand: #475569;
+  --surface-brand: #F8F9FA;
+  --muted-brand: #E5E7EB;
+  --card-brand: #FFFFFF;
+  --border-brand: rgba(30, 41, 59, 0.08);
+  --card-border: rgba(26, 25, 23, 0.05);
+  --text-heading: #1E293B;
+  --logo-blend: multiply;
+  --logo-filter: none;
+}
+
 @theme {
-  --color-bg-brand: #FFFFFF;
-  --color-text-brand: #334155;
-  --color-surface-brand: #F8F9FA;
-  --color-muted-brand: #E5E7EB;
-  --color-card-brand: #FFFFFF;
+  --color-bg-brand: var(--bg-brand);
+  --color-text-brand: var(--text-brand);
+  --color-surface-brand: var(--surface-brand);
+  --color-muted-brand: var(--muted-brand);
+  --color-card-brand: var(--card-brand);
+  --color-border-brand: var(--border-brand);
+  --color-card-border: var(--card-border);
 
   --color-sage: #3674B5;
   --color-sage-light: #D0ECFC;
   --color-clay: #3674B5;
   --color-clay-light: #D0ECFC;
-  --color-sand: #FFFFFF;
+  --color-sand: var(--background);
 
   --font-sans: "Inter", sans-serif;
   --font-display: "Plus Jakarta Sans", sans-serif;
-}
-
-:root {
-  --background: #FFFFFF;
-  --foreground: #334155;
-  --font-geist-sans: "Inter", sans-serif;
 }
 
 body {
@@ -30,11 +59,13 @@ body {
   font-family: "Inter", sans-serif;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.6s cubic-bezier(0.16, 1, 0.3, 1), color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 h1, h2, h3, h4, h5, h6 {
-  color: #1E293B !important;
+  color: var(--text-heading) !important;
   font-family: "Plus Jakarta Sans", sans-serif !important;
+  transition: color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 button, 
@@ -227,4 +258,133 @@ a.button {
 .scrollbar-none {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
+}
+
+/* Dark Mode Overrides (when root does NOT have .light-mode) */
+html:not(.light-mode) {
+  --background: #080C16;
+  --foreground: #CBD5E1;
+  --bg-brand: #080C16;
+  --text-brand: #94A3B8;
+  --surface-brand: #0F1626;
+  --muted-brand: #1E293B;
+  --card-brand: #0F1626;
+  --border-brand: rgba(255, 255, 255, 0.08);
+  --card-border: rgba(255, 255, 255, 0.05);
+  --text-heading: #F8FAFC;
+
+  .bg-white, 
+  .bg-white\/95,
+  .bg-\[white\], 
+  .bg-\[\#FFFFFF\] {
+    background-color: #0F1626 !important;
+  }
+
+  .bg-white\/80,
+  .bg-white\/85,
+  .bg-\[\#F8F9FA\],
+  .hover\:bg-white:hover {
+    background-color: #1A2333 !important;
+  }
+
+  .bg-\[\#F8F9FA\]\/20 {
+    background-color: rgba(15, 22, 38, 0.2) !important;
+  }
+
+  .bg-\[\#F8F9FA\]\/40 {
+    background-color: rgba(15, 22, 38, 0.4) !important;
+  }
+
+  .bg-\[\#F8F9FA\]\/60 {
+    background-color: rgba(15, 22, 38, 0.6) !important;
+  }
+  
+  .bg-bg-brand {
+    background-color: #080C16 !important;
+  }
+
+  .bg-slate-50\/50, .bg-slate-50 {
+    background-color: #0B101D !important;
+  }
+
+  .bg-slate-100 {
+    background-color: #1A2333 !important;
+  }
+
+  .border-slate-100,
+  .border-slate-200,
+  .border-slate-200\/60,
+  .border-slate-150,
+  .border-\[\#1E293B\]\/10,
+  .border-white\/40,
+  .border-\[rgba\(30\,41\,59\,0\.1\)\] {
+    border-color: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  .text-\[\#1E293B\],
+  .text-slate-900,
+  .text-slate-800,
+  .text-slate-700 {
+    color: #F8FAFC !important;
+  }
+
+  .text-\[\#1E293B\]\/70,
+  .text-\[\#1E293B\]\/80,
+  .text-\[\#1E293B\]\/60,
+  .text-slate-600,
+  .text-slate-500 {
+    color: #CBD5E1 !important;
+  }
+
+  .text-\[\#1E293B\]\/40,
+  .text-\[\#1E293B\]\/50,
+  .text-slate-400 {
+    color: #94A3B8 !important;
+  }
+
+  .text-\[\#1E293B\]\/30 {
+    color: #64748B !important;
+  }
+
+  .glass-panel {
+    background: rgba(15, 22, 38, 0.7) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: rgba(0, 0, 0, 0.3) 0px 20px 40px -10px !important;
+  }
+
+  .glass-pill {
+    background: rgba(15, 22, 38, 0.8) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  /* Dropdown lists / Selects background */
+  select, input, option {
+    background-color: #0F1626 !important;
+    color: #CBD5E1 !important;
+  }
+
+  /* Table styling */
+  tr.border-b {
+    border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+  }
+  tr.hover\:bg-slate-50\/40:hover {
+    background-color: rgba(255, 255, 255, 0.02) !important;
+  }
+  tr.bg-slate-50 {
+    background-color: #0B101D !important;
+  }
+
+  /* Logo adjustment */
+  img[alt="RAVTRON®"], img.mix-blend-multiply {
+    filter: brightness(0) invert(1) !important;
+    mix-blend-mode: normal !important;
+  }
+
+  /* Hero radial correction */
+  .hero-radial-bg::before {
+    background: radial-gradient(circle, rgba(54, 116, 181, 0.15) 0%, rgba(8, 12, 22, 0) 70%) !important;
+  }
+  .hero-radial-bg::after {
+    background: radial-gradient(circle, rgba(222, 200, 158, 0.08) 0%, rgba(8, 12, 22, 0) 70%) !important;
+  }
 }

@@ -120,6 +120,43 @@ export default function AdminPanelPage() {
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newCategoryImage, setNewCategoryImage] = useState("");
 
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleImageUpload = async (e, type = "product") => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        throw new Error("Upload failed");
+      }
+
+      const data = await res.json();
+      if (data.url) {
+        if (type === "product") {
+          setProductForm((prev) => ({ ...prev, image: data.url }));
+        } else if (type === "category") {
+          setNewCategoryImage(data.url);
+        }
+        showToast("Image uploaded successfully!");
+      }
+    } catch (err) {
+      console.error("Upload error:", err);
+      showToast("Failed to upload image.", "error");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   // Fetch administrator records from MongoDB APIs
   const fetchAdminData = async () => {
     try {
@@ -1354,15 +1391,40 @@ export default function AdminPanelPage() {
                       required
                     />
                   </div>
-                  <div className="space-y-1.5">
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Category Image Path</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. /images/cable.png"
-                      className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-2xl px-4 py-3.5 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-[#3674B5] transition-all"
-                      value={newCategoryImage}
-                      onChange={(e) => setNewCategoryImage(e.target.value)}
-                    />
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Category Image</label>
+                      {isUploading && <span className="text-[10px] text-[#3674B5] font-extrabold animate-pulse">Uploading...</span>}
+                    </div>
+                    
+                    <div className="flex flex-col gap-2">
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="e.g. /images/cable.png"
+                          className="flex-1 bg-[#F8F9FA] border border-slate-200/60 rounded-2xl px-4 py-3.5 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-[#3674B5] transition-all"
+                          value={newCategoryImage}
+                          onChange={(e) => setNewCategoryImage(e.target.value)}
+                        />
+                        <label className="flex items-center justify-center px-4 bg-[#3674B5]/10 hover:bg-[#3674B5]/20 border border-[#3674B5]/30 text-[#3674B5] text-xs font-bold rounded-2xl cursor-pointer transition-all hover:scale-[1.02] active:scale-98">
+                          <span>Upload</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => handleImageUpload(e, "category")}
+                            disabled={isUploading}
+                          />
+                        </label>
+                      </div>
+                      
+                      {/* Thumbnail Preview */}
+                      {newCategoryImage && (
+                        <div className="w-full h-16 rounded-2xl bg-slate-50 border border-slate-200/60 flex items-center justify-center overflow-hidden p-1">
+                          <img src={newCategoryImage} alt="Category Preview" className="h-full max-w-full object-contain" />
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <button
                     type="submit"
@@ -1536,16 +1598,43 @@ export default function AdminPanelPage() {
                 </div>
               </div>
 
-              {/* Image Path */}
-              <div className="space-y-1.5">
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Image Path</label>
-                <input
-                  type="text"
-                  placeholder="e.g. /images/charger.png"
-                  className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-slate-350"
-                  value={productForm.image}
-                  onChange={(e) => setProductForm({ ...productForm, image: e.target.value })}
-                />
+              {/* Image Upload / Path */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Product Image</label>
+                  {isUploading && <span className="text-[10px] text-[#3674B5] font-extrabold animate-pulse">Uploading file...</span>}
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
+                  <div className="md:col-span-2 flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="e.g. /images/charger.png or secure CDN URL"
+                      className="flex-1 bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-slate-350 animate-all"
+                      value={productForm.image}
+                      onChange={(e) => setProductForm({ ...productForm, image: e.target.value })}
+                    />
+                    <label className="flex items-center justify-center px-4 py-3 bg-[#3674B5]/10 hover:bg-[#3674B5]/20 border border-[#3674B5]/30 text-[#3674B5] text-xs font-bold rounded-xl cursor-pointer transition-all hover:scale-[1.02] active:scale-98">
+                      <span>Upload</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleImageUpload(e, "product")}
+                        disabled={isUploading}
+                      />
+                    </label>
+                  </div>
+                  
+                  {/* Image Thumbnail Preview */}
+                  <div className="w-full h-12 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-center overflow-hidden p-1">
+                    {productForm.image ? (
+                      <img src={productForm.image} alt="Preview" className="h-full max-w-full object-contain" />
+                    ) : (
+                      <span className="text-[9px] font-bold text-slate-400 uppercase">No Image</span>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* Color Accent & Stock */}

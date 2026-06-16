@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useCart } from "../app/context/CartContext";
 import { Zap } from "lucide-react";
 import Link from "next/link";
+import HardwareThemeToggle from "./HardwareThemeToggle";
 
 export default function Navbar() {
   const { 
@@ -64,12 +65,12 @@ export default function Navbar() {
 
   return (
     <>
-      <header className={`sticky z-[90] w-full transition-all duration-500 ease-in-out ${
+      <header className={`sticky z-[90] w-full overflow-visible transition-all duration-500 ease-in-out ${
         isScrolled
           ? "top-3 px-4 sm:px-6 lg:px-8"
           : "top-0 px-0"
       }`}>
-        <nav className={`mx-auto flex items-center justify-between transition-all duration-500 ease-in-out ${
+        <nav className={`mx-auto flex items-center justify-between overflow-visible transition-all duration-500 ease-in-out ${
           isScrolled
             ? "max-w-5xl bg-white/95 backdrop-blur-md border border-[#1E293B]/10 rounded-full px-4 sm:px-6 py-2 shadow-lg hover:shadow-xl"
             : "max-w-full bg-white border-b border-[#1E293B]/10 rounded-none px-4 sm:px-12 py-3.5 sm:py-5 shadow-none"
@@ -111,9 +112,9 @@ export default function Navbar() {
             </button>
 
             {/* Wishlist Button */}
-            <button 
-              onClick={() => alert(`Your Wishlist contains ${wishlist.length} item(s)`)}
-              className="p-1.5 sm:p-2 rounded-full hover:bg-[#3674B5]/5 text-[#1E293B]/70 hover:text-[#1E293B] transition-all relative hover:scale-105 active:scale-95"
+            <Link 
+              href="/wishlist"
+              className="p-1.5 sm:p-2 rounded-full hover:bg-[#3674B5]/5 text-[#1E293B]/70 hover:text-[#1E293B] transition-all relative hover:scale-105 active:scale-95 inline-flex"
               aria-label="Wishlist"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -124,7 +125,7 @@ export default function Navbar() {
                   {wishlist.length}
                 </span>
               )}
-            </button>
+            </Link>
 
             {/* Cart Button */}
             <button 
@@ -141,6 +142,11 @@ export default function Navbar() {
                 </span>
               )}
             </button>
+
+            {/* Hardware Theme Toggle */}
+            <div className="relative z-50 flex items-center justify-center overflow-visible">
+              <HardwareThemeToggle />
+            </div>
 
             {/* Login / Sign Up or Profile Dropdown */}
             {user ? (
