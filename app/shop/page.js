@@ -181,12 +181,12 @@ function ShopContent() {
                     </div>
 
                     {/* Image Area */}
-                    <div className="relative aspect-square w-full rounded-xl md:rounded-[2rem] bg-[#FFFFFF] overflow-hidden mt-2 md:mt-3 mb-2 md:mb-3 transition-colors duration-500 group-hover:bg-[#F8F9FA]">
+                    <div className="relative aspect-square w-full rounded-xl md:rounded-[2rem] bg-[#FFFFFF] overflow-hidden mt-2 md:mt-3 mb-2 md:mb-3 transition-colors duration-500 group-hover:bg-[#F8F9FA] flex items-center justify-center p-3 md:p-5">
                       <div className="absolute inset-0 bg-gradient-to-tr from-[#1A1917]/0 to-[#1A1917]/2 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                       <img
                         src={product.image}
                         alt={product.name}
-                        className="w-full h-full object-cover transition-all duration-500 group-hover:scale-106 group-hover:rotate-1"
+                        className="max-h-full max-w-full object-contain transition-all duration-500 group-hover:scale-106 group-hover:rotate-1"
                         style={{
                           filter: "drop-shadow(0 12px 20px rgba(26,25,23,0.06))"
                         }}

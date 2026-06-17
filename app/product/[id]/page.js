@@ -177,7 +177,7 @@ export default function ProductDetailPage({ params }) {
           <div className="w-full lg:w-1/2 bg-white border border-[#1E293B]/10 rounded-3xl md:rounded-[3rem] flex flex-col justify-between relative overflow-hidden shadow-sm min-h-[350px] sm:min-h-[500px] lg:min-h-[580px]">
 
             {/* Top Aspect-Square Image Cover Container */}
-            <div className="w-full aspect-square relative overflow-hidden bg-[#FFFFFF] group">
+            <div className="w-full aspect-square relative overflow-hidden bg-[#FFFFFF] group flex items-center justify-center p-6 md:p-10">
               {/* Ambient radial lighting glow */}
               <div
                 className="absolute -top-48 -left-48 w-[140%] h-[140%] rounded-full blur-3xl opacity-25 pointer-events-none"
@@ -216,7 +216,10 @@ export default function ProductDetailPage({ params }) {
               <img
                 src={selectedImage}
                 alt={product.name}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103"
+                className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-103"
+                style={{
+                  filter: "drop-shadow(0 12px 24px rgba(26,25,23,0.06))"
+                }}
               />
             </div>
 
@@ -452,11 +455,11 @@ export default function ProductDetailPage({ params }) {
                   onClick={() => router.push(`/product/${p.id}`)}
                   className="group relative rounded-2xl md:rounded-[2.5rem] bg-white border border-[#1E293B]/10 p-3 md:p-5 flex flex-col justify-between hover-lift transition-all duration-500 cursor-pointer shadow-2xs"
                 >
-                  <div className="relative aspect-square w-full rounded-xl md:rounded-[2rem] bg-[#FFFFFF] overflow-hidden mb-3 md:mb-5">
+                  <div className="relative aspect-square w-full rounded-xl md:rounded-[2rem] bg-[#FFFFFF] overflow-hidden mb-3 md:mb-5 flex items-center justify-center p-3 md:p-5">
                     <img
                       src={p.image}
                       alt={p.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-105"
                       style={{
                         filter: "drop-shadow(0 10px 15px rgba(26,25,23,0.06))"
                       }}

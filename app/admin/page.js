@@ -124,37 +124,63 @@ export default function AdminPanelPage() {
 
   const [isUploading, setIsUploading] = useState(false);
 
+  const compressAndConvertToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const MAX_WIDTH = 600;
+          const MAX_HEIGHT = 600;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
+          resolve(dataUrl);
+        };
+        img.onerror = (err) => reject(err);
+      };
+      reader.onerror = (err) => reject(err);
+    });
+  };
+
   const handleImageUpload = async (e, type = "product") => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setIsUploading(true);
-    const formData = new FormData();
-    formData.append("file", file);
 
     try {
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || "Upload failed");
+      const base64Url = await compressAndConvertToBase64(file);
+      if (type === "product") {
+        setProductForm((prev) => ({ ...prev, image: base64Url }));
+      } else if (type === "category") {
+        setNewCategoryImage(base64Url);
       }
-
-      const data = await res.json();
-      if (data.url) {
-        if (type === "product") {
-          setProductForm((prev) => ({ ...prev, image: data.url }));
-        } else if (type === "category") {
-          setNewCategoryImage(data.url);
-        }
-        showToast("Image uploaded successfully!");
-      }
+      showToast("Image processed successfully!");
     } catch (err) {
-      console.error("Upload error:", err);
-      showToast(err.message || "Failed to upload image.", "error");
+      console.error("Image processing error:", err);
+      showToast("Failed to process image.", "error");
     } finally {
       setIsUploading(false);
     }
@@ -1778,34 +1804,19 @@ export default function AdminPanelPage() {
                                 if (!file) return;
 
                                 setIsUploading(true);
-                                const formData = new FormData();
-                                formData.append("file", file);
-
                                 try {
-                                  const res = await fetch("/api/upload", {
-                                    method: "POST",
-                                    body: formData,
+                                  const base64Url = await compressAndConvertToBase64(file);
+                                  const newGallery = [...(productForm.gallery || [])];
+                                  newGallery[index] = base64Url;
+                                  setProductForm({
+                                    ...productForm,
+                                    gallery: newGallery,
+                                    image: newGallery[0] || base64Url
                                   });
-
-                                  if (!res.ok) {
-                                    const errData = await res.json().catch(() => ({}));
-                                    throw new Error(errData.error || "Upload failed");
-                                  }
-
-                                  const data = await res.json();
-                                  if (data.url) {
-                                    const newGallery = [...(productForm.gallery || [])];
-                                    newGallery[index] = data.url;
-                                    setProductForm({
-                                      ...productForm,
-                                      gallery: newGallery,
-                                      image: newGallery[0] || data.url
-                                    });
-                                    showToast("Image uploaded successfully!");
-                                  }
+                                  showToast("Image processed successfully!");
                                 } catch (err) {
-                                  console.error("Upload error:", err);
-                                  showToast(err.message || "Failed to upload image.", "error");
+                                  console.error("Image processing error:", err);
+                                  showToast("Failed to process image.", "error");
                                 } finally {
                                   setIsUploading(false);
                                 }
