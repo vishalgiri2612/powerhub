@@ -17,7 +17,8 @@ const ProductSchema = new mongoose.Schema(
     featured: { type: Boolean, default: false },
     isNewArrival: { type: Boolean, default: false },
     color: { type: String, required: true },
-    stock: { type: Number, default: 0 }
+    stock: { type: Number, default: 0 },
+    description: { type: String, default: "" }
   },
   { timestamps: true }
 );

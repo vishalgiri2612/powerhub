@@ -308,7 +308,9 @@ export default function ProductDetailPage({ params }) {
                 {/* Tab content view */}
                 <div className="min-h-[120px] text-sm sm:text-base text-[#1E293B]/70 leading-relaxed font-semibold">
                   {activeTab === "overview" && (
-                    <p className="animate-fade-in-up">{getDescription(product.id)}</p>
+                    <p className="animate-fade-in-up">
+                      {product.description || getDescription(product.id)}
+                    </p>
                   )}
                   {activeTab === "specs" && (
                     <div className="space-y-3.5 animate-fade-in-up">

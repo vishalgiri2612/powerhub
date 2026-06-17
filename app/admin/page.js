@@ -111,6 +111,7 @@ export default function AdminPanelPage() {
   const [productForm, setProductForm] = useState({
     name: "",
     shortSpec: "",
+    description: "",
     price: "",
     originalPrice: "",
     discountBadge: "",
@@ -248,6 +249,7 @@ export default function AdminPanelPage() {
     const productPayload = {
       name: productForm.name,
       shortSpec: productForm.shortSpec,
+      description: productForm.description || "",
       price: priceNum,
       originalPrice: origPriceNum,
       discountBadge: productForm.discountBadge || "",
@@ -537,6 +539,7 @@ export default function AdminPanelPage() {
       setProductForm({
         name: productToEdit.name,
         shortSpec: productToEdit.shortSpec,
+        description: productToEdit.description || "",
         price: productToEdit.price,
         originalPrice: productToEdit.originalPrice,
         discountBadge: productToEdit.discountBadge || "",
@@ -554,6 +557,7 @@ export default function AdminPanelPage() {
       setProductForm({
         name: "",
         shortSpec: "",
+        description: "",
         price: "",
         originalPrice: "",
         discountBadge: "",
@@ -1567,7 +1571,7 @@ export default function AdminPanelPage() {
               </div>
 
               {/* Spec */}
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 text-left">
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Short Specifications</label>
                 <input
                   type="text"
@@ -1576,6 +1580,18 @@ export default function AdminPanelPage() {
                   className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-slate-350"
                   value={productForm.shortSpec}
                   onChange={(e) => setProductForm({ ...productForm, shortSpec: e.target.value })}
+                />
+              </div>
+
+              {/* Description */}
+              <div className="space-y-1.5 text-left">
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">About Product (Description)</label>
+                <textarea
+                  placeholder="Enter detailed description of the product..."
+                  rows={3}
+                  className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-slate-350"
+                  value={productForm.description}
+                  onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
                 />
               </div>
 

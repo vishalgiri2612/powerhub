@@ -18,7 +18,8 @@ export const products = [
     featured: true,
     isNewArrival: false,
     color: "Sage Green",
-    stock: 8
+    stock: 8,
+    description: "Equipped with advanced Gallium Nitride (GaN) technology, this ultra-compact wall adapter delivers efficient power for up to three devices simultaneously. Smart power allocation ensures optimal wattage for your laptop, smartphone, and tablet while protecting against overheating and overvoltage."
   },
   {
     id: "p2",
@@ -39,7 +40,8 @@ export const products = [
     featured: true,
     isNewArrival: false,
     color: "Sand Beige",
-    stock: 25
+    stock: 25,
+    description: "Power up on the move with confidence. This massive 20,000 mAh high-density portable charger supplies up to 65W power, capable of recharging laptops and phones at maximum speeds. The integrated real-time OLED screen keeps you updated on the precise remaining battery life."
   },
   {
     id: "p3",
@@ -61,7 +63,8 @@ export const products = [
     featured: true,
     isNewArrival: true,
     color: "Cream Cord",
-    stock: 45
+    stock: 45,
+    description: "Engineered for durability and high-speed energy transfer. This heavy-duty nylon braided cable features an integrated digital live-wattage display that displays exact charging rates in real time. Supports Power Delivery up to 100W for quick-charging laptops and mobile devices."
   },
   {
     id: "p4",
@@ -82,7 +85,8 @@ export const products = [
     featured: true,
     isNewArrival: true,
     color: "Clay Grey",
-    stock: 12
+    stock: 12,
+    description: "Elevate your professional workspace with stunning video clarity. This 4K ultra-high-definition webcam delivers crystal clear imagery, featuring an integrated LED ring light with adjustable touch-brightness controls to ensure optimal lighting in any environment."
   },
   {
     id: "p5",
@@ -103,7 +107,8 @@ export const products = [
     featured: false,
     isNewArrival: true,
     color: "Sand & Gold",
-    stock: 3
+    stock: 3,
+    description: "Immerse yourself in rich, high-fidelity acoustics. These wireless earbuds feature premium active noise cancellation up to 40dB, crystal-clear microphones for calls, and a sleek sand-gold charging case providing up to 40 hours of combined, uninterrupted playtime."
   },
   {
     id: "p6",
@@ -124,7 +129,8 @@ export const products = [
     featured: false,
     isNewArrival: false,
     color: "Beechwood Sand",
-    stock: 18
+    stock: 18,
+    description: "A sophisticated multi-device charger for your modern nightstand or desk. Crafted from sustainable premium beechwood and solid aluminum, this stand magnetically mounts and charges your iPhone, Apple Watch, and AirPods simultaneously at maximum Qi wireless charging speeds."
   }
 ];
 
