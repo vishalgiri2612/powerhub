@@ -61,14 +61,11 @@ export default function Categories() {
       })
       .then((data) => {
         if (Array.isArray(data)) {
-          setCategoriesList(data.filter((c) => c.showOnHome !== false));
-        } else {
-          setCategoriesList(categories.filter((c) => c.showOnHome !== false));
+          setCategoriesList(data);
         }
       })
       .catch((err) => {
         console.error("Failed to fetch categories list dynamically for home", err);
-        setCategoriesList(categories.filter((c) => c.showOnHome !== false));
       });
   }, []);
 
@@ -77,9 +74,11 @@ export default function Categories() {
   };
 
   const getCategoryDetails = (catName, defaultImg) => {
-    const dbCat = categoriesList.find((c) => c.name === catName);
+    const dbCat = categoriesList.find(
+      (c) => c.name && c.name.trim().toLowerCase() === catName.trim().toLowerCase()
+    );
     return {
-      name: catName,
+      name: dbCat?.name || catName,
       image: dbCat?.image || defaultImg
     };
   };
@@ -124,7 +123,6 @@ export default function Categories() {
               alt={cables.name}
               className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
             />
-            {/* Dark overlay on hover */}
             <div className="absolute inset-0 bg-black/5 group-hover:bg-black/10 transition-colors duration-500" />
             <span className="bg-black/80 backdrop-blur-xs text-white text-[10px] sm:text-xs font-black uppercase px-4 py-2 rounded-lg absolute bottom-4 left-4 sm:bottom-6 sm:left-6 tracking-wider z-10">
               {cables.name}
@@ -195,32 +193,6 @@ export default function Categories() {
             </span>
           </div>
         </div>
-
-        {/* Other Active Categories Row (Horizontal scroll below the grid for Accessories, Docking Stations etc.) */}
-        {categoriesList.filter(c => !["Cables", "HDMI Cables", "VGA Cables", "Power Cords", "Converters"].includes(c.name)).length > 0 && (
-          <div className="space-y-4 pt-6 text-left">
-            <h3 className="text-xs font-extrabold uppercase tracking-widest text-[#1E293B]/40">More Categories</h3>
-            <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-none snap-x -mx-4 px-4 md:mx-0 md:px-0">
-              {categoriesList
-                .filter(c => !["Cables", "HDMI Cables", "VGA Cables", "Power Cords", "Converters"].includes(c.name))
-                .map((cat) => (
-                  <div
-                    key={cat.name}
-                    onClick={() => handleCategoryClick(cat.name)}
-                    className="group relative rounded-2xl bg-white border border-[#1E293B]/10 p-4 flex items-center gap-3 hover-lift cursor-pointer min-w-[200px] snap-center shadow-3xs hover:border-[#3674B5]"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden p-1">
-                      <img src={cat.image || "/images/charger.png"} alt={cat.name} className="w-full h-full object-contain" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-extrabold text-slate-800 group-hover:text-[#3674B5] transition-colors">{cat.name}</h4>
-                      <p className="text-[10px] text-slate-400 font-semibold">{cat.subcategories?.length || 0} types</p>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </div>
-        )}
       </div>
     </section>
   );
