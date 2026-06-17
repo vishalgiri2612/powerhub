@@ -36,24 +36,88 @@ export default function Hero() {
     }
   ];
 
+  // Always initialize with defaultSlides — same on server AND client (prevents hydration error)
   const [products, setProducts] = useState(defaultSlides);
+  const [isLoading, setIsLoading] = useState(true);
+  const productsRef = React.useRef([]);
+
+  // hasMounted prevents defaultSlides from flashing before correct slides are applied from cache
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    productsRef.current = products;
+  }, [products]);
+
+  // Runs immediately after mount — reads localStorage synchronously before any paint
+  useEffect(() => {
+    // Apply cached slides first (near-instant, before API response)
+    try {
+      const cached = localStorage.getItem("hero_slides_cache");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setProducts(parsed);
+        }
+      }
+    } catch (e) {}
+    // Reveal hero now that correct slides are in place
+    setHasMounted(true);
+  }, []);
 
   useEffect(() => {
     async function loadHeroSlides() {
       try {
-        const res = await fetch("/api/hero");
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
-            const merged = defaultSlides.map((defSlide, idx) => {
-              const dbSlide = data.find((s) => s.slideIndex === idx);
-              return dbSlide || defSlide;
+        const [resHero, resProducts] = await Promise.all([
+          fetch("/api/hero"),
+          fetch("/api/products")
+        ]);
+
+        if (resHero.ok && resProducts.ok) {
+          const heroData = await resHero.json();
+          const activeProducts = await resProducts.json();
+          const activeProductIds = new Set(activeProducts.map((p) => p.id));
+
+          // Merge custom database slides with default slides
+          const merged = defaultSlides.map((defSlide, idx) => {
+            const dbSlide = Array.isArray(heroData) ? heroData.find((s) => s.slideIndex === idx) : null;
+            return dbSlide || defSlide;
+          });
+
+          // Filter out slides referencing deleted products
+          let filtered = merged.filter((slide) => activeProductIds.has(slide.productId));
+
+          if (filtered.length === 0 && activeProducts.length > 0) {
+            // Generate slides from active products if all referenced products are deleted
+            const fallbackProducts = activeProducts.slice(0, 3);
+            filtered = fallbackProducts.map((prod, idx) => {
+              const defaultSlide = defaultSlides[idx] || defaultSlides[0];
+              return {
+                disconnected: prod.image || defaultSlide.disconnected,
+                connected: (prod.gallery && prod.gallery[1]) || prod.image || defaultSlide.connected,
+                productId: prod.id,
+                tag1: prod.name.split(" ").slice(0, 3).join(" "),
+                tag1Desc: prod.shortSpec || "High Quality",
+                tag2: prod.category || "Shop Now",
+                tag2Desc: "Featured Product",
+                tag3: "Best Price",
+                tag3Desc: `₹${prod.price}`
+              };
             });
-            setProducts(merged);
           }
+
+          const finalSlides = filtered.length > 0 ? filtered : defaultSlides;
+
+          // Save confirmed slides to localStorage so next refresh shows correct data instantly
+          try {
+            localStorage.setItem("hero_slides_cache", JSON.stringify(finalSlides));
+          } catch (e) {}
+
+          setProducts(finalSlides);
         }
       } catch (err) {
         console.error("Error loading hero slides:", err);
+      } finally {
+        setIsLoading(false);
       }
     }
     loadHeroSlides();
@@ -65,6 +129,11 @@ export default function Hero() {
 
     const runSequence = () => {
       if (!active) return;
+
+      if (productsRef.current.length === 0) {
+        timerId = setTimeout(runSequence, 200);
+        return;
+      }
 
       setAnimationState("retracted");
 
@@ -81,12 +150,12 @@ export default function Hero() {
           timerId = setTimeout(() => {
             if (!active) return;
             setAnimationState("disconnecting");
-            setDisconnectedIndex((prev) => (prev + 1) % products.length);
+            setDisconnectedIndex((prev) => (prev + 1) % productsRef.current.length);
 
             timerId = setTimeout(() => {
               if (!active) return;
               setAnimationState("retracted");
-              setConnectedIndex((prev) => (prev + 1) % products.length);
+              setConnectedIndex((prev) => (prev + 1) % productsRef.current.length);
 
               timerId = setTimeout(() => {
                 if (active) {
@@ -443,19 +512,21 @@ export default function Hero() {
 
         </div>
 
-        {/* Right Image Column */}
-        <div className="lg:col-span-6 relative flex flex-col items-center justify-center lg:justify-end gap-3 md:gap-0 mt-0 lg:mt-0">
+        {/* Right Image Column — hidden until correct slides are confirmed from cache */}
+        <div className="lg:col-span-6 relative flex flex-col items-center justify-center lg:justify-end gap-3 md:gap-0 mt-0 lg:mt-0"
+          style={{ opacity: hasMounted ? 1 : 0, transition: "opacity 0.2s ease-in" }}
+        >
           <div className="relative z-10 w-full max-w-[480px] lg:max-w-[450px]">
 
             {/* Floating Ambient Glow Background Ring */}
             <div className="absolute inset-0 bg-[#E5D0C6]/40 rounded-full blur-3xl scale-95 z-0"></div>
 
             {/* Realistic Hero Image Frame */}
-            <Link href={(animationState === "connected" ? products[connectedIndex].productId : products[disconnectedIndex].productId) ? `/product/${(animationState === "connected" ? products[connectedIndex].productId : products[disconnectedIndex].productId)}` : "/shop"}>
+            <Link href={(animationState === "connected" ? products[connectedIndex]?.productId : products[disconnectedIndex]?.productId) ? `/product/${(animationState === "connected" ? products[connectedIndex]?.productId : products[disconnectedIndex]?.productId)}` : "/shop"}>
               <div className="relative z-10 rounded-[2rem] bg-[#F8F9FA] p-3 shadow-xl border border-white/40 overflow-hidden cursor-pointer group hover:scale-[1.02] hover:shadow-2xl transition-all duration-700 h-[280px] sm:h-[320px] lg:h-[400px]">
                 {/* Disconnected Image */}
                 <img
-                  src={products[disconnectedIndex].disconnected}
+                  src={products[disconnectedIndex]?.disconnected || "/images/hero.png"}
                   alt="Ravtron B2B Solutions"
                   className="w-full h-full rounded-[2rem] object-contain absolute inset-4"
                   style={{
@@ -468,7 +539,7 @@ export default function Hero() {
                 />
                 {/* Connected Image */}
                 <img
-                  src={products[connectedIndex].connected}
+                  src={products[connectedIndex]?.connected || "/images/cable.png"}
                   alt="Ravtron Connected Active State"
                   className="w-full h-full rounded-[2rem] object-contain absolute inset-4"
                   style={{
@@ -489,10 +560,10 @@ export default function Hero() {
               </span>
               <div>
                 <h4 className="text-xs font-bold text-[#1E293B] transition-all">
-                  {animationState === "connected" ? products[connectedIndex].tag1 : products[disconnectedIndex].tag1}
+                  {animationState === "connected" ? products[connectedIndex]?.tag1 : products[disconnectedIndex]?.tag1}
                 </h4>
                 <p className="text-[10px] text-[#1E293B]/60">
-                  {animationState === "connected" ? products[connectedIndex].tag1Desc : products[disconnectedIndex].tag1Desc}
+                  {animationState === "connected" ? products[connectedIndex]?.tag1Desc : products[disconnectedIndex]?.tag1Desc}
                 </p>
               </div>
             </div>
@@ -503,10 +574,10 @@ export default function Hero() {
               </span>
               <div>
                 <h4 className="text-xs font-bold text-[#1E293B] transition-all">
-                  {animationState === "connected" ? products[connectedIndex].tag2 : products[disconnectedIndex].tag2}
+                  {animationState === "connected" ? products[connectedIndex]?.tag2 : products[disconnectedIndex]?.tag2}
                 </h4>
                 <p className="text-[10px] text-[#1E293B]/60">
-                  {animationState === "connected" ? products[connectedIndex].tag2Desc : products[disconnectedIndex].tag2Desc}
+                  {animationState === "connected" ? products[connectedIndex]?.tag2Desc : products[disconnectedIndex]?.tag2Desc}
                 </p>
               </div>
             </div>
@@ -517,10 +588,10 @@ export default function Hero() {
               </span>
               <div>
                 <h4 className="text-xs font-bold text-[#1E293B] transition-all">
-                  {animationState === "connected" ? products[connectedIndex].tag3 : products[disconnectedIndex].tag3}
+                  {animationState === "connected" ? products[connectedIndex]?.tag3 : products[disconnectedIndex]?.tag3}
                 </h4>
                 <p className="text-[10px] text-[#1E293B]/60">
-                  {animationState === "connected" ? products[connectedIndex].tag3Desc : products[disconnectedIndex].tag3Desc}
+                  {animationState === "connected" ? products[connectedIndex]?.tag3Desc : products[disconnectedIndex]?.tag3Desc}
                 </p>
               </div>
             </div>
@@ -535,10 +606,10 @@ export default function Hero() {
               </span>
               <div className="text-left">
                 <h4 className="text-[10px] font-extrabold text-[#1E293B] leading-tight">
-                  {animationState === "connected" ? products[connectedIndex].tag1 : products[disconnectedIndex].tag1}
+                  {animationState === "connected" ? products[connectedIndex]?.tag1 : products[disconnectedIndex]?.tag1}
                 </h4>
                 <p className="text-[8px] text-[#1E293B]/60 leading-none">
-                  {animationState === "connected" ? products[connectedIndex].tag1Desc : products[disconnectedIndex].tag1Desc}
+                  {animationState === "connected" ? products[connectedIndex]?.tag1Desc : products[disconnectedIndex]?.tag1Desc}
                 </p>
               </div>
             </div>
@@ -549,10 +620,10 @@ export default function Hero() {
               </span>
               <div className="text-left">
                 <h4 className="text-[10px] font-extrabold text-[#1E293B] leading-tight">
-                  {animationState === "connected" ? products[connectedIndex].tag2 : products[disconnectedIndex].tag2}
+                  {animationState === "connected" ? products[connectedIndex]?.tag2 : products[disconnectedIndex]?.tag2}
                 </h4>
                 <p className="text-[8px] text-[#1E293B]/60 leading-none">
-                  {animationState === "connected" ? products[connectedIndex].tag2Desc : products[disconnectedIndex].tag2Desc}
+                  {animationState === "connected" ? products[connectedIndex]?.tag2Desc : products[disconnectedIndex]?.tag2Desc}
                 </p>
               </div>
             </div>
@@ -563,10 +634,10 @@ export default function Hero() {
               </span>
               <div className="text-left">
                 <h4 className="text-[10px] font-extrabold text-[#1E293B] leading-tight">
-                  {animationState === "connected" ? products[connectedIndex].tag3 : products[disconnectedIndex].tag3}
+                  {animationState === "connected" ? products[connectedIndex]?.tag3 : products[disconnectedIndex]?.tag3}
                 </h4>
                 <p className="text-[8px] text-[#1E293B]/60 leading-none">
-                  {animationState === "connected" ? products[connectedIndex].tag3Desc : products[disconnectedIndex].tag3Desc}
+                  {animationState === "connected" ? products[connectedIndex]?.tag3Desc : products[disconnectedIndex]?.tag3Desc}
                 </p>
               </div>
             </div>

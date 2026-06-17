@@ -367,6 +367,8 @@ export default function AdminPanelPage() {
           const errData = await response.json();
           throw new Error(errData.error || "Failed to delete product");
         }
+        // Clear hero slide cache so deleted product doesn't flash on next page refresh
+        try { localStorage.removeItem("hero_slides_cache"); } catch (e) {}
         showToast("Product deleted successfully.", "info");
         await fetchAdminData();
       } catch (err) {
