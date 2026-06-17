@@ -72,37 +72,94 @@ const initialMockUsers = [
   { name: "Ksg Automation", email: "ksg@automation.com", role: "Customer", joinDate: "April 2026", active: false }
 ];
 
-export async function GET() {
+export async function GET(request) {
   try {
     await dbConnect();
+    const { searchParams } = new URL(request.url);
+    const force = searchParams.get("force") === "true";
 
-    // 1. Seed Products
-    await Product.deleteMany({});
-    const seededProducts = await Product.insertMany(products);
+    let seededProductsCount = 0;
+    let seededCategoriesCount = 0;
+    let seededOrdersCount = 0;
+    let seededUsersCount = 0;
 
-    // 2. Seed Categories
-    await Category.deleteMany({});
-    const seededCategories = await Category.insertMany(categories);
+    if (force) {
+      // 1. Seed Products
+      await Product.deleteMany({});
+      const seededProducts = await Product.insertMany(products);
+      seededProductsCount = seededProducts.length;
 
-    // 3. Seed Orders
-    await Order.deleteMany({});
-    const seededOrders = await Order.insertMany(initialMockOrders);
+      // 2. Seed Categories
+      await Category.deleteMany({});
+      const seededCategories = await Category.insertMany(categories);
+      seededCategoriesCount = seededCategories.length;
 
-    // 4. Seed Users
-    await User.deleteMany({});
-    const seededUsers = await User.insertMany(initialMockUsers);
+      // 3. Seed Orders
+      await Order.deleteMany({});
+      const seededOrders = await Order.insertMany(initialMockOrders);
+      seededOrdersCount = seededOrders.length;
 
-    // 5. Seed Hero Slides (Delete custom slides to restore hardcoded defaults)
-    await HeroSlide.deleteMany({});
+      // 4. Seed Users
+      await User.deleteMany({});
+      const seededUsers = await User.insertMany(initialMockUsers);
+      seededUsersCount = seededUsers.length;
+
+      // 5. Seed Hero Slides (Delete custom slides to restore hardcoded defaults)
+      await HeroSlide.deleteMany({});
+    } else {
+      // Safe incremental seed (only insert if empty or missing)
+      const productCount = await Product.countDocuments();
+      if (productCount === 0) {
+        const seededProducts = await Product.insertMany(products);
+        seededProductsCount = seededProducts.length;
+      } else {
+        const currentProducts = await Product.find({});
+        seededProductsCount = currentProducts.length;
+      }
+
+      // Categories: add missing categories without wiping custom cover images
+      const categoryCount = await Category.countDocuments();
+      if (categoryCount === 0) {
+        const seededCategories = await Category.insertMany(categories);
+        seededCategoriesCount = seededCategories.length;
+      } else {
+        for (const cat of categories) {
+          const exists = await Category.findOne({ name: cat.name });
+          if (!exists) {
+            await Category.create(cat);
+          }
+        }
+        const currentCategories = await Category.find({});
+        seededCategoriesCount = currentCategories.length;
+      }
+
+      // Orders
+      const orderCount = await Order.countDocuments();
+      if (orderCount === 0) {
+        const seededOrders = await Order.insertMany(initialMockOrders);
+        seededOrdersCount = seededOrders.length;
+      } else {
+        seededOrdersCount = orderCount;
+      }
+
+      // Users
+      const userCount = await User.countDocuments();
+      if (userCount === 0) {
+        const seededUsers = await User.insertMany(initialMockUsers);
+        seededUsersCount = seededUsers.length;
+      } else {
+        seededUsersCount = userCount;
+      }
+    }
 
     return NextResponse.json({
       success: true,
-      message: "Database seeded successfully!",
+      message: force ? "Database reset and seeded successfully!" : "Database seeded incrementally (safe mode)!",
       counts: {
-        products: seededProducts.length,
-        categories: seededCategories.length,
-        orders: seededOrders.length,
-        users: seededUsers.length
+        products: seededProductsCount,
+        categories: seededCategoriesCount,
+        orders: seededOrdersCount,
+        users: seededUsersCount
       }
     });
   } catch (error) {

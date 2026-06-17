@@ -145,6 +145,27 @@ export const categories = [
     subcategories: ["HDMI Cables", "VGA Cables", "Power Cords", "Cable Cum Converter"]
   },
   {
+    name: "HDMI Cables",
+    icon: "🔌",
+    image: "/images/cable.png",
+    showOnHome: true,
+    subcategories: []
+  },
+  {
+    name: "VGA Cables",
+    icon: "🔌",
+    image: "/images/cable.png",
+    showOnHome: true,
+    subcategories: []
+  },
+  {
+    name: "Power Cords",
+    icon: "🔌",
+    image: "/images/charger.png",
+    showOnHome: true,
+    subcategories: []
+  },
+  {
     name: "Converters",
     icon: "⚡",
     image: "/images/charger.png",

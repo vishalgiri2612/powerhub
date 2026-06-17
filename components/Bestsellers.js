@@ -8,8 +8,10 @@ export default function Bestsellers() {
   const router = useRouter();
   const { addToCart, toggleWishlist, wishlist } = useCart();
   const [productList, setProductList] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     fetch("/api/products")
       .then((res) => {
         if (!res.ok) throw new Error("API response was not ok");
@@ -22,11 +24,17 @@ export default function Bestsellers() {
           console.error("Expected array for products but got:", data);
         }
       })
-      .catch((e) => console.error("Failed to fetch products for bestsellers", e));
+      .catch((e) => console.error("Failed to fetch products for bestsellers", e))
+      .finally(() => setLoading(false));
   }, []);
 
   // Filter to show only top selling products
-  const bestsellerProducts = Array.isArray(productList) ? productList.filter((p) => p.topSelling) : [];
+  let bestsellerProducts = Array.isArray(productList) ? productList.filter((p) => p.topSelling) : [];
+
+  // Fallback: If no products have topSelling flagged, show the first 4 products
+  if (bestsellerProducts.length === 0 && Array.isArray(productList) && productList.length > 0) {
+    bestsellerProducts = productList.slice(0, 4);
+  }
 
   return (
     <section id="store" className="py-8 md:py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-bg-brand">
@@ -55,16 +63,21 @@ export default function Bestsellers() {
         </div>
 
         {/* Products Marquee Container with dynamic side fading mask */}
-        <div
-          className="relative w-full overflow-hidden py-4 -my-4"
-          style={{
-            maskImage: "linear-gradient(to right, transparent, #fff 4%, #fff 96%, transparent)",
-            WebkitMaskImage: "linear-gradient(to right, transparent, #fff 4%, #fff 96%, transparent)"
-          }}
-        >
-
-          <div className="animate-marquee-triple flex gap-3 sm:gap-8">
-            {[...bestsellerProducts, ...bestsellerProducts, ...bestsellerProducts].map((product, idx) => {
+        {loading ? (
+          <div className="py-16 text-center space-y-4">
+            <div className="w-12 h-12 border-4 border-[#3674B5] border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest animate-pulse font-sans">Loading Bestsellers...</p>
+          </div>
+        ) : bestsellerProducts.length > 0 ? (
+          <div
+            className="relative w-full overflow-hidden py-4 -my-4"
+            style={{
+              maskImage: "linear-gradient(to right, transparent, #fff 4%, #fff 96%, transparent)",
+              WebkitMaskImage: "linear-gradient(to right, transparent, #fff 4%, #fff 96%, transparent)"
+            }}
+          >
+            <div className="animate-marquee-triple flex gap-3 sm:gap-8">
+              {[...bestsellerProducts, ...bestsellerProducts, ...bestsellerProducts].map((product, idx) => {
               const isWishlisted = wishlist.some((item) => item.id === product.id);
               const specItems = product.shortSpec.split(" · ");
 
@@ -236,8 +249,13 @@ export default function Bestsellers() {
                 </div>
               );
             })}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="text-center py-12 border border-dashed border-[#1E293B]/10 rounded-3xl bg-white/50">
+            <p className="text-xs font-bold text-[#1E293B]/40 uppercase tracking-wider">No products available</p>
+          </div>
+        )}
 
       </div>
     </section>

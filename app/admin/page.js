@@ -38,9 +38,16 @@ const getCategoryIconDetails = (categoryName) => {
   const iconClass = "w-4 h-4";
   switch (categoryName) {
     case "Cables":
+    case "HDMI Cables":
+    case "VGA Cables":
       return {
         icon: <Cable className={iconClass} />,
         bg: "bg-blue-50 text-[#3674B5] border-blue-100"
+      };
+    case "Power Cords":
+      return {
+        icon: <Cable className={iconClass} />,
+        bg: "bg-cyan-50 text-cyan-600 border-cyan-100"
       };
     case "Converters":
       return {
@@ -137,6 +144,7 @@ export default function AdminPanelPage() {
   // Category Form State
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newCategoryImage, setNewCategoryImage] = useState("");
+  const [editingCategory, setEditingCategory] = useState(null);
 
   const [isUploading, setIsUploading] = useState(false);
 
@@ -422,43 +430,77 @@ export default function AdminPanelPage() {
     }
   };
 
-  const handleAddCategory = async (e) => {
+  const handleEditCategoryClick = (category) => {
+    setEditingCategory(category);
+    setNewCategoryName(category.name);
+    setNewCategoryImage(category.image || "");
+  };
+
+  const handleSaveCategory = async (e) => {
     e.preventDefault();
     if (!newCategoryName.trim()) return;
 
-    const exists = adminCategories.some(
-      (c) => c.name.toLowerCase() === newCategoryName.trim().toLowerCase()
-    );
-    if (exists) {
-      showToast("Category already exists.", "error");
-      return;
-    }
-
-    try {
-      const response = await fetch("/api/categories", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          name: newCategoryName.trim(),
-          icon: "📦",
-          image: newCategoryImage.trim() || "/images/charger.png",
-          showOnHome: true,
-          subcategories: []
-        })
-      });
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || "Failed to add category");
+    if (editingCategory) {
+      try {
+        const response = await fetch("/api/categories", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            name: editingCategory.name,
+            newName: newCategoryName.trim(),
+            image: newCategoryImage.trim() || "/images/charger.png"
+          })
+        });
+        if (!response.ok) {
+          const errData = await response.json();
+          throw new Error(errData.error || "Failed to update category");
+        }
+        setNewCategoryName("");
+        setNewCategoryImage("");
+        setEditingCategory(null);
+        showToast("Category updated successfully!");
+        await fetchAdminData();
+      } catch (err) {
+        console.error("Error updating category:", err);
+        showToast(err.message || "Failed to update category.", "error");
       }
-      setNewCategoryName("");
-      setNewCategoryImage("");
-      showToast("Category added successfully!");
-      await fetchAdminData();
-    } catch (err) {
-      console.error("Error adding category:", err);
-      showToast(err.message || "Failed to add category.", "error");
+    } else {
+      const exists = adminCategories.some(
+        (c) => c.name.toLowerCase() === newCategoryName.trim().toLowerCase()
+      );
+      if (exists) {
+        showToast("Category already exists.", "error");
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/categories", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            name: newCategoryName.trim(),
+            icon: "📦",
+            image: newCategoryImage.trim() || "/images/charger.png",
+            showOnHome: true,
+            subcategories: []
+          })
+        });
+        if (!response.ok) {
+          const errData = await response.json();
+          throw new Error(errData.error || "Failed to add category");
+        }
+        setNewCategoryName("");
+        setNewCategoryImage("");
+        showToast("Category added successfully!");
+        await fetchAdminData();
+      } catch (err) {
+        console.error("Error adding category:", err);
+        showToast(err.message || "Failed to add category.", "error");
+      }
     }
   };
 
@@ -555,7 +597,7 @@ export default function AdminPanelPage() {
   const handleResetData = async () => {
     if (confirm("This will purge all custom products, orders, categories, and reset the MongoDB database. Proceed?")) {
       try {
-        const response = await fetch("/api/seed");
+        const response = await fetch("/api/seed?force=true");
         if (!response.ok) {
           const errData = await response.json();
           throw new Error(errData.error || "Failed to reset database");
@@ -1467,12 +1509,31 @@ export default function AdminPanelPage() {
 
               {/* Form card */}
               <div className="lg:col-span-4 bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-6">
-                <div className="border-b border-slate-100 pb-3">
-                  <h3 className="font-bold text-sm text-slate-900">New Category</h3>
-                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Define a new category grouping.</p>
+                <div className="border-b border-slate-100 pb-3 flex justify-between items-center">
+                  <div>
+                    <h3 className="font-bold text-sm text-slate-900">
+                      {editingCategory ? "Edit Category" : "New Category"}
+                    </h3>
+                    <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
+                      {editingCategory ? "Modify existing category details." : "Define a new category grouping."}
+                    </p>
+                  </div>
+                  {editingCategory && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingCategory(null);
+                        setNewCategoryName("");
+                        setNewCategoryImage("");
+                      }}
+                      className="text-[10px] font-bold text-rose-500 hover:text-rose-600 uppercase hover:underline"
+                    >
+                      Cancel Edit
+                    </button>
+                  )}
                 </div>
 
-                <form onSubmit={handleAddCategory} className="space-y-4">
+                <form onSubmit={handleSaveCategory} className="space-y-4">
                   <div className="space-y-1.5">
                     <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Category Name</label>
                     <input
@@ -1523,8 +1584,17 @@ export default function AdminPanelPage() {
                     type="submit"
                     className="w-full bg-[#3674B5] hover:bg-[#578FCA] text-white py-3.5 rounded-2xl text-xs font-bold transition-all duration-300 hover:scale-[1.02] active:scale-98 flex items-center justify-center gap-2 shadow-md shadow-[#3674B5]/10"
                   >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Create Category</span>
+                    {editingCategory ? (
+                      <>
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Update Category</span>
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Create Category</span>
+                      </>
+                    )}
                   </button>
                 </form>
               </div>
@@ -1570,10 +1640,17 @@ export default function AdminPanelPage() {
                             </button>
                           </td>
                           <td className="p-4">
-                            <div className="flex items-center justify-center">
+                            <div className="flex items-center justify-center gap-1.5">
+                              <button
+                                onClick={() => handleEditCategoryClick(c)}
+                                className="p-1.5 rounded-lg border border-slate-150 bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-all hover:scale-105 active:scale-95"
+                                title="Edit Category"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
                               <button
                                 onClick={() => handleDeleteCategory(c.name)}
-                                className="p-2 rounded-xl border border-rose-100 bg-rose-50/30 text-rose-500 hover:bg-rose-50 hover:text-rose-600 transition-all hover:scale-105 active:scale-95"
+                                className="p-1.5 rounded-lg border border-rose-100 bg-rose-50/30 text-rose-500 hover:bg-rose-50 hover:text-rose-600 transition-all hover:scale-105 active:scale-95"
                                 title="Delete Category"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />

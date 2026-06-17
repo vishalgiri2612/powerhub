@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Category from "@/models/Category";
+import Product from "@/models/Product";
 
 export async function GET() {
   try {
@@ -55,20 +56,36 @@ export async function PUT(request) {
   try {
     await dbConnect();
     const body = await request.json();
-    const { name, showOnHome } = body;
+    const { name, newName, image, showOnHome } = body;
     
     if (!name) {
       return NextResponse.json({ error: "Category name parameter is required" }, { status: 400 });
     }
     
+    const updateData = {};
+    if (newName && newName.trim() !== name) {
+      const exists = await Category.findOne({ name: newName.trim() });
+      if (exists) {
+        return NextResponse.json({ error: "Category name already exists" }, { status: 400 });
+      }
+      updateData.name = newName.trim();
+    }
+    if (image !== undefined) updateData.image = image;
+    if (showOnHome !== undefined) updateData.showOnHome = showOnHome;
+    
     const updated = await Category.findOneAndUpdate(
       { name },
-      { showOnHome },
+      { $set: updateData },
       { new: true }
     );
     
     if (!updated) {
       return NextResponse.json({ error: "Category not found" }, { status: 404 });
+    }
+    
+    // If name was updated, cascade to all products in this category
+    if (newName && newName.trim() !== name) {
+      await Product.updateMany({ category: name }, { $set: { category: newName.trim() } });
     }
     
     return NextResponse.json(updated);

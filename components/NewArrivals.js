@@ -8,8 +8,10 @@ export default function NewArrivals() {
   const router = useRouter();
   const { addToCart, toggleWishlist, wishlist } = useCart();
   const [productList, setProductList] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     fetch("/api/products")
       .then((res) => {
         if (!res.ok) throw new Error("API response was not ok");
@@ -22,11 +24,17 @@ export default function NewArrivals() {
           console.error("Expected array for products but got:", data);
         }
       })
-      .catch((e) => console.error("Failed to fetch products for arrivals", e));
+      .catch((e) => console.error("Failed to fetch products for arrivals", e))
+      .finally(() => setLoading(false));
   }, []);
 
   // Filter to show new products
-  const newProducts = Array.isArray(productList) ? productList.filter((p) => p.isNewArrival) : [];
+  let newProducts = Array.isArray(productList) ? productList.filter((p) => p.isNewArrival) : [];
+
+  // Fallback: If no products have isNewArrival flagged, show the 4 most recent products
+  if (newProducts.length === 0 && Array.isArray(productList) && productList.length > 0) {
+    newProducts = [...productList].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }
 
   return (
     <section className="py-8 md:py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-bg-brand">
@@ -37,7 +45,7 @@ export default function NewArrivals() {
       <div className="max-w-7xl mx-auto space-y-8 md:space-y-12 relative z-10">
 
         {/* Section Header with Premium Sage theme */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-[#1E293B]/10 pb-4 md:pb-8">
+        <div className="border-b border-[#1E293B]/10 pb-4 md:pb-8 text-left">
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/30">
               <span className="w-1.5 h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
@@ -49,21 +57,17 @@ export default function NewArrivals() {
               Just <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#3674B5] to-[#578FCA]">Landed</span>
             </h2>
           </div>
-          <div>
-            <button
-              onClick={() => alert("Loading all new arrivals...")}
-              className="group text-xs font-extrabold uppercase tracking-widest text-[#3674B5] hover:text-[#1E293B] transition-all flex items-center gap-2 bg-white border border-[#1E293B]/10 rounded-full px-5 py-3 hover-lift shadow-xs"
-            >
-              <span>View All Releases</span>
-              <span className="group-hover:translate-x-1.5 transition-transform duration-300">→</span>
-            </button>
-          </div>
         </div>
 
         {/* Products Grid */}
-        {/* Products Grid (Horizontal Scroll on Mobile, Grid on Desktop) */}
-        <div className="flex overflow-x-auto md:grid md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 pb-6 -mx-4 px-4 md:mx-0 md:px-0 snap-x snap-mandatory scrollbar-none">
-          {newProducts.map((product) => {
+        {loading ? (
+          <div className="py-16 text-center space-y-4">
+            <div className="w-12 h-12 border-4 border-[#3674B5] border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest animate-pulse font-sans">Loading New Arrivals...</p>
+          </div>
+        ) : newProducts.length > 0 ? (
+          <div className="flex overflow-x-auto md:grid md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 pb-6 -mx-4 px-4 md:mx-0 md:px-0 snap-x snap-mandatory scrollbar-none">
+            {newProducts.slice(0, 4).map((product) => {
             const isWishlisted = wishlist.some((item) => item.id === product.id);
             const specItems = product.shortSpec.split(" · ");
 
@@ -236,6 +240,22 @@ export default function NewArrivals() {
               </div>
             );
           })}
+        </div>
+        ) : (
+          <div className="text-center py-12 border border-dashed border-[#1E293B]/10 rounded-3xl bg-white/50">
+            <p className="text-xs font-bold text-[#1E293B]/40 uppercase tracking-wider">No arrivals available</p>
+          </div>
+        )}
+        
+        {/* Centered Explore Button at the bottom */}
+        <div className="flex justify-center pt-4">
+          <button
+            onClick={() => router.push("/shop")}
+            className="group inline-flex items-center gap-2.5 px-8 py-4 rounded-full bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-extrabold uppercase tracking-widest shadow-lg transition-all hover:scale-105 active:scale-95 text-center"
+          >
+            <span>Explore Products</span>
+            <span className="group-hover:translate-x-1.5 transition-transform duration-300">→</span>
+          </button>
         </div>
 
       </div>
