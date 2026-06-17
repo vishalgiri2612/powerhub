@@ -93,6 +93,18 @@ export default function AdminPanelPage() {
   const [adminCategories, setAdminCategories] = useState([]);
   const [adminUsers, setAdminUsers] = useState([]);
 
+  const categoriesListToUse = adminCategories.length > 0
+    ? adminCategories
+    : [
+        { name: "Cables" },
+        { name: "Converters" },
+        { name: "Accessories" },
+        { name: "Surveillance" },
+        { name: "Docking Stations" },
+        { name: "Audio Video" },
+        { name: "Networking" }
+      ];
+
   // Product Form Modal States
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -545,7 +557,7 @@ export default function AdminPanelPage() {
         price: "",
         originalPrice: "",
         discountBadge: "",
-        category: adminCategories[0]?.name || "Accessories",
+        category: categoriesListToUse[0]?.name || "Accessories",
         image: "/images/charger.png",
         gallery: ["/images/charger.png"],
         sizes: ["1.8 Mtr", "3.0 Mtr", "5 Mtr"],
@@ -1065,7 +1077,7 @@ export default function AdminPanelPage() {
               >
                 All Categories
               </button>
-              {adminCategories.map((cat) => (
+              {categoriesListToUse.map((cat) => (
                 <button
                   key={cat.name}
                   onClick={() => setSubTab(cat.name)}
@@ -1110,7 +1122,7 @@ export default function AdminPanelPage() {
                   className="bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-700 outline-none focus:bg-white"
                 >
                   <option value="all">All Categories</option>
-                  {adminCategories.map((c) => (
+                  {categoriesListToUse.map((c) => (
                     <option key={c.name} value={c.name}>{c.name}</option>
                   ))}
                 </select>
@@ -1601,7 +1613,7 @@ export default function AdminPanelPage() {
                     value={productForm.category}
                     onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
                   >
-                    {adminCategories.map((c) => (
+                    {categoriesListToUse.map((c) => (
                       <option key={c.name} value={c.name}>{c.name}</option>
                     ))}
                   </select>

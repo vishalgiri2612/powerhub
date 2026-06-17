@@ -19,6 +19,25 @@ export function CartProvider({ children }) {
 
   // Load initial cart and wishlist from localStorage on client mount
   useEffect(() => {
+    // Global theme initialization
+    const savedTheme = localStorage.getItem("ravtron_theme");
+    if (savedTheme === "light") {
+      document.documentElement.classList.add("light-mode");
+    } else {
+      document.documentElement.classList.remove("light-mode");
+    }
+
+    // Listen for theme toggle events
+    const handleThemeChange = () => {
+      const updatedTheme = localStorage.getItem("ravtron_theme");
+      if (updatedTheme === "light") {
+        document.documentElement.classList.add("light-mode");
+      } else {
+        document.documentElement.classList.remove("light-mode");
+      }
+    };
+    window.addEventListener("ravtron_theme_change", handleThemeChange);
+
     const savedCart = localStorage.getItem("ravtron_cart");
     const savedWishlist = localStorage.getItem("ravtron_wishlist");
     if (savedCart) {
@@ -36,6 +55,10 @@ export function CartProvider({ children }) {
       }
     }
     isInitialized.current = true;
+
+    return () => {
+      window.removeEventListener("ravtron_theme_change", handleThemeChange);
+    };
   }, []);
 
   // Save cart to localStorage on changes
