@@ -25,8 +25,8 @@ export default function ShopSection() {
       .catch((e) => console.error("Failed to fetch products for shop section", e));
   }, []);
 
-  // Display exactly 8 products to form 2 rows of 4 columns on desktop
-  const shopProducts = Array.isArray(productList) ? productList.slice(0, 8) : [];
+  // Display exactly 8 products that are featured on the home page shop catalog
+  const shopProducts = Array.isArray(productList) ? productList.filter((p) => p.featured).slice(0, 8) : [];
 
   return (
     <section id="homepage-shop" className="py-8 md:py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-bg-brand">

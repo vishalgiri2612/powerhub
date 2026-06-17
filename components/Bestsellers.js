@@ -25,8 +25,8 @@ export default function Bestsellers() {
       .catch((e) => console.error("Failed to fetch products for bestsellers", e));
   }, []);
 
-  // Show all products in the shop section
-  const bestsellerProducts = Array.isArray(productList) ? productList : [];
+  // Filter to show only top selling products
+  const bestsellerProducts = Array.isArray(productList) ? productList.filter((p) => p.topSelling) : [];
 
   return (
     <section id="store" className="py-8 md:py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-bg-brand">

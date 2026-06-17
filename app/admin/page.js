@@ -122,7 +122,8 @@ export default function AdminPanelPage() {
     color: "",
     stock: "",
     isNewArrival: false,
-    featured: false
+    featured: false,
+    topSelling: false
   });
 
   // Filter States
@@ -260,7 +261,8 @@ export default function AdminPanelPage() {
       color: productForm.color || "Standard",
       stock: Number(productForm.stock || 0),
       isNewArrival: !!productForm.isNewArrival,
-      featured: !!productForm.featured
+      featured: !!productForm.featured,
+      topSelling: !!productForm.topSelling
     };
 
     try {
@@ -550,7 +552,8 @@ export default function AdminPanelPage() {
         color: productToEdit.color || "",
         stock: productToEdit.stock ?? 0,
         isNewArrival: productToEdit.isNewArrival || false,
-        featured: productToEdit.featured || false
+        featured: productToEdit.featured || false,
+        topSelling: productToEdit.topSelling || false
       });
     } else {
       setEditingProduct(null);
@@ -568,7 +571,8 @@ export default function AdminPanelPage() {
         color: "Standard",
         stock: 0,
         isNewArrival: true,
-        featured: false
+        featured: false,
+        topSelling: false
       });
     }
     setIsProductModalOpen(true);
@@ -1889,7 +1893,7 @@ export default function AdminPanelPage() {
               </div>
 
               {/* Status toggles */}
-              <div className="flex gap-6 pt-1">
+              <div className="flex flex-wrap gap-6 pt-1">
                 <label className="flex items-center gap-2 text-xs font-bold text-slate-600 cursor-pointer">
                   <input
                     type="checkbox"
@@ -1897,7 +1901,7 @@ export default function AdminPanelPage() {
                     checked={productForm.isNewArrival}
                     onChange={(e) => setProductForm({ ...productForm, isNewArrival: e.target.checked })}
                   />
-                  <span>Mark as New</span>
+                  <span>New Arrival</span>
                 </label>
                 <label className="flex items-center gap-2 text-xs font-bold text-slate-600 cursor-pointer">
                   <input
@@ -1906,7 +1910,16 @@ export default function AdminPanelPage() {
                     checked={productForm.featured}
                     onChange={(e) => setProductForm({ ...productForm, featured: e.target.checked })}
                   />
-                  <span>Feature on Home</span>
+                  <span>Shop Section</span>
+                </label>
+                <label className="flex items-center gap-2 text-xs font-bold text-slate-600 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 rounded border-slate-200 text-slate-900"
+                    checked={productForm.topSelling}
+                    onChange={(e) => setProductForm({ ...productForm, topSelling: e.target.checked })}
+                  />
+                  <span>Top Selling Section</span>
                 </label>
               </div>
 

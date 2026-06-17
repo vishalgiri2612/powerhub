@@ -18,7 +18,8 @@ const ProductSchema = new mongoose.Schema(
     isNewArrival: { type: Boolean, default: false },
     color: { type: String, required: true },
     stock: { type: Number, default: 0 },
-    description: { type: String, default: "" }
+    description: { type: String, default: "" },
+    topSelling: { type: Boolean, default: false }
   },
   { timestamps: true }
 );

@@ -41,7 +41,8 @@ export const products = [
     isNewArrival: false,
     color: "Sand Beige",
     stock: 25,
-    description: "Power up on the move with confidence. This massive 20,000 mAh high-density portable charger supplies up to 65W power, capable of recharging laptops and phones at maximum speeds. The integrated real-time OLED screen keeps you updated on the precise remaining battery life."
+    description: "Power up on the move with confidence. This massive 20,000 mAh high-density portable charger supplies up to 65W power, capable of recharging laptops and phones at maximum speeds. The integrated real-time OLED screen keeps you updated on the precise remaining battery life.",
+    topSelling: true
   },
   {
     id: "p3",
@@ -108,7 +109,8 @@ export const products = [
     isNewArrival: true,
     color: "Sand & Gold",
     stock: 3,
-    description: "Immerse yourself in rich, high-fidelity acoustics. These wireless earbuds feature premium active noise cancellation up to 40dB, crystal-clear microphones for calls, and a sleek sand-gold charging case providing up to 40 hours of combined, uninterrupted playtime."
+    description: "Immerse yourself in rich, high-fidelity acoustics. These wireless earbuds feature premium active noise cancellation up to 40dB, crystal-clear microphones for calls, and a sleek sand-gold charging case providing up to 40 hours of combined, uninterrupted playtime.",
+    topSelling: true
   },
   {
     id: "p6",
