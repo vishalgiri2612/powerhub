@@ -4,6 +4,7 @@ import Product from "@/models/Product";
 import Order from "@/models/Order";
 import Category from "@/models/Category";
 import User from "@/models/User";
+import HeroSlide from "@/models/HeroSlide";
 import { products, categories } from "@/app/data/products";
 
 const initialMockOrders = [
@@ -90,6 +91,9 @@ export async function GET() {
     // 4. Seed Users
     await User.deleteMany({});
     const seededUsers = await User.insertMany(initialMockUsers);
+
+    // 5. Seed Hero Slides (Delete custom slides to restore hardcoded defaults)
+    await HeroSlide.deleteMany({});
 
     return NextResponse.json({
       success: true,

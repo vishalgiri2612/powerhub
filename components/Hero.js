@@ -9,10 +9,11 @@ export default function Hero() {
   const [disconnectedIndex, setDisconnectedIndex] = useState(0);
   const [connectedIndex, setConnectedIndex] = useState(0);
 
-  const products = [
+  const defaultSlides = [
     {
       disconnected: "/images/hero.png",
       connected: "/images/cable.png",
+      productId: "p3",
       tag1: "Pro HDMI 2.1", tag1Desc: "8K Resolution",
       tag2: "Docking Hub", tag2Desc: "10-in-1 output",
       tag3: "CAT6 SFTP", tag3Desc: "10Gbps Speed"
@@ -20,6 +21,7 @@ export default function Hero() {
     {
       disconnected: "/images/charger.png",
       connected: "/images/webcam.png",
+      productId: "p4",
       tag1: "GaN Pro 65W", tag1Desc: "Fast Charging",
       tag2: "Ring Webcam", tag2Desc: "4K Video Stream",
       tag3: "Power Cord", tag3Desc: "Heavy Duty"
@@ -27,11 +29,35 @@ export default function Hero() {
     {
       disconnected: "/images/powerbank.png",
       connected: "/images/earbuds.png",
+      productId: "p5",
       tag1: "Smart Bank", tag1Desc: "OLED Diagnostics",
       tag2: "Hi-Fi Buds", tag2Desc: "ANC Workspace",
       tag3: "USB-C Cable", tag3Desc: "100W PD Power"
     }
   ];
+
+  const [products, setProducts] = useState(defaultSlides);
+
+  useEffect(() => {
+    async function loadHeroSlides() {
+      try {
+        const res = await fetch("/api/hero");
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            const merged = defaultSlides.map((defSlide, idx) => {
+              const dbSlide = data.find((s) => s.slideIndex === idx);
+              return dbSlide || defSlide;
+            });
+            setProducts(merged);
+          }
+        }
+      } catch (err) {
+        console.error("Error loading hero slides:", err);
+      }
+    }
+    loadHeroSlides();
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -425,34 +451,36 @@ export default function Hero() {
             <div className="absolute inset-0 bg-[#E5D0C6]/40 rounded-full blur-3xl scale-95 z-0"></div>
 
             {/* Realistic Hero Image Frame */}
-            <div className="relative z-10 rounded-[2rem] bg-[#F8F9FA] p-3 shadow-xl border border-white/40 overflow-hidden group hover:scale-[1.01] transition-all duration-700 h-[280px] sm:h-[320px] lg:h-[400px]">
-              {/* Disconnected Image */}
-              <img
-                src={products[disconnectedIndex].disconnected}
-                alt="Ravtron B2B Solutions"
-                className="w-full h-full rounded-[2rem] object-cover absolute inset-4"
-                style={{
-                  opacity: (animationState === "connected") ? 0 : 1,
-                  transform: (animationState === "connected") ? "scale(0.95)" : "scale(1)",
-                  width: "calc(100% - 2rem)",
-                  height: "calc(100% - 2rem)",
-                  transition: "opacity 0.3s ease-in-out, transform 0.3s ease-in-out"
-                }}
-              />
-              {/* Connected Image */}
-              <img
-                src={products[connectedIndex].connected}
-                alt="Ravtron Connected Active State"
-                className="w-full h-full rounded-[2rem] object-cover absolute inset-4"
-                style={{
-                  opacity: (animationState === "connected") ? 1 : 0,
-                  transform: (animationState === "connected") ? "scale(1)" : "scale(1.05)",
-                  width: "calc(100% - 2rem)",
-                  height: "calc(100% - 2rem)",
-                  transition: "opacity 0.3s ease-in-out, transform 0.3s ease-in-out"
-                }}
-              />
-            </div>
+            <Link href={(animationState === "connected" ? products[connectedIndex].productId : products[disconnectedIndex].productId) ? `/product/${(animationState === "connected" ? products[connectedIndex].productId : products[disconnectedIndex].productId)}` : "/shop"}>
+              <div className="relative z-10 rounded-[2rem] bg-[#F8F9FA] p-3 shadow-xl border border-white/40 overflow-hidden cursor-pointer group hover:scale-[1.02] hover:shadow-2xl transition-all duration-700 h-[280px] sm:h-[320px] lg:h-[400px]">
+                {/* Disconnected Image */}
+                <img
+                  src={products[disconnectedIndex].disconnected}
+                  alt="Ravtron B2B Solutions"
+                  className="w-full h-full rounded-[2rem] object-contain absolute inset-4"
+                  style={{
+                    opacity: (animationState === "connected") ? 0 : 1,
+                    transform: (animationState === "connected") ? "scale(0.95)" : "scale(1)",
+                    width: "calc(100% - 2rem)",
+                    height: "calc(100% - 2rem)",
+                    transition: "opacity 0.3s ease-in-out, transform 0.3s ease-in-out"
+                  }}
+                />
+                {/* Connected Image */}
+                <img
+                  src={products[connectedIndex].connected}
+                  alt="Ravtron Connected Active State"
+                  className="w-full h-full rounded-[2rem] object-contain absolute inset-4"
+                  style={{
+                    opacity: (animationState === "connected") ? 1 : 0,
+                    transform: (animationState === "connected") ? "scale(1)" : "scale(1.05)",
+                    width: "calc(100% - 2rem)",
+                    height: "calc(100% - 2rem)",
+                    transition: "opacity 0.3s ease-in-out, transform 0.3s ease-in-out"
+                  }}
+                />
+              </div>
+            </Link>
 
             {/* Floating Info Chips (Desktop Only) */}
             <div className="hidden md:flex absolute -top-4 -left-4 z-20 glass-pill px-4.5 py-2.5 rounded-2xl shadow-lg border flex items-center gap-2 hover:scale-105 transition-all">

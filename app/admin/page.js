@@ -92,6 +92,8 @@ export default function AdminPanelPage() {
   const [adminOrders, setAdminOrders] = useState([]);
   const [adminCategories, setAdminCategories] = useState([]);
   const [adminUsers, setAdminUsers] = useState([]);
+  const [heroSlides, setHeroSlides] = useState([]);
+  const [isLoadingHero, setIsLoadingHero] = useState(false);
 
   const categoriesListToUse = adminCategories.length > 0
     ? adminCategories
@@ -230,6 +232,45 @@ export default function AdminPanelPage() {
     }
     fetchAdminData();
   }, []);
+
+  const fetchHeroSlides = async () => {
+    setIsLoadingHero(true);
+    try {
+      const res = await fetch("/api/hero");
+      if (res.ok) {
+        const data = await res.json();
+        setHeroSlides(Array.isArray(data) ? data : []);
+      }
+    } catch (err) {
+      console.error("Error loading hero slides:", err);
+      showToast("Error loading hero slides.", "error");
+    } finally {
+      setIsLoadingHero(false);
+    }
+  };
+
+  const handleResetHero = async () => {
+    if (confirm("Reset all Hero slides to their default hardcoded settings?")) {
+      try {
+        const response = await fetch("/api/hero", { method: "DELETE" });
+        if (response.ok) {
+          showToast("Hero slider reset to factory defaults.", "info");
+          await fetchHeroSlides();
+        } else {
+          showToast("Failed to reset hero settings.", "error");
+        }
+      } catch (err) {
+        console.error("Error resetting hero settings:", err);
+        showToast("Error resetting hero settings.", "error");
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "hero") {
+      fetchHeroSlides();
+    }
+  }, [activeTab]);
 
   const handleAdminAuthSubmit = (e) => {
     e.preventDefault();
@@ -715,6 +756,17 @@ export default function AdminPanelPage() {
             >
               <FolderPlus className="w-4 h-4 text-slate-400" />
               <span>Categories</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("hero")}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${activeTab === "hero"
+                  ? "bg-slate-50 text-slate-900 font-bold"
+                  : "text-slate-500 hover:bg-slate-50/50 hover:text-slate-900"
+                }`}
+            >
+              <Zap className="w-4 h-4 text-slate-400" />
+              <span>Hero Manager</span>
             </button>
           </nav>
         </div>
@@ -1539,6 +1591,51 @@ export default function AdminPanelPage() {
           </div>
         )}
 
+        {/* TAB: HERO MANAGER */}
+        {activeTab === "hero" && (
+          <div className="space-y-8 animate-fade-in text-left">
+            <div className="flex justify-between items-center">
+              <div className="space-y-1">
+                <h1 className="text-2xl font-bold font-display tracking-tight text-slate-900">Hero Section Manager</h1>
+                <p className="text-xs text-slate-400 font-medium">Customize home page Hero slider images, tags, and product redirections.</p>
+              </div>
+              <button
+                onClick={handleResetHero}
+                className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Reset to Defaults</span>
+              </button>
+            </div>
+
+            {isLoadingHero ? (
+              <div className="py-12 text-center text-xs font-bold text-slate-400 animate-pulse">Loading hero configurations...</div>
+            ) : (
+              <div className="grid grid-cols-1 gap-8">
+                {[0, 1, 2].map((idx) => {
+                  const existingSlide = heroSlides.find((s) => s.slideIndex === idx);
+                  return (
+                    <HeroSlideEditor
+                      key={idx}
+                      slideIndex={idx}
+                      existingSlide={existingSlide}
+                      products={adminProducts}
+                      compressAndConvertToBase64={compressAndConvertToBase64}
+                      showToast={showToast}
+                      onSave={(updated) => {
+                        setHeroSlides((prev) => {
+                          const list = prev.filter((s) => s.slideIndex !== idx);
+                          return [...list, updated].sort((a, b) => a.slideIndex - b.slideIndex);
+                        });
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
       </main>
 
       {/* Product Form Modal (Add / Edit) */}
@@ -1947,6 +2044,283 @@ export default function AdminPanelPage() {
 
       <SearchModal />
       <CartDrawer />
+    </div>
+  );
+}
+
+function HeroSlideEditor({
+  slideIndex,
+  existingSlide,
+  products,
+  onSave,
+  compressAndConvertToBase64,
+  showToast
+}) {
+  const defaultSlides = [
+    {
+      disconnected: "/images/hero.png",
+      connected: "/images/cable.png",
+      productId: "p3",
+      tag1: "Pro HDMI 2.1", tag1Desc: "8K Resolution",
+      tag2: "Docking Hub", tag2Desc: "10-in-1 output",
+      tag3: "CAT6 SFTP", tag3Desc: "10Gbps Speed"
+    },
+    {
+      disconnected: "/images/charger.png",
+      connected: "/images/webcam.png",
+      productId: "p4",
+      tag1: "GaN Pro 65W", tag1Desc: "Fast Charging",
+      tag2: "Ring Webcam", tag2Desc: "4K Video Stream",
+      tag3: "Power Cord", tag3Desc: "Heavy Duty"
+    },
+    {
+      disconnected: "/images/powerbank.png",
+      connected: "/images/earbuds.png",
+      productId: "p5",
+      tag1: "Smart Bank", tag1Desc: "OLED Diagnostics",
+      tag2: "Hi-Fi Buds", tag2Desc: "ANC Workspace",
+      tag3: "USB-C Cable", tag3Desc: "100W PD Power"
+    }
+  ];
+
+  const slideDefaults = defaultSlides[slideIndex] || {};
+
+  const [disconnected, setDisconnected] = useState("");
+  const [connected, setConnected] = useState("");
+  const [productId, setProductId] = useState("");
+  const [tag1, setTag1] = useState("");
+  const [tag1Desc, setTag1Desc] = useState("");
+  const [tag2, setTag2] = useState("");
+  const [tag2Desc, setTag2Desc] = useState("");
+  const [tag3, setTag3] = useState("");
+  const [tag3Desc, setTag3Desc] = useState("");
+
+  const [isUploadingConnected, setIsUploadingConnected] = useState(false);
+  const [isUploadingDisconnected, setIsUploadingDisconnected] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (existingSlide) {
+      setDisconnected(existingSlide.disconnected || "");
+      setConnected(existingSlide.connected || "");
+      setProductId(existingSlide.productId || "");
+      setTag1(existingSlide.tag1 || "");
+      setTag1Desc(existingSlide.tag1Desc || "");
+      setTag2(existingSlide.tag2 || "");
+      setTag2Desc(existingSlide.tag2Desc || "");
+      setTag3(existingSlide.tag3 || "");
+      setTag3Desc(existingSlide.tag3Desc || "");
+    } else {
+      setDisconnected(slideDefaults.disconnected || "");
+      setConnected(slideDefaults.connected || "");
+      setProductId(slideDefaults.productId || "");
+      setTag1(slideDefaults.tag1 || "");
+      setTag1Desc(slideDefaults.tag1Desc || "");
+      setTag2(slideDefaults.tag2 || "");
+      setTag2Desc(slideDefaults.tag2Desc || "");
+      setTag3(slideDefaults.tag3 || "");
+      setTag3Desc(slideDefaults.tag3Desc || "");
+    }
+  }, [existingSlide]);
+
+  const handleImageUpload = async (e, type) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (type === "connected") setIsUploadingConnected(true);
+    else setIsUploadingDisconnected(true);
+
+    try {
+      const base64Url = await compressAndConvertToBase64(file);
+      if (type === "connected") {
+        setConnected(base64Url);
+      } else {
+        setDisconnected(base64Url);
+      }
+      showToast(`${type === "connected" ? "Connected" : "Disconnected"} image uploaded successfully!`);
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to process image.", "error");
+    } finally {
+      if (type === "connected") setIsUploadingConnected(false);
+      else setIsUploadingDisconnected(false);
+    }
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    if (!productId) {
+      showToast("Please select a target product.", "error");
+      return;
+    }
+    if (!disconnected || !connected) {
+      showToast("Both connected and disconnected images are required.", "error");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const response = await fetch("/api/hero", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slideIndex,
+          disconnected,
+          connected,
+          productId,
+          tag1,
+          tag1Desc,
+          tag2,
+          tag2Desc,
+          tag3,
+          tag3Desc
+        })
+      });
+      if (response.ok) {
+        const updated = await response.json();
+        onSave(updated);
+        showToast(`Slide ${slideIndex + 1} settings saved!`);
+      } else {
+        const errData = await response.json();
+        showToast(errData.error || "Failed to save slide settings.", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Error saving slide settings.", "error");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-6 text-left">
+      <div className="border-b border-slate-100 pb-3 flex justify-between items-center">
+        <div>
+          <h3 className="font-bold text-base text-slate-900">Hero Slide #{slideIndex + 1}</h3>
+          <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Configure the connected/disconnected state images, tags, and product link.</p>
+        </div>
+        {existingSlide ? (
+          <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded text-[9px] font-black uppercase">Custom Active</span>
+        ) : (
+          <span className="px-2 py-0.5 bg-slate-100 text-slate-400 border border-slate-200 rounded text-[9px] font-black uppercase">Factory Default</span>
+        )}
+      </div>
+
+      <form onSubmit={handleSave} className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Images Section */}
+          <div className="space-y-4 text-left">
+            <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Slide Images</h4>
+            
+            <div className="grid grid-cols-2 gap-4">
+              {/* Disconnected State Image */}
+              <div className="space-y-2 text-left">
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase">Disconnected Image</label>
+                  {isUploadingDisconnected && <span className="text-[9px] text-[#3674B5] font-extrabold animate-pulse">Uploading...</span>}
+                </div>
+                <div className="relative aspect-square rounded-2xl border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden bg-slate-50 p-2">
+                  {disconnected ? (
+                    <img src={disconnected} alt="Disconnected view" className="w-full h-full object-contain" />
+                  ) : (
+                    <span className="text-slate-300 text-xs font-bold">No Image</span>
+                  )}
+                </div>
+                <label className="w-full flex items-center justify-center py-2 px-3 bg-[#3674B5]/5 hover:bg-[#3674B5]/10 border border-[#3674B5]/20 text-[#3674B5] text-[11px] font-bold rounded-xl cursor-pointer transition-all hover:scale-[1.02] active:scale-98">
+                  <span>Change Image</span>
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, "disconnected")} disabled={isUploadingDisconnected} />
+                </label>
+              </div>
+
+              {/* Connected State Image */}
+              <div className="space-y-2 text-left">
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase">Connected Image</label>
+                  {isUploadingConnected && <span className="text-[9px] text-[#3674B5] font-extrabold animate-pulse">Uploading...</span>}
+                </div>
+                <div className="relative aspect-square rounded-2xl border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden bg-slate-50 p-2">
+                  {connected ? (
+                    <img src={connected} alt="Connected view" className="w-full h-full object-contain" />
+                  ) : (
+                    <span className="text-slate-300 text-xs font-bold">No Image</span>
+                  )}
+                </div>
+                <label className="w-full flex items-center justify-center py-2 px-3 bg-[#3674B5]/5 hover:bg-[#3674B5]/10 border border-[#3674B5]/20 text-[#3674B5] text-[11px] font-bold rounded-xl cursor-pointer transition-all hover:scale-[1.02] active:scale-98">
+                  <span>Change Image</span>
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, "connected")} disabled={isUploadingConnected} />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Links & Tags Section */}
+          <div className="space-y-4 text-left">
+            <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Settings & Content</h4>
+            
+            {/* Product Redirection Select */}
+            <div className="space-y-1.5 text-left">
+              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">On-Click Target Product Redirection</label>
+              <select
+                required
+                value={productId}
+                onChange={(e) => setProductId(e.target.value)}
+                className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-2xl px-4 py-3.5 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-[#3674B5] transition-all"
+              >
+                <option value="">-- Select Target Product --</option>
+                {products.map((prod) => (
+                  <option key={prod.id} value={prod.id}>
+                    [{prod.category}] {prod.name} (₹{prod.price})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Tag Inputs */}
+            <div className="space-y-3 pt-2 text-left">
+              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Floating Info Chips Text</label>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <span className="text-[9px] font-black text-slate-400 uppercase">Tag 1 Label</span>
+                  <input type="text" placeholder="e.g. Pro HDMI 2.1" className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 outline-none focus:bg-white" value={tag1} onChange={(e) => setTag1(e.target.value)} />
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[9px] font-black text-slate-400 uppercase">Tag 1 Description</span>
+                  <input type="text" placeholder="e.g. 8K Resolution" className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 outline-none focus:bg-white" value={tag1Desc} onChange={(e) => setTag1Desc(e.target.value)} />
+                </div>
+
+                <div className="space-y-1">
+                  <span className="text-[9px] font-black text-slate-400 uppercase">Tag 2 Label</span>
+                  <input type="text" placeholder="e.g. Docking Hub" className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 outline-none focus:bg-white" value={tag2} onChange={(e) => setTag2(e.target.value)} />
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[9px] font-black text-slate-400 uppercase">Tag 2 Description</span>
+                  <input type="text" placeholder="e.g. 10-in-1 output" className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 outline-none focus:bg-white" value={tag2Desc} onChange={(e) => setTag2Desc(e.target.value)} />
+                </div>
+
+                <div className="space-y-1">
+                  <span className="text-[9px] font-black text-slate-400 uppercase">Tag 3 Label</span>
+                  <input type="text" placeholder="e.g. CAT6 SFTP" className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 outline-none focus:bg-white" value={tag3} onChange={(e) => setTag3(e.target.value)} />
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[9px] font-black text-slate-400 uppercase">Tag 3 Description</span>
+                  <input type="text" placeholder="e.g. 10Gbps Speed" className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 outline-none focus:bg-white" value={tag3Desc} onChange={(e) => setTag3Desc(e.target.value)} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end pt-3 border-t border-slate-100/65">
+          <button
+            type="submit"
+            disabled={isSaving}
+            className="px-5 py-2.5 bg-black hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 disabled:opacity-50"
+          >
+            {isSaving ? "Saving slide..." : "Save Slide Settings"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }
