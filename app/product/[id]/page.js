@@ -29,8 +29,8 @@ const getDescription = (id) => {
 export default function ProductDetailPage({ params }) {
   const { id } = use(params);
   const router = useRouter();
-  const { 
-    addToCart, 
+  const {
+    addToCart,
     setIsCartOpen,
     wishlist,
     toggleWishlist
@@ -42,6 +42,7 @@ export default function ProductDetailPage({ params }) {
   // Fetch product detail dynamically
   const [product, setProduct] = useState(null);
   const [selectedImage, setSelectedImage] = useState("");
+  const [selectedSize, setSelectedSize] = useState(null);
   const [allProductsList, setAllProductsList] = useState([]);
 
   useEffect(() => {
@@ -69,6 +70,14 @@ export default function ProductDetailPage({ params }) {
       .then((data) => {
         setProduct(data);
         setSelectedImage(data.image || "");
+        if (data.category === "Cables") {
+          const sizesList = data.sizes && data.sizes.length > 0 
+            ? data.sizes 
+            : ["1.8 Mtr", "3.0 Mtr", "5 Mtr", "10 Mtr", "15 Mtr", "20 Mtr", "25 Mtr", "30 Mtr", "40 Mtr", "50 Mtr"];
+          setSelectedSize(sizesList[0]);
+        } else {
+          setSelectedSize(null);
+        }
       })
       .catch((err) => {
         console.error("Failed to fetch product details", err);
@@ -104,7 +113,7 @@ export default function ProductDetailPage({ params }) {
         <div className="max-w-7xl mx-auto px-4 py-36 text-center space-y-4">
           <h2 className="font-display font-black text-3xl text-[#1E293B]">Product Not Found</h2>
           <p className="text-sm font-semibold text-[#1E293B]/50">The accessory you are looking for does not exist or has been removed.</p>
-          <button 
+          <button
             onClick={() => router.push("/")}
             className="px-6 py-3 rounded-xl bg-[#3674B5] text-white text-xs font-bold uppercase tracking-wider"
           >
@@ -133,11 +142,11 @@ export default function ProductDetailPage({ params }) {
   const brandText = isSage ? "text-[#3674B5]" : isSand ? "text-[#DEC89E]" : "text-[#3674B5]";
 
   const handleAdd = () => {
-    addToCart(product, quantity);
+    addToCart(selectedSize ? { ...product, selectedSize } : product, quantity);
   };
 
   const handleBuyNow = () => {
-    addToCart(product, quantity);
+    addToCart(selectedSize ? { ...product, selectedSize } : product, quantity);
     setIsCartOpen(true);
     router.push("/");
   };
@@ -148,10 +157,10 @@ export default function ProductDetailPage({ params }) {
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24 relative z-10">
-        
+
         {/* Back navigation */}
         <div className="pb-8">
-          <button 
+          <button
             onClick={() => router.push("/shop")}
             className="group inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest text-[#1E293B]/50 hover:text-[#1E293B] transition-all bg-white border border-[#1E293B]/10 rounded-full px-5 py-2.5 hover-lift shadow-2xs"
           >
@@ -163,14 +172,14 @@ export default function ProductDetailPage({ params }) {
         {/* Two-Column Details Showcase */}
         {/* Two-Column Details Showcase */}
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 items-stretch">
-          
+
           {/* Left Column: Image Gallery Showcase (Full-frame cover layout) */}
           <div className="w-full lg:w-1/2 bg-white border border-[#1E293B]/10 rounded-3xl md:rounded-[3rem] flex flex-col justify-between relative overflow-hidden shadow-sm min-h-[350px] sm:min-h-[500px] lg:min-h-[580px]">
-            
+
             {/* Top Aspect-Square Image Cover Container */}
             <div className="w-full aspect-square relative overflow-hidden bg-[#FFFFFF] group">
               {/* Ambient radial lighting glow */}
-              <div 
+              <div
                 className="absolute -top-48 -left-48 w-[140%] h-[140%] rounded-full blur-3xl opacity-25 pointer-events-none"
                 style={{
                   background: `radial-gradient(circle, ${brandAccent} 0%, transparent 70%)`
@@ -180,11 +189,10 @@ export default function ProductDetailPage({ params }) {
               {/* Float Wishlist Trigger */}
               <button
                 onClick={() => toggleWishlist(product)}
-                className={`absolute top-4 left-4 md:top-6 md:left-6 z-20 p-2.5 md:p-3.5 rounded-full border backdrop-blur-xs transition-all duration-300 hover:scale-110 active:scale-95 shadow-xs ${
-                  isWishlisted
+                className={`absolute top-4 left-4 md:top-6 md:left-6 z-20 p-2.5 md:p-3.5 rounded-full border backdrop-blur-xs transition-all duration-300 hover:scale-110 active:scale-95 shadow-xs ${isWishlisted
                     ? "bg-[#3674B5]/15 border-[#3674B5]/40 text-[#3674B5]"
                     : "bg-white/80 border-[#1E293B]/10 text-[#1E293B]/40 hover:text-[#1E293B] hover:bg-white"
-                }`}
+                  }`}
                 aria-label="Add to Wishlist"
               >
                 <svg
@@ -224,15 +232,14 @@ export default function ProductDetailPage({ params }) {
                     <button
                       key={index}
                       onClick={() => setSelectedImage(imgUrl)}
-                      className={`w-14 h-14 md:w-20 md:h-20 rounded-xl md:rounded-2xl border-2 overflow-hidden bg-[#FFFFFF] p-1.5 md:p-2 flex items-center justify-center transition-all duration-300 ${
-                        selectedImage === imgUrl 
-                          ? "border-[#3674B5] scale-105 shadow-xs bg-white" 
+                      className={`w-14 h-14 md:w-20 md:h-20 rounded-xl md:rounded-2xl border-2 overflow-hidden bg-[#FFFFFF] p-1.5 md:p-2 flex items-center justify-center transition-all duration-300 ${selectedImage === imgUrl
+                          ? "border-[#3674B5] scale-105 shadow-xs bg-white"
                           : "border-transparent opacity-60 hover:opacity-100 hover:scale-102"
-                      }`}
+                        }`}
                     >
-                      <img 
-                        src={imgUrl} 
-                        alt={`${product.name} view ${index + 1}`} 
+                      <img
+                        src={imgUrl}
+                        alt={`${product.name} view ${index + 1}`}
                         className="w-full h-full object-contain"
                       />
                     </button>
@@ -245,7 +252,7 @@ export default function ProductDetailPage({ params }) {
           {/* Right Column: Detailed Context Info */}
           <div className="w-full lg:w-1/2 flex flex-col justify-between space-y-6 md:space-y-8">
             <div className="space-y-8">
-              
+
               {/* Category tags */}
               <div className="flex items-center justify-between">
                 <span className={`text-xs font-extrabold uppercase px-3.5 py-1.5 rounded-full ${brandBgLight} ${brandBorder} border ${brandText} tracking-widest`}>
@@ -275,20 +282,20 @@ export default function ProductDetailPage({ params }) {
               {/* Tab Selector */}
               <div className="space-y-5">
                 <div className="flex items-center border-b border-[#1E293B]/10 text-xs font-extrabold text-[#1E293B]/40 uppercase tracking-widest gap-4 sm:gap-8 overflow-x-auto scrollbar-none pb-1.5">
-                  <button 
-                    onClick={() => setActiveTab("overview")} 
+                  <button
+                    onClick={() => setActiveTab("overview")}
                     className={`pb-2 transition-all relative flex-shrink-0 ${activeTab === "overview" ? "text-[#1E293B] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2.5px] after:bg-[#3674B5]" : "hover:text-[#1E293B]"}`}
                   >
                     Overview
                   </button>
-                  <button 
-                    onClick={() => setActiveTab("specs")} 
+                  <button
+                    onClick={() => setActiveTab("specs")}
                     className={`pb-2 transition-all relative flex-shrink-0 ${activeTab === "specs" ? "text-[#1E293B] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2.5px] after:bg-[#3674B5]" : "hover:text-[#1E293B]"}`}
                   >
                     Specifications
                   </button>
-                  <button 
-                    onClick={() => setActiveTab("shipping")} 
+                  <button
+                    onClick={() => setActiveTab("shipping")}
                     className={`pb-2 transition-all relative flex-shrink-0 ${activeTab === "shipping" ? "text-[#1E293B] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2.5px] after:bg-[#3674B5]" : "hover:text-[#1E293B]"}`}
                   >
                     Shipping & Return
@@ -334,6 +341,34 @@ export default function ProductDetailPage({ params }) {
                   )}
                 </div>
               </div>
+
+              {/* Cable Size Selector */}
+              {product.category === "Cables" && (
+                <div className="space-y-2.5 pb-2 text-left">
+                  <span className="block text-xs font-extrabold uppercase tracking-widest text-[#1E293B]/60">
+                    size
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {(product.sizes && product.sizes.length > 0
+                      ? product.sizes
+                      : ["1.8 Mtr", "3.0 Mtr", "5 Mtr", "10 Mtr", "15 Mtr", "20 Mtr", "25 Mtr", "30 Mtr", "40 Mtr", "50 Mtr"]
+                    ).map((sz) => (
+                      <button
+                        key={sz}
+                        type="button"
+                        onClick={() => setSelectedSize(sz)}
+                        className={`px-4.5 py-2.5 rounded-xl border text-xs font-bold transition-all duration-300 ${
+                          selectedSize === sz
+                            ? "bg-black text-white border-black shadow-xs font-extrabold"
+                            : "bg-white text-slate-800 border-slate-200 hover:border-slate-350 hover:bg-slate-50 font-bold"
+                        }`}
+                      >
+                        {sz}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Pricing section with custom controls */}
               <div className="flex items-center justify-between bg-white border border-[#1E293B]/10 rounded-2xl md:rounded-[2rem] p-4 md:p-5 shadow-xs">
@@ -412,33 +447,33 @@ export default function ProductDetailPage({ params }) {
             {relatedProducts.map((p) => {
               const specList = p.shortSpec.split(" · ");
               return (
-                <div 
+                <div
                   key={p.id}
                   onClick={() => router.push(`/product/${p.id}`)}
                   className="group relative rounded-2xl md:rounded-[2.5rem] bg-white border border-[#1E293B]/10 p-3 md:p-5 flex flex-col justify-between hover-lift transition-all duration-500 cursor-pointer shadow-2xs"
                 >
                   <div className="relative aspect-square w-full rounded-xl md:rounded-[2rem] bg-[#FFFFFF] overflow-hidden mb-3 md:mb-5">
-                    <img 
-                      src={p.image} 
-                      alt={p.name} 
+                    <img
+                      src={p.image}
+                      alt={p.name}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       style={{
                         filter: "drop-shadow(0 10px 15px rgba(26,25,23,0.06))"
                       }}
                     />
                   </div>
-                  
+
                   <div className="space-y-2 md:space-y-3.5">
                     <span className="text-[8px] md:text-[9px] font-extrabold text-[#1E293B]/40 uppercase tracking-widest">{p.category}</span>
                     <h4 className="font-display font-bold text-xs md:text-base text-[#1E293B] group-hover:text-[#3674B5] transition-colors line-clamp-1">{p.name}</h4>
-                    
+
                     {/* Hidden on mobile to fit two-column grid cleanly */}
                     <div className="hidden sm:flex flex-wrap gap-1">
                       {specList.slice(0, 2).map((sp, idx) => (
                         <span key={idx} className="text-[9px] font-bold text-[#1E293B]/50 bg-[#F8F9FA] px-2 py-0.5 rounded-md">{sp}</span>
                       ))}
                     </div>
-                    
+
                     <div className="flex items-center justify-between pt-2.5 border-t border-[#1E293B]/10 mt-3 md:mt-4">
                       <span className="font-black text-[#3674B5] text-sm md:text-base">₹{p.price.toLocaleString()}</span>
                       <span className="text-[10px] md:text-xs font-bold text-[#1E293B]/40 group-hover:text-[#1E293B] transition-all flex items-center gap-0.5 md:gap-1">

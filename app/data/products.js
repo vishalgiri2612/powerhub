@@ -16,7 +16,7 @@ export const products = [
     ],
     category: "Accessories",
     featured: true,
-    isNew: false,
+    isNewArrival: false,
     color: "Sage Green",
     stock: 8
   },
@@ -37,7 +37,7 @@ export const products = [
     ],
     category: "Accessories",
     featured: true,
-    isNew: false,
+    isNewArrival: false,
     color: "Sand Beige",
     stock: 25
   },
@@ -57,8 +57,9 @@ export const products = [
       "/images/charger_angle.png"
     ],
     category: "Cables",
+    sizes: ["1.8 Mtr", "3.0 Mtr", "5 Mtr"],
     featured: true,
-    isNew: true,
+    isNewArrival: true,
     color: "Cream Cord",
     stock: 45
   },
@@ -79,7 +80,7 @@ export const products = [
     ],
     category: "Accessories",
     featured: true,
-    isNew: true,
+    isNewArrival: true,
     color: "Clay Grey",
     stock: 12
   },
@@ -100,7 +101,7 @@ export const products = [
     ],
     category: "Accessories",
     featured: false,
-    isNew: true,
+    isNewArrival: true,
     color: "Sand & Gold",
     stock: 3
   },
@@ -121,7 +122,7 @@ export const products = [
     ],
     category: "Accessories",
     featured: false,
-    isNew: false,
+    isNewArrival: false,
     color: "Beechwood Sand",
     stock: 18
   }

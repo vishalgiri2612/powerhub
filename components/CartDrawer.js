@@ -51,11 +51,11 @@ export default function CartDrawer() {
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-[999] bg-[#3674B5]/40 backdrop-blur-sm flex justify-end"
       onClick={() => setIsCartOpen(false)}
     >
-      <div 
+      <div
         className="w-full max-w-md h-full bg-[#FFFFFF] border-l border-[#1E293B]/15 flex flex-col shadow-2xl animate-fade-in-up"
         style={{ animationDuration: '0.4s' }}
         onClick={(e) => e.stopPropagation()}
@@ -68,7 +68,7 @@ export default function CartDrawer() {
               {cart.reduce((sum, item) => sum + item.quantity, 0)} items
             </span>
           </div>
-          <button 
+          <button
             onClick={() => setIsCartOpen(false)}
             className="p-2 rounded-full hover:bg-[#3674B5]/5 text-[#1E293B]/60 hover:text-[#1E293B] transition-all"
           >
@@ -89,7 +89,7 @@ export default function CartDrawer() {
               <p className="text-sm text-[#1E293B]/60 mt-1 max-w-xs">
                 Fill it with our state-of-the-art fast chargers and smart accessories.
               </p>
-              <button 
+              <button
                 onClick={() => setIsCartOpen(false)}
                 className="mt-6 px-6 py-3 rounded-full bg-[#3674B5] hover:bg-[#578FCA] text-white text-sm font-bold transition-all hover:scale-105"
               >
@@ -98,13 +98,13 @@ export default function CartDrawer() {
             </div>
           ) : (
             cart.map((item) => (
-              <div 
+              <div
                 key={item.id}
                 className="flex gap-4 p-3 rounded-2xl bg-[#F8F9FA] border border-[#1E293B]/10 transition-all hover:border-[#1E293B]/15"
               >
-                <img 
-                  src={item.image} 
-                  alt={item.name} 
+                <img
+                  src={item.image}
+                  alt={item.name}
                   className="w-20 h-20 rounded-xl object-contain bg-white p-1 flex-shrink-0"
                 />
                 <div className="flex-1 min-w-0 flex flex-col justify-between">
@@ -112,7 +112,7 @@ export default function CartDrawer() {
                     <div className="flex justify-between items-start gap-2">
                       <h5 className="font-bold text-sm text-[#1E293B] truncate">{item.name}</h5>
                       <button 
-                        onClick={() => removeFromCart(item.id)}
+                        onClick={() => removeFromCart(item.id, item.selectedSize)}
                         className="text-[#1E293B]/40 hover:text-[#3674B5] transition-all flex-shrink-0"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -120,13 +120,16 @@ export default function CartDrawer() {
                         </svg>
                       </button>
                     </div>
-                    <p className="text-xs text-[#1E293B]/60 truncate mt-0.5">{item.color || item.shortSpec}</p>
+                    <p className="text-xs text-[#1E293B]/60 truncate mt-0.5">
+                      {item.color || item.shortSpec}
+                      {item.selectedSize ? ` · Size: ${item.selectedSize}` : ""}
+                    </p>
                   </div>
                   <div className="flex justify-between items-end mt-2">
                     {/* Quantity Controls */}
                     <div className="flex items-center gap-1.5 bg-white rounded-lg p-1 border border-[#1E293B]/10">
                       <button 
-                        onClick={() => updateQuantity(item.id, -1)}
+                        onClick={() => updateQuantity(item.id, -1, item.selectedSize)}
                         className="w-6 h-6 flex items-center justify-center rounded hover:bg-[#F8F9FA] text-[#1E293B] font-semibold text-xs transition-all"
                       >
                         –
@@ -135,7 +138,7 @@ export default function CartDrawer() {
                         {item.quantity}
                       </span>
                       <button 
-                        onClick={() => updateQuantity(item.id, 1)}
+                        onClick={() => updateQuantity(item.id, 1, item.selectedSize)}
                         className="w-6 h-6 flex items-center justify-center rounded hover:bg-[#F8F9FA] text-[#1E293B] font-semibold text-xs transition-all"
                       >
                         +
@@ -166,7 +169,7 @@ export default function CartDrawer() {
                     Promo Code "{coupon}" Active
                   </span>
                 </div>
-                <button 
+                <button
                   onClick={removeCoupon}
                   className="text-xs text-[#3674B5] hover:underline font-bold"
                 >

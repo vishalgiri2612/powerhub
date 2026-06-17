@@ -26,7 +26,7 @@ export default function NewArrivals() {
   }, []);
 
   // Filter to show new products
-  const newProducts = Array.isArray(productList) ? productList.filter((p) => p.isNew) : [];
+  const newProducts = Array.isArray(productList) ? productList.filter((p) => p.isNewArrival) : [];
 
   return (
     <section className="py-8 md:py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-bg-brand">

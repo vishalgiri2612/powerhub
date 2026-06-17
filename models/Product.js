@@ -12,9 +12,10 @@ const ProductSchema = new mongoose.Schema(
     reviewsCount: { type: Number, default: 0 },
     image: { type: String, required: true },
     gallery: { type: [String], default: [] },
+    sizes: { type: [String], default: [] },
     category: { type: String, required: true },
     featured: { type: Boolean, default: false },
-    isNew: { type: Boolean, default: false },
+    isNewArrival: { type: Boolean, default: false },
     color: { type: String, required: true },
     stock: { type: Number, default: 0 }
   },

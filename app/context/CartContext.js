@@ -63,34 +63,36 @@ export function CartProvider({ children }) {
 
   const addToCart = (product, quantityToAdd = 1) => {
     setCart((prevCart) => {
-      const existing = prevCart.find((item) => item.id === product.id);
+      const existing = prevCart.find((item) => item.id === product.id && item.selectedSize === product.selectedSize);
       if (existing) {
-        showToast(`Added ${quantityToAdd}x ${product.name} to cart`);
+        showToast(`Added ${quantityToAdd}x ${product.name}${product.selectedSize ? ` (${product.selectedSize})` : ""} to cart`);
         return prevCart.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + quantityToAdd } : item
+          item.id === product.id && item.selectedSize === product.selectedSize
+            ? { ...item, quantity: item.quantity + quantityToAdd }
+            : item
         );
       }
-      showToast(`Added ${quantityToAdd}x ${product.name} to cart`);
+      showToast(`Added ${quantityToAdd}x ${product.name}${product.selectedSize ? ` (${product.selectedSize})` : ""} to cart`);
       return [...prevCart, { ...product, quantity: quantityToAdd }];
     });
     setIsCartOpen(true);
   };
 
-  const removeFromCart = (productId) => {
+  const removeFromCart = (productId, selectedSize = null) => {
     setCart((prevCart) => {
-      const item = prevCart.find((i) => i.id === productId);
+      const item = prevCart.find((i) => i.id === productId && i.selectedSize === selectedSize);
       if (item) {
-        showToast(`Removed ${item.name} from cart`, "info");
+        showToast(`Removed ${item.name}${selectedSize ? ` (${selectedSize})` : ""} from cart`, "info");
       }
-      return prevCart.filter((item) => item.id !== productId);
+      return prevCart.filter((item) => !(item.id === productId && item.selectedSize === selectedSize));
     });
   };
 
-  const updateQuantity = (productId, amount) => {
+  const updateQuantity = (productId, amount, selectedSize = null) => {
     setCart((prevCart) =>
       prevCart
         .map((item) => {
-          if (item.id === productId) {
+          if (item.id === productId && item.selectedSize === selectedSize) {
             const nextQty = item.quantity + amount;
             return { ...item, quantity: nextQty };
           }
@@ -180,13 +182,12 @@ export function CartProvider({ children }) {
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className={`pointer-events-auto px-5 py-4 rounded-xl shadow-lg border text-sm font-medium flex items-center gap-3 animate-fade-in-up ${
-              toast.type === "success"
+            className={`pointer-events-auto px-5 py-4 rounded-xl shadow-lg border text-sm font-medium flex items-center gap-3 animate-fade-in-up ${toast.type === "success"
                 ? "bg-[#3674B5] text-white border-[#3674B5]/40"
                 : toast.type === "error"
-                ? "bg-[#3674B5] text-white border-[#3674B5]/40"
-                : "bg-[#EDECE6] text-[#1E293B] border-[#1E293B]/15"
-            }`}
+                  ? "bg-[#3674B5] text-white border-[#3674B5]/40"
+                  : "bg-[#EDECE6] text-[#1E293B] border-[#1E293B]/15"
+              }`}
           >
             {toast.type === "success" && (
               <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">

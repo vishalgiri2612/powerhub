@@ -3,17 +3,17 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "../context/CartContext";
-import { 
-  BarChart2, 
-  ShoppingBag, 
-  Users, 
-  Package, 
-  Plus, 
-  Trash2, 
-  Edit3, 
-  Check, 
-  Lock, 
-  Unlock, 
+import {
+  BarChart2,
+  ShoppingBag,
+  Users,
+  Package,
+  Plus,
+  Trash2,
+  Edit3,
+  Check,
+  Lock,
+  Unlock,
   FolderPlus,
   RefreshCw,
   X,
@@ -104,9 +104,11 @@ export default function AdminPanelPage() {
     discountBadge: "",
     category: "",
     image: "",
+    gallery: [],
+    sizes: [],
     color: "",
     stock: "",
-    isNew: false,
+    isNewArrival: false,
     featured: false
   });
 
@@ -137,7 +139,8 @@ export default function AdminPanelPage() {
       });
 
       if (!res.ok) {
-        throw new Error("Upload failed");
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || "Upload failed");
       }
 
       const data = await res.json();
@@ -151,7 +154,7 @@ export default function AdminPanelPage() {
       }
     } catch (err) {
       console.error("Upload error:", err);
-      showToast("Failed to upload image.", "error");
+      showToast(err.message || "Failed to upload image.", "error");
     } finally {
       setIsUploading(false);
     }
@@ -211,10 +214,12 @@ export default function AdminPanelPage() {
       originalPrice: origPriceNum,
       discountBadge: productForm.discountBadge || "",
       category: productForm.category,
-      image: productForm.image || "/images/charger.png",
+      image: productForm.image || (productForm.gallery?.[0] || "/images/charger.png"),
+      gallery: productForm.gallery || [],
+      sizes: productForm.category === "Cables" ? (productForm.sizes || []) : [],
       color: productForm.color || "Standard",
       stock: Number(productForm.stock || 0),
-      isNew: !!productForm.isNew,
+      isNewArrival: !!productForm.isNewArrival,
       featured: !!productForm.featured
     };
 
@@ -242,11 +247,6 @@ export default function AdminPanelPage() {
           body: JSON.stringify({
             ...productPayload,
             id: newId,
-            gallery: [
-              productPayload.image,
-              "/images/powerbank_side.png",
-              "/images/charger_angle.png"
-            ],
             rating: 4.8,
             reviewsCount: 1
           })
@@ -295,7 +295,7 @@ export default function AdminPanelPage() {
     if (newStatus === "Cancelled") statusColor = "text-rose-500 bg-rose-50";
 
     const currentSteps = orderToUpdate.trackingSteps ? [...orderToUpdate.trackingSteps] : [];
-    
+
     const updatedSteps = currentSteps.map((step) => {
       if (step.title === newStatus) {
         return { ...step, date: new Date().toLocaleString(), done: true };
@@ -477,7 +477,7 @@ export default function AdminPanelPage() {
           const errData = await response.json();
           throw new Error(errData.error || "Failed to reset database");
         }
-        
+
         localStorage.removeItem("ravtron_products");
         localStorage.removeItem("ravtron_orders");
         localStorage.removeItem("ravtron_categories");
@@ -504,9 +504,11 @@ export default function AdminPanelPage() {
         discountBadge: productToEdit.discountBadge || "",
         category: productToEdit.category,
         image: productToEdit.image,
+        gallery: productToEdit.gallery || [],
+        sizes: productToEdit.sizes || [],
         color: productToEdit.color || "",
         stock: productToEdit.stock ?? 0,
-        isNew: productToEdit.isNew || false,
+        isNewArrival: productToEdit.isNewArrival || false,
         featured: productToEdit.featured || false
       });
     } else {
@@ -519,9 +521,11 @@ export default function AdminPanelPage() {
         discountBadge: "",
         category: adminCategories[0]?.name || "Accessories",
         image: "/images/charger.png",
+        gallery: ["/images/charger.png"],
+        sizes: ["1.8 Mtr", "3.0 Mtr", "5 Mtr"],
         color: "Standard",
         stock: 0,
-        isNew: true,
+        isNewArrival: true,
         featured: false
       });
     }
@@ -537,7 +541,7 @@ export default function AdminPanelPage() {
         <main className="flex-grow flex items-center justify-center px-4 py-24 relative overflow-hidden">
           <div className="absolute top-1/10 left-1/10 w-96 h-96 rounded-full bg-[#E5D0C6] opacity-30 blur-3xl pointer-events-none" />
           <div className="absolute bottom-1/10 right-1/10 w-96 h-96 rounded-full bg-[#E8EFE5] opacity-20 blur-3xl pointer-events-none" />
-          
+
           <div className="w-full max-w-[420px] rounded-3xl bg-white border border-[#1E293B]/10 p-8 shadow-2xl relative z-10 text-center space-y-6">
             <div className="w-16 h-16 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/20 flex items-center justify-center mx-auto text-[#3674B5]">
               <Lock className="w-6 h-6 animate-pulse" />
@@ -567,7 +571,7 @@ export default function AdminPanelPage() {
               </button>
             </form>
             <div className="pt-2">
-              <button 
+              <button
                 onClick={() => router.push("/")}
                 className="text-xs font-bold text-[#3674B5] hover:text-[#578FCA] flex items-center justify-center gap-1.5 mx-auto"
               >
@@ -583,13 +587,13 @@ export default function AdminPanelPage() {
 
   // Filter logic for Products list
   const filteredProducts = adminProducts.filter((product) => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          product.shortSpec.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.shortSpec.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = categoryFilter === "all" || product.category.toLowerCase() === categoryFilter.toLowerCase();
     const matchesSubTab = subTab === "all" || product.category.toLowerCase() === subTab.toLowerCase();
-    
+
     let matchesStatus = true;
-    if (statusFilter === "new") matchesStatus = product.isNew;
+    if (statusFilter === "new") matchesStatus = product.isNewArrival;
     else if (statusFilter === "featured") matchesStatus = product.featured;
     else if (statusFilter === "active") matchesStatus = true; // all items are active in catalog
 
@@ -598,7 +602,7 @@ export default function AdminPanelPage() {
 
   return (
     <div className="flex min-h-screen bg-white text-[#1E293B] antialiased font-sans">
-      
+
       {/* LEFT SIDEBAR (exactly matches screenshot layout design) */}
       <aside className="w-64 border-r border-slate-100 flex flex-col justify-between p-6 bg-white shrink-0">
         <div className="space-y-8">
@@ -611,11 +615,10 @@ export default function AdminPanelPage() {
           <nav className="space-y-1">
             <button
               onClick={() => setActiveTab("overview")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                activeTab === "overview" 
-                  ? "bg-slate-50 text-slate-900 font-bold" 
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${activeTab === "overview"
+                  ? "bg-slate-50 text-slate-900 font-bold"
                   : "text-slate-500 hover:bg-slate-50/50 hover:text-slate-900"
-              }`}
+                }`}
             >
               <BarChart2 className="w-4 h-4 text-slate-400" />
               <span>Overview</span>
@@ -626,11 +629,10 @@ export default function AdminPanelPage() {
                 setActiveTab("products");
                 setSubTab("all");
               }}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                activeTab === "products" 
-                  ? "bg-slate-50 text-slate-900 font-bold" 
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${activeTab === "products"
+                  ? "bg-slate-50 text-slate-900 font-bold"
                   : "text-slate-500 hover:bg-slate-50/50 hover:text-slate-900"
-              }`}
+                }`}
             >
               <Package className="w-4 h-4 text-slate-400" />
               <span>Products</span>
@@ -638,11 +640,10 @@ export default function AdminPanelPage() {
 
             <button
               onClick={() => setActiveTab("orders")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                activeTab === "orders" 
-                  ? "bg-slate-50 text-slate-900 font-bold" 
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${activeTab === "orders"
+                  ? "bg-slate-50 text-slate-900 font-bold"
                   : "text-slate-500 hover:bg-slate-50/50 hover:text-slate-900"
-              }`}
+                }`}
             >
               <ShoppingBag className="w-4 h-4 text-slate-400" />
               <span>Orders</span>
@@ -650,11 +651,10 @@ export default function AdminPanelPage() {
 
             <button
               onClick={() => setActiveTab("users")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                activeTab === "users" 
-                  ? "bg-slate-50 text-slate-900 font-bold" 
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${activeTab === "users"
+                  ? "bg-slate-50 text-slate-900 font-bold"
                   : "text-slate-500 hover:bg-slate-50/50 hover:text-slate-900"
-              }`}
+                }`}
             >
               <Users className="w-4 h-4 text-slate-400" />
               <span>Customers</span>
@@ -662,11 +662,10 @@ export default function AdminPanelPage() {
 
             <button
               onClick={() => setActiveTab("categories")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                activeTab === "categories" 
-                  ? "bg-slate-50 text-slate-900 font-bold" 
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${activeTab === "categories"
+                  ? "bg-slate-50 text-slate-900 font-bold"
                   : "text-slate-500 hover:bg-slate-50/50 hover:text-slate-900"
-              }`}
+                }`}
             >
               <FolderPlus className="w-4 h-4 text-slate-400" />
               <span>Categories</span>
@@ -702,7 +701,7 @@ export default function AdminPanelPage() {
 
       {/* MAIN CONTENT AREA */}
       <main className="flex-grow p-8 md:p-12 bg-slate-50/50 min-h-screen overflow-y-auto">
-        
+
         {/* TAB: OVERVIEW */}
         {activeTab === "overview" && (() => {
           const totalRevenue = adminOrders.reduce((sum, o) => sum + (o.status !== "Cancelled" && o.status !== "CANCELLED" ? o.total : 0), 0) || 42001;
@@ -741,14 +740,14 @@ export default function AdminPanelPage() {
             { id: "RVT-CANCEL-05", customerName: "Rahul Sharma", status: "CANCELLED", date: "6/4/2026", total: 7890 }
           ];
 
-          const transactionsToDisplay = adminOrders.length > 0 
+          const transactionsToDisplay = adminOrders.length > 0
             ? adminOrders.map(o => ({
-                id: o.id,
-                customerName: o.customerName,
-                status: o.status.toUpperCase(),
-                date: o.date.split(" ")[0] || o.date,
-                total: o.total
-              }))
+              id: o.id,
+              customerName: o.customerName,
+              status: o.status.toUpperCase(),
+              date: o.date.split(" ")[0] || o.date,
+              total: o.total
+            }))
             : mockTransactions;
 
           return (
@@ -851,7 +850,7 @@ export default function AdminPanelPage() {
                           d="M 0 130 C 80 110, 120 40, 200 60 C 280 80, 320 20, 400 10 L 400 144 L 0 144 Z"
                           fill="url(#chartGrad)"
                         />
-                        
+
                         {/* Chart Line Path */}
                         <path
                           d="M 0 130 C 80 110, 120 40, 200 60 C 280 80, 320 20, 400 10"
@@ -881,7 +880,7 @@ export default function AdminPanelPage() {
                       <h3 className="font-bold text-sm text-slate-900">Category Performance</h3>
                       <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Top selling by volume</p>
                     </div>
-                    
+
                     <div className="space-y-4 pt-1">
                       {categoryPerformance.map((item, idx) => {
                         const colors = ["bg-[#3674B5]", "bg-[#DEC89E]", "bg-[#C39281]"];
@@ -928,7 +927,7 @@ export default function AdminPanelPage() {
                       View All Orders
                     </button>
                   </div>
-                  
+
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse text-xs font-semibold text-slate-800">
                       <thead>
@@ -942,10 +941,10 @@ export default function AdminPanelPage() {
                       </thead>
                       <tbody>
                         {transactionsToDisplay.slice(0, 5).map((tx) => {
-                          const statusColor = 
+                          const statusColor =
                             tx.status.toUpperCase() === "CANCELLED" ? "text-rose-500 bg-rose-50" :
-                            tx.status.toUpperCase() === "DELIVERED" ? "text-emerald-500 bg-emerald-50" :
-                            "text-amber-500 bg-amber-50";
+                              tx.status.toUpperCase() === "DELIVERED" ? "text-emerald-500 bg-emerald-50" :
+                                "text-amber-500 bg-amber-50";
                           return (
                             <tr key={tx.id} className="border-b border-slate-50 hover:bg-slate-50/40 transition-colors">
                               <td className="p-3 font-bold text-slate-900">{tx.id}</td>
@@ -1015,14 +1014,14 @@ export default function AdminPanelPage() {
         {/* TAB: PRODUCTS (Exactly copies styling filters, capsules, tables and buttons from screenshot) */}
         {activeTab === "products" && (
           <div className="space-y-8 animate-fade-in">
-            
+
             {/* Top header title and Add Product button */}
             <div className="flex justify-between items-center">
               <div className="space-y-1">
                 <h1 className="text-2xl font-bold font-display tracking-tight text-slate-900">Products & Inventory</h1>
                 <p className="text-xs text-slate-400 font-medium">Manage adapters, cables, power banks and workspace inventories.</p>
               </div>
-              <button 
+              <button
                 onClick={() => openProductForm()}
                 className="bg-black hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"
               >
@@ -1035,9 +1034,8 @@ export default function AdminPanelPage() {
             <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl w-fit">
               <button
                 onClick={() => setSubTab("all")}
-                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all ${
-                  subTab === "all" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-900"
-                }`}
+                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all ${subTab === "all" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-900"
+                  }`}
               >
                 All Categories
               </button>
@@ -1045,9 +1043,8 @@ export default function AdminPanelPage() {
                 <button
                   key={cat.name}
                   onClick={() => setSubTab(cat.name)}
-                  className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all ${
-                    subTab === cat.name ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-900"
-                  }`}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all ${subTab === cat.name ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-900"
+                    }`}
                 >
                   {cat.name}
                 </button>
@@ -1103,7 +1100,7 @@ export default function AdminPanelPage() {
                 Active: <span className="font-black text-emerald-800">{filteredProducts.length}</span>
               </div>
               <div className="px-3.5 py-1.5 bg-blue-50 rounded-lg text-blue-600 border border-blue-100">
-                New: <span className="font-black text-blue-800">{filteredProducts.filter(p => p.isNew).length}</span>
+                New: <span className="font-black text-blue-800">{filteredProducts.filter(p => p.isNewArrival).length}</span>
               </div>
               <div className="px-3.5 py-1.5 bg-amber-50 rounded-lg text-amber-600 border border-amber-100">
                 Featured: <span className="font-black text-amber-800">{filteredProducts.filter(p => p.featured).length}</span>
@@ -1171,7 +1168,7 @@ export default function AdminPanelPage() {
                         </td>
                         <td className="p-4">
                           <div className="flex flex-col gap-1 items-start">
-                            {p.isNew && (
+                            {p.isNewArrival && (
                               <span className="px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase bg-blue-50 text-blue-600">
                                 New
                               </span>
@@ -1181,7 +1178,7 @@ export default function AdminPanelPage() {
                                 Featured
                               </span>
                             )}
-                            {!p.isNew && !p.featured && (
+                            {!p.isNewArrival && !p.featured && (
                               <span className="px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase bg-slate-50 text-slate-400">
                                 Standard
                               </span>
@@ -1190,14 +1187,14 @@ export default function AdminPanelPage() {
                         </td>
                         <td className="p-4">
                           <div className="flex items-center justify-center gap-1.5">
-                            <button 
+                            <button
                               onClick={() => openProductForm(p)}
                               className="p-1.5 rounded-lg border border-slate-150 bg-slate-50 hover:bg-slate-100 text-slate-600"
                               title="Edit Product"
                             >
                               <Edit3 className="w-3.5 h-3.5" />
                             </button>
-                            <button 
+                            <button
                               onClick={() => handleDeleteProduct(p.id)}
                               className="p-1.5 rounded-lg border border-rose-100 bg-rose-50/30 text-rose-600 hover:bg-rose-50"
                               title="Delete Product"
@@ -1320,9 +1317,8 @@ export default function AdminPanelPage() {
                         <td className="p-4 font-bold text-slate-900">{u.name}</td>
                         <td className="p-4 text-slate-500 font-medium">{u.email}</td>
                         <td className="p-4">
-                          <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${
-                            u.role === "Administrator" ? "bg-[#3674B5]/10 text-[#3674B5]" : "bg-slate-100 text-slate-400"
-                          }`}>
+                          <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${u.role === "Administrator" ? "bg-[#3674B5]/10 text-[#3674B5]" : "bg-slate-100 text-slate-400"
+                            }`}>
                             {u.role}
                           </span>
                         </td>
@@ -1335,11 +1331,10 @@ export default function AdminPanelPage() {
                           <div className="flex items-center justify-center">
                             <button
                               onClick={() => handleToggleUserActive(u.email)}
-                              className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold uppercase transition-all ${
-                                u.active !== false
+                              className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold uppercase transition-all ${u.active !== false
                                   ? "border-amber-100 bg-amber-50/40 text-amber-600 hover:bg-amber-50"
                                   : "border-emerald-100 bg-emerald-50/40 text-emerald-600 hover:bg-emerald-50"
-                              }`}
+                                }`}
                             >
                               {u.active !== false ? "Disable" : "Enable"}
                             </button>
@@ -1371,7 +1366,7 @@ export default function AdminPanelPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-              
+
               {/* Form card */}
               <div className="lg:col-span-4 bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-6">
                 <div className="border-b border-slate-100 pb-3">
@@ -1396,7 +1391,7 @@ export default function AdminPanelPage() {
                       <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Category Image</label>
                       {isUploading && <span className="text-[10px] text-[#3674B5] font-extrabold animate-pulse">Uploading...</span>}
                     </div>
-                    
+
                     <div className="flex flex-col gap-2">
                       <div className="flex gap-2">
                         <input
@@ -1417,7 +1412,7 @@ export default function AdminPanelPage() {
                           />
                         </label>
                       </div>
-                      
+
                       {/* Thumbnail Preview */}
                       {newCategoryImage && (
                         <div className="w-full h-16 rounded-2xl bg-slate-50 border border-slate-200/60 flex items-center justify-center overflow-hidden p-1">
@@ -1468,18 +1463,17 @@ export default function AdminPanelPage() {
                           <td className="p-4 text-center">
                             <button
                               onClick={() => handleToggleCategoryHome(c.name, c.showOnHome !== false)}
-                              className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold uppercase transition-all ${
-                                c.showOnHome !== false
+                              className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold uppercase transition-all ${c.showOnHome !== false
                                   ? "border-emerald-100 bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
                                   : "border-slate-200 bg-slate-50 text-slate-400 hover:bg-slate-100"
-                              }`}
+                                }`}
                             >
                               {c.showOnHome !== false ? "Visible on Home" : "Hidden on Home"}
                             </button>
                           </td>
                           <td className="p-4">
                             <div className="flex items-center justify-center">
-                              <button 
+                              <button
                                 onClick={() => handleDeleteCategory(c.name)}
                                 className="p-2 rounded-xl border border-rose-100 bg-rose-50/30 text-rose-500 hover:bg-rose-50 hover:text-rose-600 transition-all hover:scale-105 active:scale-95"
                                 title="Delete Category"
@@ -1505,8 +1499,8 @@ export default function AdminPanelPage() {
       {isProductModalOpen && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center px-4 bg-black/30 backdrop-blur-xs">
           <div className="w-full max-w-lg rounded-2xl bg-white border border-slate-100 p-6 md:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto animate-fade-in">
-            
-            <button 
+
+            <button
               onClick={() => setIsProductModalOpen(false)}
               className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 text-slate-400"
             >
@@ -1598,43 +1592,235 @@ export default function AdminPanelPage() {
                 </div>
               </div>
 
-              {/* Image Upload / Path */}
+              {/* Cable Sizes Configurations */}
+              {productForm.category === "Cables" && (
+                <div className="space-y-3.5 border-t border-slate-100 pt-3 text-left">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    Available Cable Sizes & Custom Lengths
+                  </label>
+                  
+                  {/* Presets */}
+                  <div className="space-y-1">
+                    <span className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Presets</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {["1.8 Mtr", "3.0 Mtr", "5 Mtr", "10 Mtr", "15 Mtr", "20 Mtr", "25 Mtr", "30 Mtr", "40 Mtr", "50 Mtr"].map((sz) => {
+                        const isChecked = productForm.sizes?.includes(sz);
+                        return (
+                          <button
+                            key={sz}
+                            type="button"
+                            onClick={() => {
+                              let newSizes = [...(productForm.sizes || [])];
+                              if (newSizes.includes(sz)) {
+                                newSizes = newSizes.filter((s) => s !== sz);
+                              } else {
+                                newSizes.push(sz);
+                              }
+                              setProductForm({ ...productForm, sizes: newSizes });
+                            }}
+                            className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all duration-205 ${
+                              isChecked
+                                ? "bg-black text-white border-black shadow-2xs font-extrabold"
+                                : "bg-slate-50 text-slate-500 border-slate-250 hover:bg-slate-100 hover:text-slate-800 font-bold"
+                            }`}
+                          >
+                            {sz}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Dynamic Custom Add Section */}
+                  <div className="space-y-1.5 pt-1">
+                    <span className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Add Custom Length (e.g. meter, yard, ft)</span>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="e.g. 5 Meter, 3 Yard, 10 Ft, 15 Mtr"
+                        className="flex-1 bg-[#F8F9FA] border border-slate-200/65 rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-[#3674B5] transition-all"
+                        id="customLengthInput"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            const val = e.target.value.trim();
+                            if (val && !productForm.sizes?.includes(val)) {
+                              setProductForm({
+                                ...productForm,
+                                sizes: [...(productForm.sizes || []), val]
+                              });
+                              e.target.value = "";
+                            }
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const input = document.getElementById("customLengthInput");
+                          const val = input?.value.trim();
+                          if (val && !productForm.sizes?.includes(val)) {
+                            setProductForm({
+                              ...productForm,
+                              sizes: [...(productForm.sizes || []), val]
+                            });
+                            input.value = "";
+                          }
+                        }}
+                        className="px-4 bg-[#3674B5] text-white text-xs font-bold rounded-xl hover:bg-[#578FCA] transition-all"
+                      >
+                        Add
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Selected Output Preview */}
+                  {productForm.sizes && productForm.sizes.length > 0 && (
+                    <div className="space-y-1.5 pt-1">
+                      <span className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Currently Configured Sizes (Store Preview)</span>
+                      <div className="flex flex-wrap gap-1.5 p-2.5 bg-[#F8F9FA] rounded-xl border border-slate-200">
+                        {productForm.sizes.map((sz) => (
+                          <span
+                            key={sz}
+                            className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-slate-200 text-slate-800 text-[10px] font-bold rounded-lg shadow-3xs"
+                          >
+                            <span>{sz}</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setProductForm({
+                                  ...productForm,
+                                  sizes: productForm.sizes.filter((s) => s !== sz)
+                                });
+                              }}
+                              className="text-slate-400 hover:text-rose-600 transition-colors"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <p className="text-[9px] text-slate-400 font-medium">
+                    Admins can enter any custom length/unit. These options will dynamically show up in the customer storefront size selector.
+                  </p>
+                </div>
+              )}
+
+              {/* Product Gallery (Up to 5 Images) */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Product Image</label>
-                  {isUploading && <span className="text-[10px] text-[#3674B5] font-extrabold animate-pulse">Uploading file...</span>}
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    Product Images Gallery (Up to 5 Images)
+                  </label>
+                  {isUploading && (
+                    <span className="text-[10px] text-[#3674B5] font-extrabold animate-pulse">
+                      Uploading image...
+                    </span>
+                  )}
                 </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
-                  <div className="md:col-span-2 flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="e.g. /images/charger.png or secure CDN URL"
-                      className="flex-1 bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-slate-350 animate-all"
-                      value={productForm.image}
-                      onChange={(e) => setProductForm({ ...productForm, image: e.target.value })}
-                    />
-                    <label className="flex items-center justify-center px-4 py-3 bg-[#3674B5]/10 hover:bg-[#3674B5]/20 border border-[#3674B5]/30 text-[#3674B5] text-xs font-bold rounded-xl cursor-pointer transition-all hover:scale-[1.02] active:scale-98">
-                      <span>Upload</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => handleImageUpload(e, "product")}
-                        disabled={isUploading}
-                      />
-                    </label>
-                  </div>
-                  
-                  {/* Image Thumbnail Preview */}
-                  <div className="w-full h-12 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-center overflow-hidden p-1">
-                    {productForm.image ? (
-                      <img src={productForm.image} alt="Preview" className="h-full max-w-full object-contain" />
-                    ) : (
-                      <span className="text-[9px] font-bold text-slate-400 uppercase">No Image</span>
-                    )}
-                  </div>
+
+                <div className="grid grid-cols-5 gap-2">
+                  {[0, 1, 2, 3, 4].map((index) => {
+                    const imgUrl = productForm.gallery?.[index];
+                    return (
+                      <div
+                        key={index}
+                        className={`relative aspect-square rounded-xl border-2 flex items-center justify-center overflow-hidden transition-all group bg-[#F8F9FA] ${imgUrl
+                            ? "border-slate-200"
+                            : "border-dashed border-slate-300 hover:border-[#3674B5] hover:bg-slate-50"
+                          }`}
+                      >
+                        {imgUrl ? (
+                          <>
+                            <img
+                              src={imgUrl}
+                              alt={`Gallery ${index + 1}`}
+                              className="w-full h-full object-contain p-1"
+                            />
+                            {/* Hover Overlay to Delete */}
+                            <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity gap-1">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newGallery = [...productForm.gallery];
+                                  newGallery.splice(index, 1);
+                                  setProductForm({
+                                    ...productForm,
+                                    gallery: newGallery,
+                                    image: newGallery[0] || "/images/charger.png"
+                                  });
+                                }}
+                                className="p-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white transition-colors"
+                                title="Remove Image"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                            {index === 0 && (
+                              <span className="absolute bottom-1 left-1 bg-black/75 text-white text-[8px] font-black uppercase px-1.5 py-0.5 rounded">
+                                Main
+                              </span>
+                            )}
+                          </>
+                        ) : (
+                          <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer text-slate-400 hover:text-[#3674B5]">
+                            <Plus className="w-5 h-5 mb-0.5" />
+                            <span className="text-[9px] font-bold uppercase">Upload</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+
+                                setIsUploading(true);
+                                const formData = new FormData();
+                                formData.append("file", file);
+
+                                try {
+                                  const res = await fetch("/api/upload", {
+                                    method: "POST",
+                                    body: formData,
+                                  });
+
+                                  if (!res.ok) {
+                                    const errData = await res.json().catch(() => ({}));
+                                    throw new Error(errData.error || "Upload failed");
+                                  }
+
+                                  const data = await res.json();
+                                  if (data.url) {
+                                    const newGallery = [...(productForm.gallery || [])];
+                                    newGallery[index] = data.url;
+                                    setProductForm({
+                                      ...productForm,
+                                      gallery: newGallery,
+                                      image: newGallery[0] || data.url
+                                    });
+                                    showToast("Image uploaded successfully!");
+                                  }
+                                } catch (err) {
+                                  console.error("Upload error:", err);
+                                  showToast(err.message || "Failed to upload image.", "error");
+                                } finally {
+                                  setIsUploading(false);
+                                }
+                              }}
+                              disabled={isUploading}
+                            />
+                          </label>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
+                <p className="text-[10px] text-slate-400 font-medium">
+                  The first image will be set as the primary product cover image.
+                </p>
               </div>
 
               {/* Color Accent & Stock */}
@@ -1669,8 +1855,8 @@ export default function AdminPanelPage() {
                   <input
                     type="checkbox"
                     className="w-4 h-4 rounded border-slate-200 text-slate-900"
-                    checked={productForm.isNew}
-                    onChange={(e) => setProductForm({ ...productForm, isNew: e.target.checked })}
+                    checked={productForm.isNewArrival}
+                    onChange={(e) => setProductForm({ ...productForm, isNewArrival: e.target.checked })}
                   />
                   <span>Mark as New</span>
                 </label>
