@@ -28,7 +28,7 @@ export async function PUT(request) {
     if (active !== undefined) updateFields.active = active;
 
     const updatedUser = await User.findOneAndUpdate(
-      { email },
+      { email: { $regex: new RegExp(`^${email.trim()}$`, "i") } },
       updateFields,
       { new: true, runValidators: true }
     );
@@ -53,7 +53,7 @@ export async function POST(request) {
       return NextResponse.json({ error: "Name and email are required" }, { status: 400 });
     }
 
-    const existing = await User.findOne({ email });
+    const existing = await User.findOne({ email: { $regex: new RegExp(`^${email.trim()}$`, "i") } });
     if (existing) {
       return NextResponse.json(existing);
     }
