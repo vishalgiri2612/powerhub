@@ -17,36 +17,41 @@ function ShopContent() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [productList, setProductList] = useState([]);
   const [categoriesList, setCategoriesList] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Load custom products from MongoDB APIs
+  // Load custom products and categories from MongoDB APIs
   useEffect(() => {
-    fetch("/api/products")
-      .then((res) => {
-        if (!res.ok) throw new Error("API response was not ok");
-        return res.json();
-      })
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setProductList(data);
-        } else {
-          console.error("Expected array for products but got:", data);
-        }
-      })
-      .catch((e) => console.error("Failed to fetch products for shop", e));
-
-    fetch("/api/categories")
-      .then((res) => {
-        if (!res.ok) throw new Error("API response was not ok");
-        return res.json();
-      })
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setCategoriesList(data);
-        } else {
-          console.error("Expected array for categories but got:", data);
-        }
-      })
-      .catch((e) => console.error("Failed to fetch categories for shop", e));
+    setLoading(true);
+    Promise.all([
+      fetch("/api/products")
+        .then((res) => {
+          if (!res.ok) throw new Error("API response was not ok");
+          return res.json();
+        })
+        .then((data) => {
+          if (Array.isArray(data)) {
+            setProductList(data);
+          } else {
+            console.error("Expected array for products but got:", data);
+          }
+        }),
+      fetch("/api/categories")
+        .then((res) => {
+          if (!res.ok) throw new Error("API response was not ok");
+          return res.json();
+        })
+        .then((data) => {
+          if (Array.isArray(data)) {
+            setCategoriesList(data);
+          } else {
+            console.error("Expected array for categories but got:", data);
+          }
+        })
+    ])
+      .catch((e) => console.error("Failed to fetch shop metadata", e))
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
   // Sync category state with query parameter
@@ -113,7 +118,12 @@ function ShopContent() {
         </div>
 
         {/* Products Grid (2 columns on mobile, 4 columns on desktop) */}
-        {filteredProducts.length > 0 ? (
+        {loading ? (
+          <div className="py-24 text-center space-y-4">
+            <div className="w-12 h-12 border-4 border-[#3674B5] border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest animate-pulse font-sans">Loading Catalog Items...</p>
+          </div>
+        ) : filteredProducts.length > 0 ? (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-8">
             {filteredProducts.map((product) => {
               const isWishlisted = wishlist.some((item) => item.id === product.id);

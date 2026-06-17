@@ -41,11 +41,13 @@ export default function ProductDetailPage({ params }) {
 
   // Fetch product detail dynamically
   const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState("");
   const [selectedSize, setSelectedSize] = useState(null);
   const [allProductsList, setAllProductsList] = useState([]);
 
   useEffect(() => {
+    setLoading(true);
     // 1. Fetch all products (for related accessories)
     fetch("/api/products")
       .then((res) => {
@@ -82,6 +84,9 @@ export default function ProductDetailPage({ params }) {
       .catch((err) => {
         console.error("Failed to fetch product details", err);
         setProduct(null);
+      })
+      .finally(() => {
+        setLoading(false);
       });
   }, [id]);
 
@@ -105,6 +110,19 @@ export default function ProductDetailPage({ params }) {
 
     return () => clearInterval(interval);
   }, [product, selectedImage]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-bg-brand text-text-brand antialiased">
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 py-36 text-center space-y-4">
+          <div className="w-12 h-12 border-4 border-[#3674B5] border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest animate-pulse">Loading Accessory Details...</p>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!product) {
     return (
