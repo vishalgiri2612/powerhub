@@ -13,6 +13,7 @@ const ProductSchema = new mongoose.Schema(
     image: { type: String, required: true },
     gallery: { type: [String], default: [] },
     sizes: { type: [String], default: [] },
+    privacySizes: { type: [String], default: [] },
     category: { type: String, required: true },
     featured: { type: Boolean, default: false },
     isNewArrival: { type: Boolean, default: false },

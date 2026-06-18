@@ -128,6 +128,7 @@ export default function AdminPanelPage() {
     image: "",
     gallery: [],
     sizes: [],
+    privacySizes: [],
     color: "",
     stock: "",
     isNewArrival: false,
@@ -306,7 +307,8 @@ export default function AdminPanelPage() {
       category: productForm.category,
       image: productForm.image || (productForm.gallery?.[0] || "/images/charger.png"),
       gallery: productForm.gallery || [],
-      sizes: productForm.category === "Cables" ? (productForm.sizes || []) : [],
+      sizes: productForm.sizes || [],
+      privacySizes: productForm.privacySizes || [],
       color: productForm.color || "Standard",
       stock: Number(productForm.stock || 0),
       isNewArrival: !!productForm.isNewArrival,
@@ -506,24 +508,22 @@ export default function AdminPanelPage() {
     }
   };
 
-  const handleToggleCategoryHome = async (name, currentShowOnHome) => {
+  const handleSetCategoryPosition = async (name, position) => {
     try {
       const response = await fetch("/api/categories", {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ name, showOnHome: !currentShowOnHome })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, homePosition: Number(position) })
       });
       if (!response.ok) {
         const errData = await response.json();
-        throw new Error(errData.error || "Failed to update category visibility");
+        throw new Error(errData.error || "Failed to update category position");
       }
-      showToast("Category visibility on home page updated!");
+      showToast(position > 0 ? `Moved to slot ${position} on home page.` : "Removed from home page.");
       await fetchAdminData();
     } catch (err) {
-      console.error("Error toggling category visibility:", err);
-      showToast(err.message || "Failed to update category visibility.", "error");
+      console.error("Error updating category position:", err);
+      showToast(err.message || "Failed to update category position.", "error");
     }
   };
 
@@ -634,6 +634,7 @@ export default function AdminPanelPage() {
         image: productToEdit.image,
         gallery: productToEdit.gallery || [],
         sizes: productToEdit.sizes || [],
+        privacySizes: productToEdit.privacySizes || [],
         color: productToEdit.color || "",
         stock: productToEdit.stock ?? 0,
         isNewArrival: productToEdit.isNewArrival || false,
@@ -652,7 +653,8 @@ export default function AdminPanelPage() {
         category: categoriesListToUse[0]?.name || "Accessories",
         image: "/images/charger.png",
         gallery: ["/images/charger.png"],
-        sizes: ["1.8 Mtr", "3.0 Mtr", "5 Mtr"],
+        sizes: [],
+        privacySizes: [],
         color: "Standard",
         stock: 0,
         isNewArrival: true,
@@ -1603,16 +1605,26 @@ export default function AdminPanelPage() {
 
               {/* Category Directory List */}
               <div className="lg:col-span-8 bg-white border border-slate-100 rounded-3xl shadow-sm overflow-hidden">
-                <div className="p-5 border-b border-slate-100">
-                  <h3 className="font-bold text-sm text-slate-900">Active Categories Directory</h3>
-                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Browse or delete product categories.</p>
+                <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+                  <div>
+                    <h3 className="font-bold text-sm text-slate-900">Active Categories Directory</h3>
+                    <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Set home page position (max 6 slots) or hide categories.</p>
+                  </div>
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200">
+                    <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Home Slots Used:</span>
+                    <span className={`text-xs font-black ${
+                      adminCategories.filter(c => c.homePosition > 0).length >= 6 ? "text-rose-500" : "text-emerald-600"
+                    }`}>
+                      {adminCategories.filter(c => c.homePosition > 0).length}/6
+                    </span>
+                  </div>
                 </div>
                 <table className="w-full text-left border-collapse text-xs font-semibold text-slate-800">
                   <thead>
                     <tr className="bg-slate-50/80 border-b border-slate-100 uppercase text-[9px] tracking-wider text-slate-400 font-black">
                       <th className="p-4 w-12 text-center">SNo</th>
                       <th className="p-4">Category</th>
-                      <th className="p-4 text-center">Home Visibility</th>
+                      <th className="p-4 text-center">Home Position (1–6)</th>
                       <th className="p-4 text-center">Actions</th>
                     </tr>
                   </thead>
@@ -1631,15 +1643,25 @@ export default function AdminPanelPage() {
                             </div>
                           </td>
                           <td className="p-4 text-center">
-                            <button
-                              onClick={() => handleToggleCategoryHome(c.name, c.showOnHome !== false)}
-                              className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold uppercase transition-all ${c.showOnHome !== false
-                                  ? "border-emerald-100 bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
-                                  : "border-slate-200 bg-slate-50 text-slate-400 hover:bg-slate-100"
-                                }`}
+                            <select
+                              value={c.homePosition || 0}
+                              onChange={(e) => handleSetCategoryPosition(c.name, Number(e.target.value))}
+                              className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all outline-none cursor-pointer ${
+                                c.homePosition > 0
+                                  ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                                  : "border-slate-200 bg-slate-50 text-slate-400"
+                              }`}
                             >
-                              {c.showOnHome !== false ? "Visible on Home" : "Hidden on Home"}
-                            </button>
+                              <option value={0}>— Not on Home —</option>
+                              {[1,2,3,4,5,6].map(pos => {
+                                const occupant = adminCategories.find(cat => cat.name !== c.name && cat.homePosition === pos);
+                                return (
+                                  <option key={pos} value={pos}>
+                                    Slot {pos}{occupant ? ` (replaces ${occupant.name})` : ""}
+                                  </option>
+                                );
+                              })}
+                            </select>
                           </td>
                           <td className="p-4">
                             <div className="flex items-center justify-center gap-1.5">
@@ -1826,8 +1848,8 @@ export default function AdminPanelPage() {
                 </div>
               </div>
 
-              {/* Cable Sizes Configurations */}
-              {productForm.category === "Cables" && (
+              {/* Cable Sizes Configurations — Always Visible */}
+              {true && (
                 <div className="space-y-3.5 border-t border-slate-100 pt-3 text-left">
                   <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                     Available Cable Sizes & Custom Lengths
@@ -1943,6 +1965,131 @@ export default function AdminPanelPage() {
                 </div>
               )}
 
+              {/* Privacy Screen Size Configurations — Always Visible */}
+              <div className="space-y-3.5 border-t border-slate-100 pt-3 text-left">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    Privacy Screen — Available Sizes &amp; Resolutions
+                  </label>
+
+                  {/* Presets */}
+                  <div className="space-y-1">
+                    <span className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Common Laptop Screen Sizes</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {[
+                        '12.5" 16:9 283x166mm',
+                        '13.3" 16:9 300x176mm',
+                        '13.3" 16:10 293x190mm',
+                        '14" 16:9 316x184mm',
+                        '14" 16:10 309x198mm',
+                        '15.6" 16:9 351x204mm',
+                        '15.6" 16:10 342x220mm',
+                        '16" 16:10 344x215mm',
+                        '17.3" 16:9 382x215mm'
+                      ].map((sz) => {
+                        const isChecked = productForm.privacySizes?.includes(sz);
+                        return (
+                          <button
+                            key={sz}
+                            type="button"
+                            onClick={() => {
+                              let newSizes = [...(productForm.privacySizes || [])];
+                              if (newSizes.includes(sz)) {
+                                newSizes = newSizes.filter((s) => s !== sz);
+                              } else {
+                                newSizes.push(sz);
+                              }
+                              setProductForm({ ...productForm, privacySizes: newSizes });
+                            }}
+                            className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all duration-205 ${
+                              isChecked
+                                ? "bg-black text-white border-black shadow-2xs font-extrabold"
+                                : "bg-slate-50 text-slate-500 border-slate-250 hover:bg-slate-100 hover:text-slate-800 font-bold"
+                            }`}
+                          >
+                            {sz}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Custom Add Section */}
+                  <div className="space-y-1.5 pt-1">
+                    <span className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Add Custom Size / Resolution</span>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder='e.g. 14" 16:9 309x174mm'
+                        className="flex-1 bg-[#F8F9FA] border border-slate-200/65 rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-[#3674B5] transition-all"
+                        id="customPrivacySizeInput"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            const val = e.target.value.trim();
+                            if (val && !productForm.privacySizes?.includes(val)) {
+                              setProductForm({
+                                ...productForm,
+                                privacySizes: [...(productForm.privacySizes || []), val]
+                              });
+                              e.target.value = "";
+                            }
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const input = document.getElementById("customPrivacySizeInput");
+                          const val = input?.value.trim();
+                          if (val && !productForm.privacySizes?.includes(val)) {
+                            setProductForm({
+                              ...productForm,
+                              privacySizes: [...(productForm.privacySizes || []), val]
+                            });
+                            input.value = "";
+                          }
+                        }}
+                        className="px-4 bg-[#3674B5] text-white text-xs font-bold rounded-xl hover:bg-[#578FCA] transition-all"
+                      >
+                        Add
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Selected Output Preview */}
+                  {productForm.privacySizes && productForm.privacySizes.length > 0 && (
+                    <div className="space-y-1.5 pt-1">
+                      <span className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Configured Sizes (Store Preview)</span>
+                      <div className="flex flex-wrap gap-1.5 p-2.5 bg-[#F8F9FA] rounded-xl border border-slate-200">
+                        {productForm.privacySizes.map((sz) => (
+                          <span
+                            key={sz}
+                            className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-slate-200 text-slate-800 text-[10px] font-bold rounded-lg shadow-3xs"
+                          >
+                            <span>{sz}</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setProductForm({
+                                  ...productForm,
+                                  privacySizes: productForm.privacySizes.filter((s) => s !== sz)
+                                });
+                              }}
+                              className="text-slate-400 hover:text-rose-600 transition-colors"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <p className="text-[9px] text-slate-400 font-medium">
+                    Select presets or type any custom size. These appear as selectable options on the product page for customers.
+                  </p>
+                </div>
+
               {/* Product Gallery (Up to 5 Images) */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -1993,11 +2140,7 @@ export default function AdminPanelPage() {
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             </div>
-                            {index === 0 && (
-                              <span className="absolute bottom-1 left-1 bg-black/75 text-white text-[8px] font-black uppercase px-1.5 py-0.5 rounded">
-                                Main
-                              </span>
-                            )}
+
                           </>
                         ) : (
                           <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer text-slate-400 hover:text-[#3674B5]">

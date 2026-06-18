@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useCart } from "../app/context/CartContext";
 import { Zap } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import HardwareThemeToggle from "./HardwareThemeToggle";
 
 export default function Navbar() {
@@ -15,9 +16,17 @@ export default function Navbar() {
     getCartCount 
   } = useCart();
   
+  const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const isActive = (href) => {
+    if (href === "/") {
+      return pathname === "/";
+    }
+    return pathname?.startsWith(href) || false;
+  };
 
   useEffect(() => {
     const checkUser = () => {
@@ -87,15 +96,22 @@ export default function Navbar() {
 
           {/* Desktop Navigation Links */}
           <div className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                className="text-sm font-semibold text-[#1E293B]/70 hover:text-[#1E293B] relative py-1 transition-colors after:absolute after:bottom-0 after:left-1/2 after:w-0 after:h-[2px] after:bg-[#3674B5] after:transition-all hover:after:w-full hover:after:left-0"
-              >
-                {link.name}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const active = isActive(link.href);
+              return (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className={`text-sm transition-colors relative py-1 after:absolute after:bottom-0 after:h-[2px] after:bg-[#3674B5] after:transition-all ${
+                    active
+                      ? "font-bold text-[#3674B5] after:w-full after:left-0"
+                      : "font-semibold text-[#1E293B]/70 hover:text-[#1E293B] after:left-1/2 after:w-0 hover:after:w-full hover:after:left-0"
+                  }`}
+                >
+                  {link.name}
+                </Link>
+              );
+            })}
           </div>
 
           {/* Action Icons & CTAs */}
@@ -243,16 +259,23 @@ export default function Navbar() {
         {/* Mobile Navigation Dropdown */}
         {mobileMenuOpen && (
           <div className="md:hidden mt-2 mx-4 max-w-5xl rounded-3xl bg-[#FFFFFF] border border-[#1E293B]/10 p-4 flex flex-col gap-3 shadow-lg animate-fade-in-up">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-4 py-2 rounded-xl hover:bg-[#3674B5]/5 text-sm font-bold text-[#1E293B]/80 hover:text-[#1E293B] transition-all"
-              >
-                {link.name}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const active = isActive(link.href);
+              return (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                    active
+                      ? "bg-[#3674B5]/10 text-[#3674B5]"
+                      : "hover:bg-[#3674B5]/5 text-[#1E293B]/80 hover:text-[#1E293B]"
+                  }`}
+                >
+                  {link.name}
+                </Link>
+              );
+            })}
             {user ? (
               <div className="flex flex-col gap-2 pt-2 border-t border-[#1E293B]/5 w-full">
                 <Link

@@ -5,7 +5,8 @@ const CategorySchema = new mongoose.Schema(
     name: { type: String, required: true, unique: true },
     icon: { type: String, required: true },
     image: { type: String, default: "/images/charger.png" },
-    showOnHome: { type: Boolean, default: true },
+    showOnHome: { type: Boolean, default: false },
+    homePosition: { type: Number, default: 0 },
     subcategories: { type: [String], default: [] }
   },
   { timestamps: true }

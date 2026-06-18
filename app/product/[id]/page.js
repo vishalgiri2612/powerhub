@@ -44,6 +44,7 @@ export default function ProductDetailPage({ params }) {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState("");
   const [selectedSize, setSelectedSize] = useState(null);
+  const [selectedPrivacySize, setSelectedPrivacySize] = useState(null);
   const [allProductsList, setAllProductsList] = useState([]);
 
   useEffect(() => {
@@ -72,13 +73,17 @@ export default function ProductDetailPage({ params }) {
       .then((data) => {
         setProduct(data);
         setSelectedImage(data.image || "");
-        if (data.category === "Cables") {
-          const sizesList = data.sizes && data.sizes.length > 0 
-            ? data.sizes 
-            : ["1.8 Mtr", "3.0 Mtr", "5 Mtr", "10 Mtr", "15 Mtr", "20 Mtr", "25 Mtr", "30 Mtr", "40 Mtr", "50 Mtr"];
-          setSelectedSize(sizesList[0]);
+        // Auto-select first cable size if available
+        if (data.sizes && data.sizes.length > 0) {
+          setSelectedSize(data.sizes[0]);
         } else {
           setSelectedSize(null);
+        }
+        // Auto-select first privacy size if available
+        if (data.privacySizes && data.privacySizes.length > 0) {
+          setSelectedPrivacySize(data.privacySizes[0]);
+        } else {
+          setSelectedPrivacySize(null);
         }
       })
       .catch((err) => {
@@ -160,11 +165,11 @@ export default function ProductDetailPage({ params }) {
   const brandText = isSage ? "text-[#3674B5]" : isSand ? "text-[#DEC89E]" : "text-[#3674B5]";
 
   const handleAdd = () => {
-    addToCart(selectedSize ? { ...product, selectedSize } : product, quantity);
+    addToCart({ ...product, selectedSize, selectedPrivacySize }, quantity);
   };
 
   const handleBuyNow = () => {
-    addToCart(selectedSize ? { ...product, selectedSize } : product, quantity);
+    addToCart({ ...product, selectedSize, selectedPrivacySize }, quantity);
     setIsCartOpen(true);
     router.push("/");
   };
@@ -365,23 +370,45 @@ export default function ProductDetailPage({ params }) {
                 </div>
               </div>
 
-              {/* Cable Size Selector */}
-              {product.category === "Cables" && (
+              {/* Cable Sizes Selector */}
+              {product.sizes && product.sizes.length > 0 && (
                 <div className="space-y-2.5 pb-2 text-left">
                   <span className="block text-xs font-extrabold uppercase tracking-widest text-[#1E293B]/60">
-                    size
+                    Cable Size
                   </span>
                   <div className="flex flex-wrap gap-2">
-                    {(product.sizes && product.sizes.length > 0
-                      ? product.sizes
-                      : ["1.8 Mtr", "3.0 Mtr", "5 Mtr", "10 Mtr", "15 Mtr", "20 Mtr", "25 Mtr", "30 Mtr", "40 Mtr", "50 Mtr"]
-                    ).map((sz) => (
+                    {product.sizes.map((sz) => (
                       <button
                         key={sz}
                         type="button"
                         onClick={() => setSelectedSize(sz)}
                         className={`px-4.5 py-2.5 rounded-xl border text-xs font-bold transition-all duration-300 ${
                           selectedSize === sz
+                            ? "bg-black text-white border-black shadow-xs font-extrabold"
+                            : "bg-white text-slate-800 border-slate-200 hover:border-slate-350 hover:bg-slate-50 font-bold"
+                        }`}
+                      >
+                        {sz}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Privacy Screen Sizes Selector */}
+              {product.privacySizes && product.privacySizes.length > 0 && (
+                <div className="space-y-2.5 pb-2 text-left">
+                  <span className="block text-xs font-extrabold uppercase tracking-widest text-[#1E293B]/60">
+                    Privacy Screen Size
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {product.privacySizes.map((sz) => (
+                      <button
+                        key={sz}
+                        type="button"
+                        onClick={() => setSelectedPrivacySize(sz)}
+                        className={`px-4.5 py-2.5 rounded-xl border text-xs font-bold transition-all duration-300 ${
+                          selectedPrivacySize === sz
                             ? "bg-black text-white border-black shadow-xs font-extrabold"
                             : "bg-white text-slate-800 border-slate-200 hover:border-slate-350 hover:bg-slate-50 font-bold"
                         }`}

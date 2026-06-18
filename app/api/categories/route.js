@@ -58,7 +58,7 @@ export async function PUT(request) {
   try {
     await dbConnect();
     const body = await request.json();
-    const { name, newName, image, showOnHome } = body;
+    const { name, newName, image, showOnHome, homePosition } = body;
     
     if (!name) {
       return NextResponse.json({ error: "Category name parameter is required" }, { status: 400 });
@@ -74,6 +74,21 @@ export async function PUT(request) {
     }
     if (image !== undefined) updateData.image = image;
     if (showOnHome !== undefined) updateData.showOnHome = showOnHome;
+
+    // Handle homePosition: 0 = hidden, 1-6 = slot on home page
+    if (homePosition !== undefined) {
+      const pos = Number(homePosition);
+      updateData.homePosition = pos;
+      updateData.showOnHome = pos > 0;
+
+      // If assigning a real slot, clear it from any other category that already holds it
+      if (pos >= 1 && pos <= 6) {
+        await Category.updateMany(
+          { name: { $ne: name }, homePosition: pos },
+          { $set: { homePosition: 0, showOnHome: false } }
+        );
+      }
+    }
     
     const updated = await Category.findOneAndUpdate(
       { name },

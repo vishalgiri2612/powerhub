@@ -2,53 +2,15 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { categories } from "../app/data/products";
 
-const themeMap = {
-  "Cables": {
-    bg: "bg-[#3674B5]/10",
-    border: "border-[#3674B5]/40",
-    glow: "rgba(54, 116, 181, 0.15)",
-    image: "/images/cable.png"
-  },
-  "Converters": {
-    bg: "bg-[#DEC89E]/10",
-    border: "border-[#DEC89E]/30",
-    glow: "rgba(222, 200, 158, 0.2)",
-    image: "/images/charger.png"
-  },
-  "Accessories": {
-    bg: "bg-[#3674B5]/10",
-    border: "border-[#3674B5]/40",
-    glow: "rgba(54, 116, 181, 0.15)",
-    image: "/images/webcam.png"
-  },
-  "Surveillance": {
-    bg: "bg-[#DEC89E]/10",
-    border: "border-[#DEC89E]/30",
-    glow: "rgba(222, 200, 158, 0.2)",
-    image: "/images/ravtron_utility_dev.png"
-  },
-  "Docking Stations": {
-    bg: "bg-[#3674B5]/10",
-    border: "border-[#3674B5]/40",
-    glow: "rgba(54, 116, 181, 0.15)",
-    image: "/images/magsafe.png"
-  },
-  "Audio Video": {
-    bg: "bg-[#DEC89E]/10",
-    border: "border-[#DEC89E]/30",
-    glow: "rgba(222, 200, 158, 0.2)",
-    image: "/images/hero.png"
-  },
-  "Networking": {
-    bg: "bg-[#3674B5]/10",
-    border: "border-[#3674B5]/40",
-    glow: "rgba(54, 116, 181, 0.15)",
-    image: "/images/ravtron_networking.png"
-  }
-};
-
+/**
+ * Dynamic home page categories grid.
+ * Renders up to 6 categories sorted by homePosition (1-6) from the DB.
+ * Layout:
+ *   Slot 1 → Big card (left, spans 2 rows)
+ *   Slots 2-3 → Medium cards (right, top row)
+ *   Slots 4-6 → Small cards (right, bottom row)
+ */
 export default function Categories() {
   const router = useRouter();
   const [categoriesList, setCategoriesList] = React.useState([]);
@@ -61,7 +23,12 @@ export default function Categories() {
       })
       .then((data) => {
         if (Array.isArray(data)) {
-          setCategoriesList(data);
+          // Only keep categories with a valid homePosition (1-6), sorted by position
+          const visible = data
+            .filter((c) => c.homePosition >= 1 && c.homePosition <= 6)
+            .sort((a, b) => a.homePosition - b.homePosition)
+            .slice(0, 6);
+          setCategoriesList(visible);
         }
       })
       .catch((err) => {
@@ -73,25 +40,26 @@ export default function Categories() {
     router.push(`/shop?category=${encodeURIComponent(categoryName)}`);
   };
 
-  const getCategoryDetails = (catName, defaultImg) => {
-    const dbCat = categoriesList.find(
-      (c) => c.name && c.name.trim().toLowerCase() === catName.trim().toLowerCase()
-    );
-    return {
-      name: dbCat?.name || catName,
-      image: dbCat?.image || defaultImg
-    };
+  // Map slots to layout classes
+  // Slot 0 (index 0, position 1) → big card: col-span-6, row-span-2, tall
+  // Slots 1-2 (index 1-2) → medium cards: col-span-3, normal height
+  // Slots 3-5 (index 3-5) → small cards: col-span-2, normal height
+  const getColClass = (index) => {
+    if (index === 0) return "md:col-span-6 md:row-span-2";
+    if (index <= 2) return "md:col-span-3";
+    return "md:col-span-2";
   };
 
-  const cables = getCategoryDetails("Cables", "/images/cable.png");
-  const hdmi = getCategoryDetails("HDMI Cables", "/images/cable.png");
-  const vga = getCategoryDetails("VGA Cables", "/images/cable.png");
-  const power = getCategoryDetails("Power Cords", "/images/charger.png");
-  const converters = getCategoryDetails("Converters", "/images/charger.png");
+  const getHeightClass = (index) => {
+    if (index === 0) return "h-[280px] sm:h-[380px] md:h-[464px]";
+    return "h-[180px] md:h-[220px]";
+  };
+
+  if (categoriesList.length === 0) return null;
 
   return (
     <section id="categories" className="py-8 md:py-16 px-4 sm:px-6 lg:px-8 bg-bg-brand relative overflow-hidden">
-      {/* Decorative background gradients */}
+      {/* Decorative background */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[70%] bg-radial from-[#F3F4F6] to-transparent opacity-40 pointer-events-none -z-10" />
 
       <div className="max-w-7xl mx-auto space-y-8 md:space-y-12">
@@ -111,87 +79,25 @@ export default function Categories() {
           </p>
         </div>
 
-        {/* Premium Categories Grid */}
+        {/* Dynamic 6-slot Categories Grid */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6">
-          {/* Card 1: Cables (Large Left Card, spans 6 cols on desktop) */}
-          <div
-            onClick={() => handleCategoryClick(cables.name)}
-            className="group relative rounded-[2rem] bg-white border border-[#1E293B]/10 overflow-hidden cursor-pointer md:col-span-6 md:row-span-2 h-[280px] sm:h-[380px] md:h-[464px] shadow-xs flex items-center justify-center hover-lift transition-all duration-500"
-          >
-            <img
-              src={cables.image}
-              alt={cables.name}
-              className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-black/5 group-hover:bg-black/10 transition-colors duration-500" />
-            <span className="bg-black/80 backdrop-blur-xs text-white text-[10px] sm:text-xs font-black uppercase px-4 py-2 rounded-lg absolute bottom-4 left-4 sm:bottom-6 sm:left-6 tracking-wider z-10">
-              {cables.name}
-            </span>
-          </div>
-
-          {/* Card 2: HDMI Cables (Small, spans 3 cols on desktop) */}
-          <div
-            onClick={() => handleCategoryClick(hdmi.name)}
-            className="group relative rounded-[2rem] bg-white border border-[#1E293B]/10 overflow-hidden cursor-pointer md:col-span-3 h-[180px] md:h-[220px] shadow-xs flex items-center justify-center hover-lift transition-all duration-500"
-          >
-            <img
-              src={hdmi.image}
-              alt={hdmi.name}
-              className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-black/5 group-hover:bg-black/10 transition-colors duration-500" />
-            <span className="bg-black/80 backdrop-blur-xs text-white text-[10px] sm:text-xs font-black uppercase px-4 py-2 rounded-lg absolute bottom-4 left-4 sm:bottom-6 sm:left-6 tracking-wider z-10">
-              {hdmi.name}
-            </span>
-          </div>
-
-          {/* Card 3: VGA Cables (Small, spans 3 cols on desktop) */}
-          <div
-            onClick={() => handleCategoryClick(vga.name)}
-            className="group relative rounded-[2rem] bg-white border border-[#1E293B]/10 overflow-hidden cursor-pointer md:col-span-3 h-[180px] md:h-[220px] shadow-xs flex items-center justify-center hover-lift transition-all duration-500"
-          >
-            <img
-              src={vga.image}
-              alt={vga.name}
-              className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-black/5 group-hover:bg-black/10 transition-colors duration-500" />
-            <span className="bg-black/80 backdrop-blur-xs text-white text-[10px] sm:text-xs font-black uppercase px-4 py-2 rounded-lg absolute bottom-4 left-4 sm:bottom-6 sm:left-6 tracking-wider z-10">
-              {vga.name}
-            </span>
-          </div>
-
-          {/* Card 4: Power Cords (Small, spans 3 cols on desktop) */}
-          <div
-            onClick={() => handleCategoryClick(power.name)}
-            className="group relative rounded-[2rem] bg-white border border-[#1E293B]/10 overflow-hidden cursor-pointer md:col-span-3 h-[180px] md:h-[220px] shadow-xs flex items-center justify-center hover-lift transition-all duration-500"
-          >
-            <img
-              src={power.image}
-              alt={power.name}
-              className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-black/5 group-hover:bg-black/10 transition-colors duration-500" />
-            <span className="bg-black/80 backdrop-blur-xs text-white text-[10px] sm:text-xs font-black uppercase px-4 py-2 rounded-lg absolute bottom-4 left-4 sm:bottom-6 sm:left-6 tracking-wider z-10">
-              {power.name}
-            </span>
-          </div>
-
-          {/* Card 5: Converters (Small, spans 3 cols on desktop) */}
-          <div
-            onClick={() => handleCategoryClick(converters.name)}
-            className="group relative rounded-[2rem] bg-white border border-[#1E293B]/10 overflow-hidden cursor-pointer md:col-span-3 h-[180px] md:h-[220px] shadow-xs flex items-center justify-center hover-lift transition-all duration-500"
-          >
-            <img
-              src={converters.image}
-              alt={converters.name}
-              className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-black/5 group-hover:bg-black/10 transition-colors duration-500" />
-            <span className="bg-black/80 backdrop-blur-xs text-white text-[10px] sm:text-xs font-black uppercase px-4 py-2 rounded-lg absolute bottom-4 left-4 sm:bottom-6 sm:left-6 tracking-wider z-10">
-              {converters.name}
-            </span>
-          </div>
+          {categoriesList.map((cat, index) => (
+            <div
+              key={cat.name}
+              onClick={() => handleCategoryClick(cat.name)}
+              className={`group relative rounded-[2rem] bg-white border border-[#1E293B]/10 overflow-hidden cursor-pointer shadow-xs flex items-center justify-center hover-lift transition-all duration-500 ${getColClass(index)} ${getHeightClass(index)}`}
+            >
+              <img
+                src={cat.image || "/images/charger.png"}
+                alt={cat.name}
+                className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-black/5 group-hover:bg-black/10 transition-colors duration-500" />
+              <span className="bg-black/80 backdrop-blur-xs text-white text-[10px] sm:text-xs font-black uppercase px-4 py-2 rounded-lg absolute bottom-4 left-4 sm:bottom-6 sm:left-6 tracking-wider z-10">
+                {cat.name}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
     </section>
