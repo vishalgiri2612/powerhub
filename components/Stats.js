@@ -21,8 +21,7 @@ export default function Stats() {
       ([entry]) => {
         if (entry.isIntersecting) {
           setVisible(true);
-        } else {
-          setVisible(false);
+          observer.disconnect();
         }
       },
       { threshold: 0.1 }
