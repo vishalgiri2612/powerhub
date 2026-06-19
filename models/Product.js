@@ -14,6 +14,16 @@ const ProductSchema = new mongoose.Schema(
     gallery: { type: [String], default: [] },
     sizes: { type: [String], default: [] },
     privacySizes: { type: [String], default: [] },
+    sizePrices: {
+      type: [
+        {
+          size: { type: String, required: true },
+          price: { type: Number, required: true },
+          originalPrice: { type: Number, required: true }
+        }
+      ],
+      default: []
+    },
     category: { type: String, required: true },
     featured: { type: Boolean, default: false },
     isNewArrival: { type: Boolean, default: false },

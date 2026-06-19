@@ -172,6 +172,12 @@ export default function ProductDetailPage({ params }) {
   const isWishlisted = wishlist.some((item) => item.id === product.id);
   const specItems = product.shortSpec.split(" · ");
 
+  // Resolve pricing overrides based on selected variant size
+  const selectedSizeName = selectedSize || selectedPrivacySize;
+  const sizeOverride = product.sizePrices?.find((sp) => sp.size === selectedSizeName);
+  const displayPrice = sizeOverride && sizeOverride.price ? sizeOverride.price : product.price;
+  const displayOriginalPrice = sizeOverride && sizeOverride.originalPrice ? sizeOverride.originalPrice : product.originalPrice;
+
   // Related products (filtered from same category or next items in the list)
   const relatedProducts = Array.isArray(products)
     ? products.filter((p) => p.id !== product.id).slice(0, 3)
@@ -186,11 +192,23 @@ export default function ProductDetailPage({ params }) {
   const brandText = isSage ? "text-[#3674B5]" : isSand ? "text-[#DEC89E]" : "text-[#3674B5]";
 
   const handleAdd = () => {
-    addToCart({ ...product, selectedSize, selectedPrivacySize }, quantity);
+    addToCart({ 
+      ...product, 
+      price: displayPrice, 
+      originalPrice: displayOriginalPrice, 
+      selectedSize, 
+      selectedPrivacySize 
+    }, quantity);
   };
 
   const handleBuyNow = () => {
-    addToCart({ ...product, selectedSize, selectedPrivacySize }, quantity);
+    addToCart({ 
+      ...product, 
+      price: displayPrice, 
+      originalPrice: displayOriginalPrice, 
+      selectedSize, 
+      selectedPrivacySize 
+    }, quantity);
     setIsCartOpen(true);
     router.push("/");
   };
@@ -445,14 +463,14 @@ export default function ProductDetailPage({ params }) {
               <div className="flex items-center justify-between bg-white border border-[#1E293B]/10 rounded-2xl md:rounded-[2rem] p-4 md:p-5 shadow-xs">
                 <div className="space-y-1">
                   <span className="text-[10px] font-extrabold text-[#3674B5] uppercase tracking-wider">
-                    Save ₹{(product.originalPrice - product.price).toLocaleString()} ({product.discountBadge})
+                    Save ₹{(displayOriginalPrice - displayPrice).toLocaleString()} ({product.discountBadge})
                   </span>
                   <div className="flex items-baseline gap-2">
                     <span className="text-2xl md:text-3xl font-black text-[#3674B5]">
-                      ₹{product.price.toLocaleString()}
+                      ₹{displayPrice.toLocaleString()}
                     </span>
                     <span className="text-xs md:text-sm text-[#1E293B]/30 line-through font-semibold">
-                      ₹{product.originalPrice.toLocaleString()}
+                      ₹{displayOriginalPrice.toLocaleString()}
                     </span>
                   </div>
                 </div>

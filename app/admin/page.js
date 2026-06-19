@@ -132,6 +132,7 @@ export default function AdminPanelPage() {
     gallery: [],
     sizes: [],
     privacySizes: [],
+    sizePrices: [],
     color: "",
     stock: "",
     isNewArrival: false,
@@ -316,6 +317,13 @@ export default function AdminPanelPage() {
       gallery: productForm.gallery || [],
       sizes: productForm.sizes || [],
       privacySizes: productForm.privacySizes || [],
+      sizePrices: (productForm.sizePrices || [])
+        .filter((sp) => sp.size && sp.price)
+        .map((sp) => ({
+          size: sp.size,
+          price: Number(sp.price),
+          originalPrice: Number(sp.originalPrice || sp.price)
+        })),
       color: productForm.color || "Standard",
       stock: Number(productForm.stock || 0),
       isNewArrival: !!productForm.isNewArrival,
@@ -642,6 +650,7 @@ export default function AdminPanelPage() {
         gallery: productToEdit.gallery || [],
         sizes: productToEdit.sizes || [],
         privacySizes: productToEdit.privacySizes || [],
+        sizePrices: productToEdit.sizePrices || [],
         color: productToEdit.color || "",
         stock: productToEdit.stock ?? 0,
         isNewArrival: productToEdit.isNewArrival || false,
@@ -662,6 +671,7 @@ export default function AdminPanelPage() {
         gallery: ["/images/charger.png"],
         sizes: [],
         privacySizes: [],
+        sizePrices: [],
         color: "Standard",
         stock: 0,
         isNewArrival: true,
@@ -2111,6 +2121,67 @@ export default function AdminPanelPage() {
                     Select presets or type any custom size. These appear as selectable options on the product page for customers.
                   </p>
                 </div>
+
+              {/* Variant Pricing overrides */}
+              {((productForm.sizes && productForm.sizes.length > 0) || (productForm.privacySizes && productForm.privacySizes.length > 0)) && (
+                <div className="space-y-3 border-t border-slate-100 pt-3 text-left">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    Variant Specific Pricing overrides
+                  </label>
+                  <p className="text-[9px] text-slate-400 font-medium -mt-1 leading-normal">
+                    Specify different prices for different length/size segments. Leave blank to default to the base product price.
+                  </p>
+                  <div className="space-y-2 bg-slate-50/50 rounded-xl p-3 border border-slate-200/60 max-h-[220px] overflow-y-auto">
+                    {[...(productForm.sizes || []), ...(productForm.privacySizes || [])].map((sz) => {
+                      const currentOverride = (productForm.sizePrices || []).find((sp) => sp.size === sz) || { size: sz, price: "", originalPrice: "" };
+                      return (
+                        <div key={sz} className="grid grid-cols-12 gap-2 items-center">
+                          <span className="col-span-4 text-[10px] font-extrabold text-slate-600 truncate" title={sz}>{sz}</span>
+                          <div className="col-span-4">
+                            <input
+                              type="number"
+                              required
+                              placeholder="Price"
+                              className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-[10px] font-semibold text-slate-800 outline-none focus:border-slate-350"
+                              value={currentOverride.price}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                let newOverrides = [...(productForm.sizePrices || [])];
+                                const idx = newOverrides.findIndex((sp) => sp.size === sz);
+                                if (idx > -1) {
+                                  newOverrides[idx] = { ...newOverrides[idx], price: val ? Number(val) : "" };
+                                } else {
+                                  newOverrides.push({ size: sz, price: val ? Number(val) : "", originalPrice: "" });
+                                }
+                                setProductForm({ ...productForm, sizePrices: newOverrides });
+                              }}
+                            />
+                          </div>
+                          <div className="col-span-4">
+                            <input
+                              type="number"
+                              placeholder="Orig Price"
+                              className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-[10px] font-semibold text-slate-800 outline-none focus:border-slate-350"
+                              value={currentOverride.originalPrice}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                let newOverrides = [...(productForm.sizePrices || [])];
+                                const idx = newOverrides.findIndex((sp) => sp.size === sz);
+                                if (idx > -1) {
+                                  newOverrides[idx] = { ...newOverrides[idx], originalPrice: val ? Number(val) : "" };
+                                } else {
+                                  newOverrides.push({ size: sz, price: "", originalPrice: val ? Number(val) : "" });
+                                }
+                                setProductForm({ ...productForm, sizePrices: newOverrides });
+                              }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Product Gallery (Up to 5 Images) */}
               <div className="space-y-2">
