@@ -150,7 +150,7 @@ export default function WishlistPage() {
                         {specItems.map((spec, i) => (
                           <span
                             key={i}
-                            className="text-[10px] font-semibold text-[#1E293B]/60 bg-[#F8F9FA] px-2.5 py-1 rounded-lg border border-[#1E293B]/2"
+                            className="text-[10px] font-semibold text-[#1E293B]/60 bg-[#F8F9FA] px-2.5 py-1 rounded-lg border border-[#1E293B]/2 line-clamp-2"
                           >
                             {spec}
                           </span>

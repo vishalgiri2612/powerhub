@@ -14,11 +14,11 @@ export default function Footer() {
   ];
 
   const supportLinks = [
-    { name: "Track Order", href: "#" },
-    { name: "Returns & Exchanges", href: "#" },
-    { name: "Warranty Claim", href: "#" },
-    { name: "Frequently Asked Questions", href: "#" },
-    { name: "Contact Support Team", href: "#" }
+    { name: "Track Order", href: "/support?tab=track" },
+    { name: "Returns & Exchanges", href: "/support?tab=faq" },
+    { name: "Warranty Claim", href: "/support?tab=warranty" },
+    { name: "Frequently Asked Questions", href: "/support?tab=faq" },
+    { name: "Contact Support Team", href: "/support?tab=contact" }
   ];
 
   const companyLinks = [
@@ -152,12 +152,12 @@ export default function Footer() {
             <ul className={`${openSections.support ? "block" : "hidden"} md:block space-y-2.5 mt-1 md:mt-4 pb-4 md:pb-0`}>
               {supportLinks.map((link) => (
                 <li key={link.name}>
-                  <a
+                  <Link
                     href={link.href}
                     className="text-sm font-semibold text-[#1E293B]/60 hover:text-[#3674B5] transition-colors"
                   >
                     {link.name}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>

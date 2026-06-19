@@ -7,32 +7,15 @@ import { Search } from "lucide-react";
 
 export default function SearchModal() {
   const router = useRouter();
-  const { isSearchOpen, setIsSearchOpen, addToCart } = useCart();
+  const { isSearchOpen, setIsSearchOpen, addToCart, products: productList } = useCart();
   const [query, setQuery] = useState("");
   const [filtered, setFiltered] = useState([]);
   const inputRef = useRef(null);
-
-  const [productList, setProductList] = useState([]);
 
   useEffect(() => {
     if (isSearchOpen) {
       inputRef.current?.focus();
       document.body.style.overflow = "hidden";
-      
-      // Load dynamic products from API
-      fetch("/api/products")
-        .then((res) => {
-          if (!res.ok) throw new Error("API response was not ok");
-          return res.json();
-        })
-        .then((data) => {
-          if (Array.isArray(data)) {
-            setProductList(data);
-          } else {
-            console.error("Expected array for products but got:", data);
-          }
-        })
-        .catch((e) => console.error("Failed to fetch products for search", e));
     } else {
       document.body.style.overflow = "";
     }

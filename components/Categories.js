@@ -51,8 +51,8 @@ export default function Categories() {
   };
 
   const getHeightClass = (index) => {
-    if (index === 0) return "h-[280px] sm:h-[380px] md:h-[464px]";
-    return "h-[180px] md:h-[220px]";
+    if (index === 0) return "h-[110px] sm:h-[160px] md:h-[464px]";
+    return "h-[110px] sm:h-[160px] md:h-[220px]";
   };
 
   if (categoriesList.length === 0) return null;
@@ -80,12 +80,12 @@ export default function Categories() {
         </div>
 
         {/* Dynamic 6-slot Categories Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-12 gap-3 md:gap-6">
           {categoriesList.map((cat, index) => (
             <div
               key={cat.name}
               onClick={() => handleCategoryClick(cat.name)}
-              className={`group relative rounded-[2rem] bg-white border border-[#1E293B]/10 overflow-hidden cursor-pointer shadow-xs flex items-center justify-center hover-lift transition-all duration-500 ${getColClass(index)} ${getHeightClass(index)}`}
+              className={`group relative rounded-2xl md:rounded-[2rem] bg-white border border-[#1E293B]/10 overflow-hidden cursor-pointer shadow-xs flex items-center justify-center hover-lift transition-all duration-500 w-full ${getColClass(index)} ${getHeightClass(index)}`}
             >
               <img
                 src={cat.image || "/images/charger.png"}
@@ -93,7 +93,7 @@ export default function Categories() {
                 className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-black/5 group-hover:bg-black/10 transition-colors duration-500" />
-              <span className="bg-black/80 backdrop-blur-xs text-white text-[10px] sm:text-xs font-black uppercase px-4 py-2 rounded-lg absolute bottom-4 left-4 sm:bottom-6 sm:left-6 tracking-wider z-10">
+              <span className="bg-black/80 backdrop-blur-xs text-white text-[9px] sm:text-xs font-black uppercase px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-md sm:rounded-lg absolute bottom-3 left-3 sm:bottom-6 sm:left-6 tracking-wider z-10">
                 {cat.name}
               </span>
             </div>

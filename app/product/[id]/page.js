@@ -33,67 +33,88 @@ export default function ProductDetailPage({ params }) {
     addToCart,
     setIsCartOpen,
     wishlist,
-    toggleWishlist
+    toggleWishlist,
+    products,
+    productsLoading
   } = useCart();
 
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState("overview");
 
-  // Fetch product detail dynamically
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState("");
   const [selectedSize, setSelectedSize] = useState(null);
   const [selectedPrivacySize, setSelectedPrivacySize] = useState(null);
-  const [allProductsList, setAllProductsList] = useState([]);
 
+  // 1. Instantly load basic info from global context cache if available
   useEffect(() => {
-    setLoading(true);
-    // 1. Fetch all products (for related accessories)
-    fetch("/api/products")
-      .then((res) => {
-        if (!res.ok) throw new Error("API response was not ok");
-        return res.json();
-      })
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setAllProductsList(data);
-        } else {
-          console.error("Expected array for products but got:", data);
-        }
-      })
-      .catch((err) => console.error("Failed to fetch all products for related", err));
+    if (products && products.length > 0) {
+      const cached = products.find((p) => p.id === id);
+      if (cached) {
+        setProduct((prev) => {
+          if (prev && prev.id === id && prev.gallery && prev.gallery.length > 0) {
+            return prev;
+          }
+          return cached;
+        });
+        setLoading(false);
+      }
+    }
+  }, [products, id]);
 
-    // 2. Fetch specific product detail
+  // 2. Fetch full product details (including gallery base64 array) from server
+  useEffect(() => {
+    let active = true;
+    if (!product || product.id !== id) {
+      setLoading(true);
+    }
+    
     fetch(`/api/products/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error("Product not found");
         return res.json();
       })
       .then((data) => {
-        setProduct(data);
-        setSelectedImage(data.image || "");
-        // Auto-select first cable size if available
-        if (data.sizes && data.sizes.length > 0) {
-          setSelectedSize(data.sizes[0]);
-        } else {
-          setSelectedSize(null);
-        }
-        // Auto-select first privacy size if available
-        if (data.privacySizes && data.privacySizes.length > 0) {
-          setSelectedPrivacySize(data.privacySizes[0]);
-        } else {
-          setSelectedPrivacySize(null);
+        if (active && data) {
+          setProduct(data);
+          setLoading(false);
         }
       })
       .catch((err) => {
         console.error("Failed to fetch product details", err);
-        setProduct(null);
-      })
-      .finally(() => {
-        setLoading(false);
+        if (active && (!product || product.id !== id)) {
+          setProduct(null);
+          setLoading(false);
+        }
       });
+
+    return () => {
+      active = false;
+    };
   }, [id]);
+
+  // 3. Initialize selections when product details change
+  useEffect(() => {
+    if (product) {
+      setSelectedImage((curr) => {
+        if (curr && product.gallery && product.gallery.includes(curr)) {
+          return curr;
+        }
+        return product.image || "";
+      });
+      if (product.sizes && product.sizes.length > 0) {
+        setSelectedSize((curr) => (product.sizes.includes(curr) ? curr : product.sizes[0]));
+      } else {
+        setSelectedSize(null);
+      }
+      if (product.privacySizes && product.privacySizes.length > 0) {
+        setSelectedPrivacySize((curr) => (product.privacySizes.includes(curr) ? curr : product.privacySizes[0]));
+      } else {
+        setSelectedPrivacySize(null);
+      }
+    }
+  }, [product]);
 
   useEffect(() => {
     setQuantity(1);
@@ -152,8 +173,8 @@ export default function ProductDetailPage({ params }) {
   const specItems = product.shortSpec.split(" · ");
 
   // Related products (filtered from same category or next items in the list)
-  const relatedProducts = Array.isArray(allProductsList)
-    ? allProductsList.filter((p) => p.id !== product.id).slice(0, 3)
+  const relatedProducts = Array.isArray(products)
+    ? products.filter((p) => p.id !== product.id).slice(0, 3)
     : [];
 
   // Styling accents based on product ID/theme

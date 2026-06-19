@@ -29,7 +29,8 @@ import {
   Camera,
   Laptop,
   Tv,
-  Network
+  Network,
+  Eye
 } from "lucide-react";
 import SearchModal from "../../components/SearchModal";
 import CartDrawer from "../../components/CartDrawer";
@@ -89,7 +90,7 @@ const getCategoryIconDetails = (categoryName) => {
 
 export default function AdminPanelPage() {
   const router = useRouter();
-  const { showToast } = useCart();
+  const { showToast, refreshProducts, refreshCategories } = useCart();
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminPassword, setAdminPassword] = useState("");
   const [activeTab, setActiveTab] = useState("overview"); // overview, products, orders, users, categories
@@ -101,6 +102,8 @@ export default function AdminPanelPage() {
   const [adminUsers, setAdminUsers] = useState([]);
   const [heroSlides, setHeroSlides] = useState([]);
   const [isLoadingHero, setIsLoadingHero] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [expandedOrderId, setExpandedOrderId] = useState(null);
 
   const categoriesListToUse = adminCategories.length > 0
     ? adminCategories
@@ -224,6 +227,10 @@ export default function AdminPanelPage() {
       setAdminOrders(Array.isArray(resOrders) ? resOrders : []);
       setAdminCategories(Array.isArray(resCategories) ? resCategories : []);
       setAdminUsers(Array.isArray(resUsers) ? resUsers : []);
+
+      // Refresh global state cache to propagate changes instantly
+      refreshProducts();
+      refreshCategories();
     } catch (err) {
       console.error("Error loading admin data:", err);
       showToast("Error loading administrator data.", "error");
@@ -1458,7 +1465,14 @@ export default function AdminPanelPage() {
                     {adminUsers.map((u, index) => (
                       <tr key={u.email} className="border-b border-slate-50 hover:bg-slate-50/40 transition-colors">
                         <td className="p-4 text-center font-bold text-slate-400">{index + 1}</td>
-                        <td className="p-4 font-bold text-slate-900">{u.name}</td>
+                        <td className="p-4 font-bold text-slate-900">
+                          <button
+                            onClick={() => setSelectedCustomer(u)}
+                            className="hover:text-[#3674B5] hover:underline font-bold text-left outline-none cursor-pointer"
+                          >
+                            {u.name}
+                          </button>
+                        </td>
                         <td className="p-4 text-slate-500 font-medium">{u.email}</td>
                         <td className="p-4">
                           <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${u.role === "Administrator" ? "bg-[#3674B5]/10 text-[#3674B5]" : "bg-slate-100 text-slate-400"
@@ -1472,10 +1486,18 @@ export default function AdminPanelPage() {
                           <span className="ml-1.5 text-[10px] font-semibold text-slate-500">{u.active !== false ? "Active" : "Disabled"}</span>
                         </td>
                         <td className="p-4">
-                          <div className="flex items-center justify-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => setSelectedCustomer(u)}
+                              className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[10px] font-bold text-slate-600 hover:text-slate-900 transition-all shadow-3xs flex items-center gap-1 cursor-pointer"
+                              title="View Customer Profile"
+                            >
+                              <Eye className="w-3.5 h-3.5 text-slate-400" />
+                              <span>View Details</span>
+                            </button>
                             <button
                               onClick={() => handleToggleUserActive(u.email)}
-                              className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold uppercase transition-all ${u.active !== false
+                              className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold uppercase transition-all cursor-pointer ${u.active !== false
                                   ? "border-amber-100 bg-amber-50/40 text-amber-600 hover:bg-amber-50"
                                   : "border-emerald-100 bg-emerald-50/40 text-emerald-600 hover:bg-emerald-50"
                                 }`}
@@ -2263,6 +2285,157 @@ export default function AdminPanelPage() {
           </div>
         </div>
       )}
+
+      {/* Customer Profile & Orders Detail Modal */}
+      {selectedCustomer && (() => {
+        const custOrders = adminOrders.filter(
+          (o) => o.customerEmail?.toLowerCase() === selectedCustomer.email?.toLowerCase() ||
+                 o.customerName?.toLowerCase() === selectedCustomer.name?.toLowerCase()
+        );
+
+        return (
+          <div className="fixed inset-0 z-[1000] flex items-center justify-center px-4 bg-black/40 backdrop-blur-xs">
+            <div className="w-full max-w-2xl rounded-2xl bg-white border border-slate-100 p-6 md:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto animate-fade-in text-left">
+              
+              <button
+                onClick={() => {
+                  setSelectedCustomer(null);
+                  setExpandedOrderId(null);
+                }}
+                className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 text-slate-400 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="space-y-6">
+                <div className="border-b border-slate-100 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/20 flex items-center justify-center text-[#3674B5] font-black text-sm uppercase">
+                      {selectedCustomer.name.slice(0, 2)}
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-900">{selectedCustomer.name}</h3>
+                      <p className="text-xs text-slate-400 mt-0.5">Joined on {selectedCustomer.joinDate}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <div className="space-y-1">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Email Address</span>
+                    <span className="text-xs font-semibold text-slate-800">{selectedCustomer.email}</span>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Access Role</span>
+                    <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase inline-block ${
+                      selectedCustomer.role === "Administrator" ? "bg-[#3674B5]/10 text-[#3674B5]" : "bg-slate-200 text-slate-600"
+                    }`}>
+                      {selectedCustomer.role}
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Account Status</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className={`w-2 h-2 rounded-full inline-block ${selectedCustomer.active !== false ? 'bg-emerald-500' : 'bg-rose-400'}`} />
+                      <span className="text-xs font-semibold text-slate-800">{selectedCustomer.active !== false ? "Active (Enabled)" : "Disabled (Restricted)"}</span>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Orders Count</span>
+                    <span className="text-xs font-black text-slate-800">{custOrders.length} orders placed</span>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Purchase History & Tracking</h4>
+                  
+                  {custOrders.length === 0 ? (
+                    <div className="text-center py-8 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">No Orders Placed Yet</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1.5 scrollbar-thin">
+                      {custOrders.map((order) => {
+                        const isExpanded = expandedOrderId === order.id;
+                        return (
+                          <div key={order.id} className="border border-slate-100 rounded-xl bg-white shadow-2xs hover:border-slate-200 transition-colors overflow-hidden">
+                            {/* Order Accordion Header */}
+                            <div
+                              onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}
+                              className="p-3.5 flex items-center justify-between gap-3 cursor-pointer select-none hover:bg-slate-50 transition-colors"
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <span className={`text-[9px] text-slate-400 font-bold transition-transform duration-300 inline-block ${isExpanded ? 'rotate-90' : ''}`}>
+                                  ▶
+                                </span>
+                                <span className="text-xs font-black text-slate-900">{order.id}</span>
+                                <span className="text-[10px] text-slate-400 font-semibold">{order.date.split(" ")[0]}</span>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${order.statusColor}`}>
+                                  {order.status}
+                                </span>
+                                <span className="text-xs font-black text-[#3674B5]">₹{order.total.toLocaleString()}</span>
+                              </div>
+                            </div>
+
+                            {/* Collapsible content details */}
+                            {isExpanded && (
+                              <div className="px-4 pb-4 pt-1.5 border-t border-slate-50 bg-slate-50/30 space-y-3.5 animate-fade-in">
+                                <div className="space-y-2 pl-2.5 border-l-2 border-slate-200">
+                                  <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Items Details</p>
+                                  {order.items.map((item, itemIdx) => (
+                                    <div key={itemIdx} className="flex justify-between text-xs font-semibold text-slate-700">
+                                      <span>{item.name} <span className="text-slate-400 font-medium">x{item.qty}</span></span>
+                                      <span>{item.price ? `₹${item.price.toLocaleString()}` : ""}</span>
+                                    </div>
+                                  ))}
+                                </div>
+
+                                {order.status !== "Cancelled" && order.status !== "CANCELLED" && order.status !== "Delivered" && order.status !== "DELIVERED" ? (
+                                  <div className="flex justify-end pt-1">
+                                    <button
+                                      type="button"
+                                      onClick={async (e) => {
+                                        e.stopPropagation(); // Prevent toggling accordion state
+                                        if (confirm(`Are you sure you want to cancel order ${order.id}?`)) {
+                                          await handleUpdateOrderStatus(order.id, "Cancelled");
+                                          showToast(`Order ${order.id} cancelled successfully.`);
+                                        }
+                                      }}
+                                      className="px-3 py-1.5 rounded-lg border border-rose-100 bg-rose-50/30 text-[10px] font-bold text-rose-600 hover:bg-rose-50 transition-all hover:scale-102 active:scale-98 cursor-pointer"
+                                    >
+                                      Cancel Order
+                                    </button>
+                                  </div>
+                                ) : null}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-end pt-4 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedCustomer(null);
+                      setExpandedOrderId(null);
+                    }}
+                    className="bg-black hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                  >
+                    Close Profile
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       <SearchModal />
       <CartDrawer />

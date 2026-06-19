@@ -15,10 +15,89 @@ export function CartProvider({ children }) {
   const [discount, setDiscount] = useState(0);
   const [toasts, setToasts] = useState([]);
 
+  // Global cache states for products and categories to optimize page load speeds
+  const [products, setProducts] = useState([]);
+  const [productsLoading, setProductsLoading] = useState(true);
+  const [categories, setCategories] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+
+  const fetchProducts = async () => {
+    if (products.length === 0) {
+      setProductsLoading(true);
+    }
+    try {
+      const res = await fetch("/api/products?excludeGallery=true");
+      if (!res.ok) throw new Error("Failed to fetch products");
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setProducts(data);
+        try {
+          localStorage.setItem("powerhub_products_cache", JSON.stringify(data));
+        } catch (e) {}
+      }
+    } catch (err) {
+      console.error("Failed to fetch products globally", err);
+    } finally {
+      setProductsLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    if (categories.length === 0) {
+      setCategoriesLoading(true);
+    }
+    try {
+      const res = await fetch("/api/categories");
+      if (!res.ok) throw new Error("Failed to fetch categories");
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setCategories(data);
+        try {
+          localStorage.setItem("powerhub_categories_cache", JSON.stringify(data));
+        } catch (e) {}
+      }
+    } catch (err) {
+      console.error("Failed to fetch categories globally", err);
+    } finally {
+      setCategoriesLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+    fetchCategories();
+  }, []);
+
+  const refreshProducts = () => fetchProducts();
+  const refreshCategories = () => fetchCategories();
+
   const isInitialized = React.useRef(false);
 
   // Load initial cart and wishlist from localStorage on client mount
   useEffect(() => {
+    // Load products and categories cache safely on client mount
+    try {
+      const cachedProds = localStorage.getItem("powerhub_products_cache");
+      if (cachedProds) {
+        const parsed = JSON.parse(cachedProds);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setProducts(parsed);
+          setProductsLoading(false);
+        }
+      }
+      
+      const cachedCats = localStorage.getItem("powerhub_categories_cache");
+      if (cachedCats) {
+        const parsed = JSON.parse(cachedCats);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setCategories(parsed);
+          setCategoriesLoading(false);
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to load products/categories cache on mount", e);
+    }
+
     // Global theme initialization
     const savedTheme = localStorage.getItem("ravtron_theme");
     if (savedTheme === "light") {
@@ -196,6 +275,12 @@ export function CartProvider({ children }) {
         getSubtotal,
         getCartCount,
         showToast,
+        products,
+        productsLoading,
+        categories,
+        categoriesLoading,
+        refreshProducts,
+        refreshCategories,
       }}
     >
       {children}

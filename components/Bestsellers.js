@@ -4,29 +4,9 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "../app/context/CartContext";
 
-export default function Bestsellers() {
+export default function Bestsellers({ productList = [], loading = false }) {
   const router = useRouter();
   const { addToCart, toggleWishlist, wishlist } = useCart();
-  const [productList, setProductList] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setLoading(true);
-    fetch("/api/products")
-      .then((res) => {
-        if (!res.ok) throw new Error("API response was not ok");
-        return res.json();
-      })
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setProductList(data);
-        } else {
-          console.error("Expected array for products but got:", data);
-        }
-      })
-      .catch((e) => console.error("Failed to fetch products for bestsellers", e))
-      .finally(() => setLoading(false));
-  }, []);
 
   // Filter to show only top selling products
   let bestsellerProducts = Array.isArray(productList) ? productList.filter((p) => p.topSelling) : [];
@@ -184,7 +164,7 @@ export default function Bestsellers() {
                         {specItems.map((spec, i) => (
                           <span
                             key={i}
-                            className="text-[8px] sm:text-[10px] font-semibold text-[#1E293B]/60 bg-[#F8F9FA] px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg border border-[#1E293B]/2"
+                            className="text-[8px] sm:text-[10px] font-semibold text-[#1E293B]/60 bg-[#F8F9FA] px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg border border-[#1E293B]/2 line-clamp-2"
                           >
                             {spec}
                           </span>

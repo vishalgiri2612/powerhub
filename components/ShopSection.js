@@ -4,29 +4,38 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "../app/context/CartContext";
 
-export default function ShopSection() {
+export default function ShopSection({ productList = [], loading = false }) {
   const router = useRouter();
   const { addToCart, toggleWishlist, wishlist } = useCart();
-  const [productList, setProductList] = useState([]);
-
-  useEffect(() => {
-    fetch("/api/products")
-      .then((res) => {
-        if (!res.ok) throw new Error("API response was not ok");
-        return res.json();
-      })
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setProductList(data);
-        } else {
-          console.error("Expected array for products but got:", data);
-        }
-      })
-      .catch((e) => console.error("Failed to fetch products for shop section", e));
-  }, []);
 
   // Display exactly 8 products that are featured on the home page shop catalog
   const shopProducts = Array.isArray(productList) ? productList.filter((p) => p.featured).slice(0, 8) : [];
+
+  if (loading) {
+    return (
+      <section id="homepage-shop" className="py-8 md:py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-bg-brand">
+        <div className="max-w-7xl mx-auto space-y-8 md:space-y-12 relative z-10">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-[#1E293B]/10 pb-4 md:pb-8">
+            <div className="space-y-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/30">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
+                <span className="text-[10px] font-extrabold text-[#3674B5] uppercase tracking-wider">
+                  Our Catalog
+                </span>
+              </div>
+              <h2 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-[#1E293B] tracking-tight leading-tight">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#3674B5] to-[#578FCA]">Shop</span>
+              </h2>
+            </div>
+          </div>
+          <div className="py-16 text-center space-y-4">
+            <div className="w-12 h-12 border-4 border-[#3674B5] border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest animate-pulse font-sans">Loading Catalog...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="homepage-shop" className="py-8 md:py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-bg-brand">
@@ -156,7 +165,7 @@ export default function ShopSection() {
                       {specItems.map((spec, i) => (
                         <span
                           key={i}
-                          className="text-[8px] sm:text-[10px] font-semibold text-[#1E293B]/60 bg-[#F8F9FA] px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg border border-[#1E293B]/2"
+                          className="text-[8px] sm:text-[10px] font-semibold text-[#1E293B]/60 bg-[#F8F9FA] px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg border border-[#1E293B]/2 line-clamp-2"
                         >
                           {spec}
                         </span>

@@ -13,46 +13,17 @@ function ShopContent() {
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get("category");
 
-  const { addToCart, toggleWishlist, wishlist } = useCart();
+  const { 
+    addToCart, 
+    toggleWishlist, 
+    wishlist,
+    products: productList,
+    productsLoading,
+    categories: categoriesList,
+    categoriesLoading,
+  } = useCart();
   const [activeCategory, setActiveCategory] = useState("All");
-  const [productList, setProductList] = useState([]);
-  const [categoriesList, setCategoriesList] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  // Load custom products and categories from MongoDB APIs
-  useEffect(() => {
-    setLoading(true);
-    Promise.all([
-      fetch("/api/products")
-        .then((res) => {
-          if (!res.ok) throw new Error("API response was not ok");
-          return res.json();
-        })
-        .then((data) => {
-          if (Array.isArray(data)) {
-            setProductList(data);
-          } else {
-            console.error("Expected array for products but got:", data);
-          }
-        }),
-      fetch("/api/categories")
-        .then((res) => {
-          if (!res.ok) throw new Error("API response was not ok");
-          return res.json();
-        })
-        .then((data) => {
-          if (Array.isArray(data)) {
-            setCategoriesList(data);
-          } else {
-            console.error("Expected array for categories but got:", data);
-          }
-        })
-    ])
-      .catch((e) => console.error("Failed to fetch shop metadata", e))
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
+  const loading = productsLoading || categoriesLoading;
 
   // Sync category state with query parameter
   useEffect(() => {
@@ -226,7 +197,7 @@ function ShopContent() {
                         {specItems.map((spec, i) => (
                           <span
                             key={i}
-                            className="text-[10px] font-semibold text-[#1E293B]/60 bg-[#F8F9FA] px-2.5 py-1 rounded-lg border border-[#1E293B]/2"
+                            className="text-[10px] font-semibold text-[#1E293B]/60 bg-[#F8F9FA] px-2.5 py-1 rounded-lg border border-[#1E293B]/2 line-clamp-2"
                           >
                             {spec}
                           </span>
