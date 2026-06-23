@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Category from "@/models/Category";
 import Product from "@/models/Product";
+import { verifyAdmin } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,9 @@ export async function GET() {
 
 export async function POST(request) {
   try {
+    if (!(await verifyAdmin())) {
+      return NextResponse.json({ error: "Unauthorized access: Administrator role required" }, { status: 403 });
+    }
     await dbConnect();
     const body = await request.json();
     
@@ -35,6 +39,9 @@ export async function POST(request) {
 
 export async function DELETE(request) {
   try {
+    if (!(await verifyAdmin())) {
+      return NextResponse.json({ error: "Unauthorized access: Administrator role required" }, { status: 403 });
+    }
     await dbConnect();
     const { searchParams } = new URL(request.url);
     const name = searchParams.get("name");
@@ -56,6 +63,9 @@ export async function DELETE(request) {
 
 export async function PUT(request) {
   try {
+    if (!(await verifyAdmin())) {
+      return NextResponse.json({ error: "Unauthorized access: Administrator role required" }, { status: 403 });
+    }
     await dbConnect();
     const body = await request.json();
     const { name, newName, image, showOnHome, homePosition } = body;

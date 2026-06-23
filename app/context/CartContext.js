@@ -218,15 +218,8 @@ export function CartProvider({ children }) {
   };
 
   const applyCouponCode = (code) => {
-    if (code.toUpperCase() === "FIRST200") {
-      setDiscount(200);
-      setCoupon("FIRST200");
-      showToast("Coupon 'FIRST200' applied successfully! Saved ₹200.");
-      return true;
-    } else {
-      showToast("Invalid coupon code", "error");
-      return false;
-    }
+    showToast("Invalid coupon code", "error");
+    return false;
   };
 
   const removeCoupon = () => {

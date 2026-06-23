@@ -272,6 +272,7 @@ export default function CheckoutPage() {
       statusColor: "text-amber-500 bg-amber-50",
       total: grandTotal,
       savings: discount,
+      coupon: coupon || "",
       customerName: contactForm.name,
       customerEmail: contactForm.email,
       customerPhone: contactForm.phone,
@@ -279,6 +280,8 @@ export default function CheckoutPage() {
       deliveryPref: deliveryPref,
       paymentMethod: paymentMethod.toUpperCase(),
       items: cart.map(item => ({
+        productId: item.id,
+        selectedSize: item.selectedSize || null,
         name: item.selectedSize ? `${item.name} (${item.selectedSize})` : item.name,
         image: item.image,
         price: item.price,

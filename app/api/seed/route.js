@@ -74,8 +74,23 @@ const initialMockUsers = [
 
 export async function GET(request) {
   try {
-    await dbConnect();
+    if (process.env.NODE_ENV === "production") {
+      return NextResponse.json(
+        { success: false, error: "Database seeding is disabled in production environments." },
+        { status: 403 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
+    const key = searchParams.get("key") || request.headers.get("x-api-key");
+    if (process.env.SEED_API_KEY && key !== process.env.SEED_API_KEY) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized: Invalid or missing seed API key." },
+        { status: 401 }
+      );
+    }
+
+    await dbConnect();
     const force = searchParams.get("force") === "true";
 
     let seededProductsCount = 0;

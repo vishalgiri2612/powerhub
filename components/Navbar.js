@@ -21,6 +21,17 @@ export default function Navbar() {
   const [user, setUser] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
+  const handleSignOut = async () => {
+    localStorage.removeItem("ravtron_session");
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (e) {
+      console.error("Failed to sign out on server", e);
+    }
+    window.dispatchEvent(new Event("ravtron_auth_change"));
+    window.location.href = "/";
+  };
+
   const isActive = (href) => {
     if (href === "/") {
       return pathname === "/";
@@ -214,9 +225,7 @@ export default function Navbar() {
                     <button
                       onClick={() => {
                         setDropdownOpen(false);
-                        localStorage.removeItem("ravtron_session");
-                        window.dispatchEvent(new Event("ravtron_auth_change"));
-                        window.location.href = "/";
+                        handleSignOut();
                       }}
                       className="px-3 py-2.5 rounded-xl hover:bg-rose-50 text-xs font-extrabold text-rose-600 hover:text-rose-700 transition-all flex items-center gap-2 text-left w-full"
                     >
@@ -288,9 +297,7 @@ export default function Navbar() {
                 <button
                   onClick={() => {
                     setMobileMenuOpen(false);
-                    localStorage.removeItem("ravtron_session");
-                    window.dispatchEvent(new Event("ravtron_auth_change"));
-                    window.location.href = "/";
+                    handleSignOut();
                   }}
                   className="w-full py-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-sm font-bold transition-all text-center"
                 >

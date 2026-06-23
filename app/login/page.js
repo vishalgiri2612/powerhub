@@ -29,108 +29,34 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, password, loginMode })
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || "Authentication failed.");
+      }
+
+      const data = await response.json();
+      const sessionUser = data.user;
+
+      setIsLoading(false);
+      setSuccess(true);
+
+      localStorage.setItem("ravtron_session", JSON.stringify(sessionUser));
+      window.dispatchEvent(new Event("ravtron_auth_change"));
+
       if (loginMode === "admin") {
-        // Administrative Authentication
-        if (password !== "admin123" && password !== "admin") {
-          throw new Error("Invalid administrative security password.");
-        }
-
-        // Query registered users list
-        const usersRes = await fetch("/api/users");
-        if (!usersRes.ok) {
-          throw new Error("Failed to communicate with user authentication directory");
-        }
-        const users = await usersRes.json();
-
-        // Search for user matching email address
-        const adminUser = users.find((u) => u.email.toLowerCase() === email.trim().toLowerCase());
-
-        if (!adminUser) {
-          throw new Error("Email is not registered as an Administrator in database.");
-        }
-
-        if (adminUser.role !== "Administrator") {
-          throw new Error("Access denied. User does not possess Administrator rights.");
-        }
-
-        if (adminUser.active === false) {
-          throw new Error("Access denied. This administrative profile has been disabled.");
-        }
-
-        setIsLoading(false);
-        setSuccess(true);
-
-        const sessionUser = {
-          name: adminUser.name,
-          email: adminUser.email,
-          phone: "",
-          avatar: "",
-          joinDate: adminUser.joinDate,
-          role: "Administrator",
-          isLoggedIn: true
-        };
-        localStorage.setItem("ravtron_session", JSON.stringify(sessionUser));
-        window.dispatchEvent(new Event("ravtron_auth_change"));
-
         showToast("Administrator terminal access authorized.");
         setTimeout(() => {
           router.push("/admin");
         }, 1500);
-
       } else {
-        // Customer / Client Portal Authentication
-        // Query users in database
-        const usersRes = await fetch("/api/users");
-        if (!usersRes.ok) {
-          throw new Error("Failed to communicate with user directory services.");
-        }
-        const users = await usersRes.json();
-
-        let clientUser = users.find((u) => u.email.toLowerCase() === email.trim().toLowerCase());
-
-        // Automatically register client if they don't exist yet!
-        if (!clientUser) {
-          const defaultName = email.split("@")[0].split(".").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ") || "Ravtron Client";
-          const registerRes = await fetch("/api/users", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              name: defaultName,
-              email: email,
-              role: "Customer"
-            })
-          });
-          if (!registerRes.ok) {
-            throw new Error("Failed to register client profile record in database");
-          }
-          clientUser = await registerRes.json();
-        }
-
-        if (clientUser.role === "Administrator") {
-          throw new Error("Please use the Administrator tab to log in with an admin account.");
-        }
-
-        if (clientUser.active === false) {
-          throw new Error("Access denied. Your client profile has been deactivated. Please contact support.");
-        }
-
-        setIsLoading(false);
-        setSuccess(true);
-
-        const sessionUser = {
-          name: clientUser.name,
-          email: clientUser.email,
-          phone: "",
-          avatar: "",
-          joinDate: clientUser.joinDate,
-          role: "Customer",
-          isLoggedIn: true
-        };
-        localStorage.setItem("ravtron_session", JSON.stringify(sessionUser));
-        window.dispatchEvent(new Event("ravtron_auth_change"));
-
         showToast("Access granted. Welcome back.");
         setTimeout(() => {
           router.push("/");

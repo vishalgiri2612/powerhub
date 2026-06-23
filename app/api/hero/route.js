@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import HeroSlide from "@/models/HeroSlide";
+import { verifyAdmin } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,9 @@ export async function GET() {
 
 export async function POST(request) {
   try {
+    if (!(await verifyAdmin())) {
+      return NextResponse.json({ error: "Unauthorized access: Administrator role required" }, { status: 403 });
+    }
     await dbConnect();
     const body = await request.json();
     const { slideIndex, disconnected, connected, productId, tag1, tag1Desc, tag2, tag2Desc, tag3, tag3Desc } = body;
@@ -56,6 +60,9 @@ export async function POST(request) {
 
 export async function DELETE() {
   try {
+    if (!(await verifyAdmin())) {
+      return NextResponse.json({ error: "Unauthorized access: Administrator role required" }, { status: 403 });
+    }
     await dbConnect();
     await HeroSlide.deleteMany({});
     return NextResponse.json({ success: true, message: "All custom hero slides deleted successfully." });

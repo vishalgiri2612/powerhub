@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Product from "@/models/Product";
+import { verifyAdmin } from "@/lib/auth";
 
 export async function GET(request, { params }) {
   try {
@@ -18,6 +19,9 @@ export async function GET(request, { params }) {
 
 export async function PUT(request, { params }) {
   try {
+    if (!(await verifyAdmin())) {
+      return NextResponse.json({ error: "Unauthorized access: Administrator role required" }, { status: 403 });
+    }
     await dbConnect();
     const { id } = await params;
     const body = await request.json();
@@ -36,6 +40,9 @@ export async function PUT(request, { params }) {
 
 export async function DELETE(request, { params }) {
   try {
+    if (!(await verifyAdmin())) {
+      return NextResponse.json({ error: "Unauthorized access: Administrator role required" }, { status: 403 });
+    }
     await dbConnect();
     const { id } = await params;
     const deletedProduct = await Product.findOneAndDelete({ id });

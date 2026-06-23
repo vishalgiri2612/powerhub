@@ -156,11 +156,46 @@ export default function ProfilePage() {
     showToast("Address settings saved.");
   };
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
     localStorage.removeItem("ravtron_session");
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (e) {
+      console.error("Failed to sign out on server", e);
+    }
     window.dispatchEvent(new Event("ravtron_auth_change"));
     showToast("Logged out successfully.");
     router.push("/");
+  };
+
+  const handleCancelOrder = async (orderId) => {
+    if (!confirm("Are you sure you want to cancel this order?")) return;
+    try {
+      const response = await fetch(`/api/orders/${orderId}/cancel`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || "Failed to cancel order");
+      }
+      const updatedOrder = await response.json();
+      showToast("Order cancelled successfully.");
+      
+      setOrders(prev =>
+        prev.map(o => (o.id === orderId ? { 
+          ...o, 
+          status: "Cancelled", 
+          statusColor: "text-rose-500 bg-rose-50",
+          trackingSteps: updatedOrder.trackingSteps 
+        } : o))
+      );
+    } catch (e) {
+      console.error(e);
+      showToast(e.message || "Failed to cancel order.", "error");
+    }
   };
 
   if (!user) {
@@ -172,10 +207,10 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-white text-[#1E293B] antialiased font-sans">
+    <div className="flex h-screen overflow-hidden bg-white text-[#1E293B] antialiased font-sans">
       
       {/* LEFT SIDEBAR */}
-      <aside className="w-64 border-r border-slate-100 flex flex-col justify-between p-6 bg-white shrink-0">
+      <aside className="w-64 border-r border-slate-100 flex flex-col justify-between p-6 bg-white shrink-0 h-full">
         <div className="space-y-8">
           
           {/* User Profile Header */}
@@ -286,7 +321,7 @@ export default function ProfilePage() {
       </aside>
 
       {/* MAIN CONTENT CONTAINER */}
-      <main className="flex-grow p-8 md:p-12 bg-slate-50/50 min-h-screen overflow-y-auto">
+      <main className="flex-grow p-8 md:p-12 bg-slate-50/50 h-full overflow-y-auto">
         
         {/* HEADER AREA */}
         <div className="flex justify-between items-start mb-8">
@@ -418,13 +453,23 @@ export default function ProfilePage() {
                               {order.status}
                             </span>
                           </td>
-                          <td className="p-4 text-center">
-                            <button
-                              onClick={() => setTrackingOrder(order)}
-                              className="px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-[10px] font-bold uppercase transition-all"
-                            >
-                              Track Package
-                            </button>
+                           <td className="p-4 text-center">
+                            <div className="flex gap-2 justify-center">
+                              <button
+                                onClick={() => setTrackingOrder(order)}
+                                className="px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-[10px] font-bold uppercase transition-all whitespace-nowrap"
+                              >
+                                Track Package
+                              </button>
+                              {order.status !== "Cancelled" && order.status !== "Shipped" && order.status !== "Delivered" && (
+                                <button
+                                  onClick={() => handleCancelOrder(order.id)}
+                                  className="px-3 py-1.5 rounded-lg border border-rose-200 bg-rose-50/50 hover:bg-rose-50 text-rose-600 text-[10px] font-bold uppercase transition-all"
+                                >
+                                  Cancel
+                                </button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))}

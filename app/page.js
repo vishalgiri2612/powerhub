@@ -7,12 +7,12 @@ import Stats from "../components/Stats";
 import Bestsellers from "../components/Bestsellers";
 import ShopSection from "../components/ShopSection";
 import Categories from "../components/Categories";
+import CircularCategories from "../components/CircularCategories";
 import NewArrivals from "../components/NewArrivals";
 import WhyChooseUs from "../components/WhyChooseUs";
 import HowItWorks from "../components/HowItWorks";
 import Testimonials from "../components/Testimonials";
 import BrandTrust from "../components/BrandTrust";
-import Newsletter from "../components/Newsletter";
 import Footer from "../components/Footer";
 import SearchModal from "../components/SearchModal";
 import CartDrawer from "../components/CartDrawer";
@@ -30,6 +30,7 @@ export default function Home() {
       <main>
         <Hero />
         <Stats />
+        <CircularCategories />
         <Bestsellers productList={products} loading={loading} />
         <ShopSection productList={products} loading={loading} />
         <Categories />
@@ -38,7 +39,6 @@ export default function Home() {
         <HowItWorks />
         <Testimonials />
         <BrandTrust />
-        <Newsletter />
       </main>
 
       {/* Global Brand Footer */}

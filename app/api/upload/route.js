@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import cloudinary from "cloudinary";
+import { verifyAdmin } from "@/lib/auth";
 
 // Configure Cloudinary v2 API
 const cloudinaryCloudName = process.env.CLOUDINARY_CLOUD_NAME;
@@ -24,6 +25,9 @@ if (isCloudinaryConfigured) {
 
 export async function POST(request) {
   try {
+    if (!(await verifyAdmin())) {
+      return NextResponse.json({ error: "Unauthorized access: Administrator role required" }, { status: 403 });
+    }
     const formData = await request.formData();
     const file = formData.get("file");
 
@@ -33,6 +37,15 @@ export async function POST(request) {
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+
+    const isProd = process.env.NODE_ENV === "production";
+
+    if (isProd && !isCloudinaryConfigured) {
+      return NextResponse.json(
+        { error: "Cloud storage is mandatory in production, but Cloudinary is not configured." },
+        { status: 500 }
+      );
+    }
 
     if (isCloudinaryConfigured) {
       try {
@@ -55,8 +68,22 @@ export async function POST(request) {
         const result = await uploadPromise;
         return NextResponse.json({ url: result.secure_url });
       } catch (cloudinaryError) {
-        console.warn("Cloudinary upload failed, falling back to local storage:", cloudinaryError);
+        console.error("Cloudinary upload failed:", cloudinaryError);
+        if (isProd) {
+          return NextResponse.json(
+            { error: `Cloud storage upload failed: ${cloudinaryError.message || cloudinaryError}` },
+            { status: 500 }
+          );
+        }
+        console.warn("Falling back to local storage in development mode.");
       }
+    }
+
+    if (isProd) {
+      return NextResponse.json(
+        { error: "Cloud storage upload failed and local fallback is disabled in production." },
+        { status: 500 }
+      );
     }
 
     // Fallback local upload path

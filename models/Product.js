@@ -30,7 +30,19 @@ const ProductSchema = new mongoose.Schema(
     color: { type: String, required: true },
     stock: { type: Number, default: 0 },
     description: { type: String, default: "" },
-    topSelling: { type: Boolean, default: false }
+    topSelling: { type: Boolean, default: false },
+    reviews: {
+      type: [
+        {
+          name: { type: String, required: true },
+          email: { type: String, required: true },
+          rating: { type: Number, required: true, min: 1, max: 5 },
+          comment: { type: String, required: true },
+          date: { type: String, required: true }
+        }
+      ],
+      default: []
+    }
   },
   { timestamps: true }
 );

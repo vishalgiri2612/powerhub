@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Product from "@/models/Product";
+import { verifyAdmin } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,9 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
+    if (!(await verifyAdmin())) {
+      return NextResponse.json({ error: "Unauthorized access: Administrator role required" }, { status: 403 });
+    }
     await dbConnect();
     const body = await request.json();
     const newProduct = await Product.create(body);

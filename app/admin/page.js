@@ -611,29 +611,6 @@ export default function AdminPanelPage() {
     }
   };
 
-  const handleResetData = async () => {
-    if (confirm("This will purge all custom products, orders, categories, and reset the MongoDB database. Proceed?")) {
-      try {
-        const response = await fetch("/api/seed?force=true");
-        if (!response.ok) {
-          const errData = await response.json();
-          throw new Error(errData.error || "Failed to reset database");
-        }
-
-        localStorage.removeItem("ravtron_products");
-        localStorage.removeItem("ravtron_orders");
-        localStorage.removeItem("ravtron_categories");
-        localStorage.removeItem("ravtron_users");
-        localStorage.removeItem("ravtron_address");
-
-        showToast("E-commerce database reset to factory defaults.", "info");
-        await fetchAdminData();
-      } catch (err) {
-        console.error("Error resetting database:", err);
-        showToast(err.message || "Failed to reset database.", "error");
-      }
-    }
-  };
 
   const openProductForm = (productToEdit = null) => {
     if (productToEdit) {
@@ -751,10 +728,10 @@ export default function AdminPanelPage() {
   });
 
   return (
-    <div className="flex min-h-screen bg-white text-[#1E293B] antialiased font-sans">
+    <div className="flex h-screen overflow-hidden bg-white text-[#1E293B] antialiased font-sans">
 
       {/* LEFT SIDEBAR (exactly matches screenshot layout design) */}
-      <aside className="w-64 border-r border-slate-100 flex flex-col justify-between p-6 bg-white shrink-0">
+      <aside className="w-64 border-r border-slate-100 flex flex-col justify-between p-6 bg-white shrink-0 h-full">
         <div className="space-y-8">
           {/* Logo / Menu Header */}
           <div className="px-3">
@@ -836,13 +813,7 @@ export default function AdminPanelPage() {
 
         {/* Sidebar Footer / Log out */}
         <div className="space-y-4 pt-4 border-t border-slate-100">
-          <button
-            onClick={handleResetData}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-all"
-          >
-            <RefreshCw className="w-4 h-4 text-slate-400" />
-            <span>Reset Database</span>
-          </button>
+
           <button
             onClick={() => router.push("/")}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-all"
@@ -861,7 +832,7 @@ export default function AdminPanelPage() {
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <main className="flex-grow p-8 md:p-12 bg-slate-50/50 min-h-screen overflow-y-auto">
+      <main className="flex-grow p-8 md:p-12 bg-slate-50/50 h-full overflow-y-auto">
 
         {/* TAB: OVERVIEW */}
         {activeTab === "overview" && (() => {
