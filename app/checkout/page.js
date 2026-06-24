@@ -32,7 +32,7 @@ export default function CheckoutPage() {
   const { cart, coupon, discount, getSubtotal, clearCart, showToast } = useCart();
 
   // Steps control
-  const [currentStep, setCurrentStep] = useState(1); // Step 1: Contact, Step 2: Shipping, Step 3: Delivery, Step 4: Payment
+  const [currentStep, setCurrentStep] = useState(1); // Step 1: Contact, Step 2: Shipping, Step 3: Payment
 
   // Checkout flow states
   const [currentUser, setCurrentUser] = useState(null);
@@ -154,16 +154,11 @@ export default function CheckoutPage() {
     }
   };
 
-  const handleContinueToDelivery = (e) => {
+  const handleContinueToPayment = (e) => {
     e.preventDefault();
     if (validateStep2()) {
       setCurrentStep(3);
     }
-  };
-
-  const handleContinueToPayment = (e) => {
-    e.preventDefault();
-    setCurrentStep(4);
   };
 
   // Form Input Helpers
@@ -665,119 +660,6 @@ export default function CheckoutPage() {
                       </button>
                       <button
                         type="button"
-                        onClick={handleContinueToDelivery}
-                        className="px-6 py-3 rounded-xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-extrabold uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm"
-                      >
-                        <span>Continue to Delivery</span>
-                        <ChevronRight className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-
-              {/* STEP 3: DELIVERY METHOD */}
-              <div className={`bg-white border rounded-3xl p-6 md:p-8 transition-all ${currentStep === 3
-                  ? "border-[#3674B5] shadow-md"
-                  : currentStep > 3
-                    ? "border-[#1E293B]/10 opacity-95"
-                    : "border-[#1E293B]/10 opacity-50"
-                }`}>
-                {/* Header Row */}
-                <div className="flex items-center justify-between pb-4 border-b border-[#1E293B]/5 mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-display font-black text-xs ${currentStep > 3
-                        ? "bg-emerald-500 text-white"
-                        : "bg-[#3674B5]/10 text-[#3674B5]"
-                      }`}>
-                      {currentStep > 3 ? <Check className="w-4 h-4" /> : "3"}
-                    </div>
-                    <div>
-                      <h3 className={`font-display font-black text-base md:text-lg text-[#1E293B] ${currentStep < 3 ? "text-slate-400" : ""}`}>Delivery Method</h3>
-                      <p className="text-[10px] md:text-xs font-semibold text-slate-500">Select shipping velocity preferences.</p>
-                    </div>
-                  </div>
-                  {currentStep > 3 && (
-                    <button
-                      onClick={() => setCurrentStep(3)}
-                      className="text-[#3674B5] hover:text-[#578FCA] text-xs font-extrabold flex items-center gap-1 hover:underline"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                      <span>Edit</span>
-                    </button>
-                  )}
-                </div>
-
-                {/* Collapsed summary when completed */}
-                {currentStep > 3 ? (
-                  <div className="text-xs font-semibold text-slate-700 pt-1">
-                    <span className="text-[9px] uppercase tracking-wider text-slate-500 block mb-0.5">Shipping Speed</span>
-                    <span className="font-black text-[#1E293B]">
-                      {deliveryPref === "express" ? "Priority Express (1-2 Business Days · ₹199)" : "Standard Dispatch (3-5 Business Days · Free)"}
-                    </span>
-                  </div>
-                ) : currentStep === 3 ? (
-                  /* Expanded Inputs Form */
-                  <div className="space-y-5">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {/* Standard Option */}
-                      <label className={`rounded-2xl border p-5 flex items-start gap-4 cursor-pointer transition-all ${deliveryPref === "standard"
-                          ? "bg-[#3674B5]/5 border-[#3674B5] text-[#1E293B]"
-                          : "bg-white border-[#1E293B]/15 hover:border-[#1E293B]/30 text-[#1E293B]/70"
-                        }`}>
-                        <input
-                          type="radio"
-                          name="delivery"
-                          value="standard"
-                          checked={deliveryPref === "standard"}
-                          onChange={() => setDeliveryPref("standard")}
-                          className="mt-1 text-[#3674B5] focus:ring-[#3674B5]"
-                        />
-                        <div className="space-y-1.5 text-xs font-semibold">
-                          <div className="flex justify-between items-center gap-2">
-                            <span className="font-black text-[#1E293B]">Standard Dispatch</span>
-                            <span className="text-[#3674B5] font-black uppercase text-[10px]">
-                              {subtotal > 999 ? "Free" : "₹99"}
-                            </span>
-                          </div>
-                          <p className="text-[10px] text-slate-500">3 to 5 business days estimation. Perfect for general orders.</p>
-                        </div>
-                      </label>
-
-                      {/* Express Option */}
-                      <label className={`rounded-2xl border p-5 flex items-start gap-4 cursor-pointer transition-all ${deliveryPref === "express"
-                          ? "bg-[#3674B5]/5 border-[#3674B5] text-[#1E293B]"
-                          : "bg-white border-[#1E293B]/15 hover:border-[#1E293B]/30 text-[#1E293B]/70"
-                        }`}>
-                        <input
-                          type="radio"
-                          name="delivery"
-                          value="express"
-                          checked={deliveryPref === "express"}
-                          onChange={() => setDeliveryPref("express")}
-                          className="mt-1 text-[#3674B5] focus:ring-[#3674B5]"
-                        />
-                        <div className="space-y-1.5 text-xs font-semibold">
-                          <div className="flex justify-between items-center gap-2">
-                            <span className="font-black text-[#1E293B]">Priority Express</span>
-                            <span className="text-[#3674B5] font-black text-[10px]">₹199</span>
-                          </div>
-                          <p className="text-[10px] text-slate-500">Guaranteed dispatch in 24 hours. Express air shipping (1-2 business days).</p>
-                        </div>
-                      </label>
-                    </div>
-
-                    <div className="flex justify-between items-center pt-2">
-                      <button
-                        type="button"
-                        onClick={() => setCurrentStep(2)}
-                        className="text-xs font-extrabold text-slate-500 hover:text-[#1E293B] transition-all flex items-center gap-1"
-                      >
-                        <ArrowLeft className="w-3.5 h-3.5" />
-                        <span>Back</span>
-                      </button>
-                      <button
-                        type="button"
                         onClick={handleContinueToPayment}
                         className="px-6 py-3 rounded-xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-extrabold uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm"
                       >
@@ -789,21 +671,23 @@ export default function CheckoutPage() {
                 ) : null}
               </div>
 
-              {/* STEP 4: PAYMENT INFORMATION */}
-              <div className={`bg-white border rounded-3xl p-6 md:p-8 transition-all ${currentStep === 4
+
+
+              {/* STEP 3: PAYMENT INFORMATION */}
+              <div className={`bg-white border rounded-3xl p-6 md:p-8 transition-all ${currentStep === 3
                   ? "border-[#3674B5] shadow-md"
                   : "border-[#1E293B]/10 opacity-50"
                 }`}>
                 {/* Header Row */}
                 <div className="flex items-center gap-3 pb-4 border-b border-[#1E293B]/5 mb-6">
-                  <div className="w-8 h-8 rounded-full bg-[#3674B5]/10 text-[#3674B5] flex items-center justify-center font-display font-black text-xs">4</div>
+                  <div className="w-8 h-8 rounded-full bg-[#3674B5]/10 text-[#3674B5] flex items-center justify-center font-display font-black text-xs">3</div>
                   <div>
-                    <h3 className={`font-display font-black text-base md:text-lg text-[#1E293B] ${currentStep < 4 ? "text-slate-400" : ""}`}>Payment Information</h3>
+                    <h3 className={`font-display font-black text-base md:text-lg text-[#1E293B] ${currentStep < 3 ? "text-slate-400" : ""}`}>Payment Information</h3>
                     <p className="text-[10px] md:text-xs font-semibold text-slate-500">Choose from secure banking or Cash on Delivery channels.</p>
                   </div>
                 </div>
 
-                {currentStep === 4 ? (
+                {currentStep === 3 ? (
                   /* Expanded Inputs Form */
                   <div className="space-y-6">
                     {/* Horizontal Payment Selectors */}
@@ -945,7 +829,7 @@ export default function CheckoutPage() {
                     <div className="flex justify-between items-center pt-2 border-t border-[#1E293B]/5">
                       <button
                         type="button"
-                        onClick={() => setCurrentStep(3)}
+                        onClick={() => setCurrentStep(2)}
                         className="text-xs font-extrabold text-slate-500 hover:text-[#1E293B] transition-all flex items-center gap-1"
                       >
                         <ArrowLeft className="w-3.5 h-3.5" />
