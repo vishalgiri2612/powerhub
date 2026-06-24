@@ -2,11 +2,22 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { categories as defaultCategories } from "../app/data/products";
+
+// Helper to sort categories
+const sortCategories = (list) => {
+  return [...list].sort((a, b) => {
+    const aPos = a.homePosition > 0 ? a.homePosition : 999;
+    const bPos = b.homePosition > 0 ? b.homePosition : 999;
+    if (aPos !== bPos) return aPos - bPos;
+    return a.name.localeCompare(b.name);
+  });
+};
 
 export default function CircularCategories() {
   const router = useRouter();
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState(() => sortCategories(defaultCategories));
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetch("/api/categories")
@@ -16,13 +27,7 @@ export default function CircularCategories() {
       })
       .then((data) => {
         if (Array.isArray(data)) {
-          // Sort categories: homePosition (1-6) first, then alphabetically
-          const sorted = [...data].sort((a, b) => {
-            const aPos = a.homePosition > 0 ? a.homePosition : 999;
-            const bPos = b.homePosition > 0 ? b.homePosition : 999;
-            if (aPos !== bPos) return aPos - bPos;
-            return a.name.localeCompare(b.name);
-          });
+          const sorted = sortCategories(data);
           setCategories(sorted);
         }
         setLoading(false);
