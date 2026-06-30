@@ -17,7 +17,7 @@ const sortCategories = (list) => {
 export default function CircularCategories() {
   const router = useRouter();
   const [categories, setCategories] = useState(() => sortCategories(defaultCategories));
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/categories")

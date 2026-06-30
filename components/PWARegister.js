@@ -4,6 +4,16 @@ import { useEffect } from 'react';
 
 export default function PWARegister() {
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Scroll to the top on page refresh
+      const timer = setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  useEffect(() => {
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       // Delay registration slightly to prevent layout blocking or main thread lag
       const registerSW = () => {
