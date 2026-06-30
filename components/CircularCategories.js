@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useCart } from "../app/context/CartContext";
 import { categories as defaultCategories } from "../app/data/products";
 
 // Helper to sort categories
@@ -16,27 +17,14 @@ const sortCategories = (list) => {
 
 export default function CircularCategories() {
   const router = useRouter();
-  const [categories, setCategories] = useState(() => sortCategories(defaultCategories));
-  const [loading, setLoading] = useState(true);
+  const { categories: rawCategories, categoriesLoading: loading } = useCart();
 
-  useEffect(() => {
-    fetch("/api/categories")
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch");
-        return res.json();
-      })
-      .then((data) => {
-        if (Array.isArray(data)) {
-          const sorted = sortCategories(data);
-          setCategories(sorted);
-        }
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Failed to load categories for circular navigation", err);
-        setLoading(false);
-      });
-  }, []);
+  const categories = useMemo(() => {
+    if (!rawCategories || rawCategories.length === 0) {
+      return sortCategories(defaultCategories);
+    }
+    return sortCategories(rawCategories);
+  }, [rawCategories]);
 
   const handleCategoryClick = (categoryName) => {
     router.push(`/shop?category=${encodeURIComponent(categoryName)}`);

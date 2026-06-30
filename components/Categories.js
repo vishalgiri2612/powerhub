@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useCart } from "../app/context/CartContext";
 
 /**
  * Dynamic home page categories grid.
@@ -10,31 +11,19 @@ import { useRouter } from "next/navigation";
  *   Slot 1 → Big card (left, spans 2 rows)
  *   Slots 2-3 → Medium cards (right, top row)
  *   Slots 4-6 → Small cards (right, bottom row)
+ *   Uses global context to utilize localStorage cache.
  */
 export default function Categories() {
   const router = useRouter();
-  const [categoriesList, setCategoriesList] = React.useState([]);
+  const { categories: rawCategories } = useCart();
 
-  React.useEffect(() => {
-    fetch("/api/categories")
-      .then((res) => {
-        if (!res.ok) throw new Error("API response was not ok");
-        return res.json();
-      })
-      .then((data) => {
-        if (Array.isArray(data)) {
-          // Only keep categories with a valid homePosition (1-6), sorted by position
-          const visible = data
-            .filter((c) => c.homePosition >= 1 && c.homePosition <= 6)
-            .sort((a, b) => a.homePosition - b.homePosition)
-            .slice(0, 6);
-          setCategoriesList(visible);
-        }
-      })
-      .catch((err) => {
-        console.error("Failed to fetch categories list dynamically for home", err);
-      });
-  }, []);
+  const categoriesList = useMemo(() => {
+    if (!rawCategories || !Array.isArray(rawCategories)) return [];
+    return rawCategories
+      .filter((c) => c.homePosition >= 1 && c.homePosition <= 6)
+      .sort((a, b) => a.homePosition - b.homePosition)
+      .slice(0, 6);
+  }, [rawCategories]);
 
   const handleCategoryClick = (categoryName) => {
     router.push(`/shop?category=${encodeURIComponent(categoryName)}`);

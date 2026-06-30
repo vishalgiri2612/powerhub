@@ -6,6 +6,7 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import SearchModal from "../../components/SearchModal";
 import CartDrawer from "../../components/CartDrawer";
+import { useCart } from "../context/CartContext";
 import { Cable, Zap, Briefcase, Camera, Laptop, Tv, Network } from "lucide-react";
 
 const themeMap = {
@@ -77,23 +78,7 @@ const getCategoryIcon = (categoryName) => {
 
 export default function CategoriesPage() {
   const router = useRouter();
-  const [categoriesList, setCategoriesList] = useState([]);
-
-  useEffect(() => {
-    fetch("/api/categories")
-      .then((res) => {
-        if (!res.ok) throw new Error("API response was not ok");
-        return res.json();
-      })
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setCategoriesList(data);
-        } else {
-          console.error("Expected array for categories but got:", data);
-        }
-      })
-      .catch((e) => console.error("Failed to fetch categories list", e));
-  }, []);
+  const { categories: categoriesList } = useCart();
 
   const handleCategoryClick = (categoryName) => {
     router.push(`/shop?category=${encodeURIComponent(categoryName)}`);
