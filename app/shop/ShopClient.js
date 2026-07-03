@@ -4,6 +4,7 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCart } from "../context/CartContext";
 import Navbar from "../../components/Navbar";
+import Image from "next/image";
 import Footer from "../../components/Footer";
 import SearchModal from "../../components/SearchModal";
 import CartDrawer from "../../components/CartDrawer";
@@ -13,9 +14,9 @@ function ShopContent() {
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get("category");
 
-  const { 
-    addToCart, 
-    toggleWishlist, 
+  const {
+    addToCart,
+    toggleWishlist,
     wishlist,
     products: productList,
     productsLoading,
@@ -45,8 +46,8 @@ function ShopContent() {
   const filteredProducts = !Array.isArray(productList)
     ? []
     : activeCategory === "All"
-    ? productList
-    : productList.filter((p) => p.category === activeCategory);
+      ? productList
+      : productList.filter((p) => p.category === activeCategory);
 
   const filterOptions = ["All", ...(Array.isArray(categoriesList) ? categoriesList.map((c) => c.name) : [])];
 
@@ -54,7 +55,7 @@ function ShopContent() {
     <div className="min-h-screen bg-bg-brand text-text-brand antialiased selection:bg-[#3674B5] selection:text-white">
       <Navbar />
 
-      <main className="max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-16 pt-6 md:pt-12 pb-16 md:pb-24 relative z-10 space-y-6 md:space-y-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 md:pt-12 pb-16 md:pb-24 relative z-10 space-y-6 md:space-y-12">
         {/* Page Header */}
         <div className="text-center space-y-2 md:space-y-4 max-w-2xl mx-auto border-b border-[#1E293B]/10 pb-4 md:pb-8">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 md:px-3.5 md:py-1 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/30">
@@ -77,11 +78,10 @@ function ShopContent() {
             <button
               key={opt}
               onClick={() => handleFilterClick(opt)}
-              className={`px-4 py-2 md:px-5 md:py-2.5 rounded-full text-[11px] md:text-xs font-bold transition-all duration-300 hover:scale-[1.03] active:scale-97 border flex-shrink-0 ${
-                activeCategory === opt
+              className={`px-4 py-2 md:px-5 md:py-2.5 rounded-full text-[11px] md:text-xs font-bold transition-all duration-300 hover:scale-[1.03] active:scale-97 border flex-shrink-0 ${activeCategory === opt
                   ? "bg-[#3674B5] text-white border-[#3674B5] shadow-md shadow-[#3674B5]/15"
                   : "bg-white text-[#1E293B]/60 border-[#1E293B]/10 hover:text-[#1E293B] hover:border-[#1E293B]/20"
-              }`}
+                }`}
             >
               {opt}
             </button>
@@ -90,31 +90,62 @@ function ShopContent() {
 
         {/* Products Grid (2 columns on mobile, 4 columns on desktop) */}
         {loading ? (
-          <div className="py-24 text-center space-y-4">
-            <div className="w-12 h-12 border-4 border-[#3674B5] border-t-transparent rounded-full animate-spin mx-auto"></div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest animate-pulse font-sans">Loading Catalog Items...</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            {Array.from({ length: 8 }).map((_, idx) => (
+              <div
+                key={idx}
+                className="group relative rounded-xl sm:rounded-3xl bg-white border border-[#1E293B]/10 p-2.5 sm:p-4.5 flex flex-col justify-between overflow-hidden shadow-2xs w-full max-w-[300px] mx-auto h-[320px] xs:h-[360px] sm:h-[420px] md:h-[450px] animate-pulse animate-duration-1000"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <div className="h-4.5 w-16 bg-slate-100 dark:bg-slate-800 rounded-full" />
+                    <div className="h-7 w-7 rounded-full bg-slate-100 dark:bg-slate-800" />
+                  </div>
+                  <div className="aspect-square w-full rounded-xl sm:rounded-2xl bg-slate-100 dark:bg-slate-800 mt-2 mb-2 sm:mt-2.5 sm:mb-2.5" />
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <div className="h-3 w-1/3 bg-slate-100 dark:bg-slate-800 rounded" />
+                      <div className="h-3 w-6 bg-slate-100 dark:bg-slate-800 rounded-full" />
+                    </div>
+                    <div className="h-4 w-5/6 bg-slate-100 dark:bg-slate-800 rounded" />
+                    <div className="hidden sm:flex gap-1">
+                      <div className="h-3.5 w-12 bg-slate-50 dark:bg-slate-800 rounded" />
+                      <div className="h-3.5 w-16 bg-slate-50 dark:bg-slate-800 rounded" />
+                    </div>
+                    <div className="h-3 w-1/4 bg-slate-100 dark:bg-slate-800 rounded" />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t border-slate-100 mt-2">
+                  <div className="space-y-1">
+                    <div className="h-2.5 w-12 bg-slate-100 dark:bg-slate-800 rounded" />
+                    <div className="h-4 w-20 bg-slate-100 dark:bg-slate-800 rounded" />
+                  </div>
+                  <div className="h-7 w-12 sm:h-9 sm:w-16 rounded-xl bg-slate-100 dark:bg-slate-800" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {filteredProducts.map((product) => {
               const isWishlisted = wishlist.some((item) => item.id === product.id);
-              const specItems = product.shortSpec.split(" · ");
+              const specItems = product.shortSpec.split(" · ").filter(spec => spec.length < 25 && spec.trim().length > 0);
 
               const glowColor =
                 product.id === "p1" ? "rgba(140, 153, 133, 0.15)" :
-                product.id === "p2" ? "rgba(222, 200, 158, 0.25)" :
-                "rgba(195, 146, 129, 0.15)";
+                  product.id === "p2" ? "rgba(222, 200, 158, 0.25)" :
+                    "rgba(195, 146, 129, 0.15)";
 
               const swatchColor =
                 product.color.includes("Sage") ? "#8C9985" :
-                product.color.includes("Sand") || product.color.includes("Gold") ? "#DEC89E" :
-                product.color.includes("Clay") ? "#C39281" :
-                product.color.includes("Cream") ? "#EDECE6" : "#1A1917";
+                  product.color.includes("Sand") || product.color.includes("Gold") ? "#DEC89E" :
+                    product.color.includes("Clay") ? "#C39281" :
+                      product.color.includes("Cream") ? "#EDECE6" : "#1A1917";
 
               return (
                 <div
                   key={product.id}
-                  className="group relative rounded-2xl md:rounded-[2.5rem] bg-white border border-[#1E293B]/10 p-3 md:p-6 flex flex-col justify-between hover-lift transition-all duration-500 overflow-hidden cursor-pointer shadow-2xs"
+                  className="group relative rounded-xl sm:rounded-3xl bg-white border border-[#1E293B]/10 p-2.5 sm:p-4.5 flex flex-col justify-between hover-lift transition-all duration-500 overflow-hidden cursor-pointer shadow-2xs w-full max-w-[300px] mx-auto"
                   onClick={() => router.push(`/product/${product.id}`)}
                 >
                   {/* Hover ambient light */}
@@ -128,8 +159,8 @@ function ShopContent() {
                   <div>
                     {/* Top Row: Badges & Wishlist */}
                     <div className="flex items-center justify-between z-10 relative">
-                      <span className="text-[8px] md:text-[10px] font-extrabold uppercase px-2 py-0.5 md:px-3 md:py-1 rounded-full backdrop-blur-md bg-white/80 border border-[#1E293B]/10 text-[#1E293B] tracking-wider flex items-center gap-1.5 shadow-xs">
-                        <span className="w-1 md:w-1.5 h-1 md:h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
+                      <span className="text-[8px] sm:text-[9px] font-extrabold uppercase px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full backdrop-blur-md bg-white/80 border border-[#1E293B]/10 text-[#1E293B] tracking-wider flex items-center gap-1.5 shadow-xs">
+                        <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
                         {product.discountBadge}
                       </span>
 
@@ -138,15 +169,14 @@ function ShopContent() {
                           e.stopPropagation();
                           toggleWishlist(product);
                         }}
-                        className={`p-2 md:p-2.5 rounded-full border backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-xs ${
-                          isWishlisted
+                        className={`p-1.5 sm:p-2 rounded-full border backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-xs ${isWishlisted
                             ? "bg-[#3674B5]/15 border-[#3674B5]/40 text-[#3674B5]"
                             : "bg-white/80 border-[#1E293B]/10 text-[#1E293B]/40 hover:text-[#1E293B] hover:bg-white"
-                        }`}
+                          }`}
                         aria-label="Add to Wishlist"
                       >
                         <svg
-                          className="w-3.5 h-3.5 md:w-4.5 md:h-4.5"
+                          className="w-3.5 h-3.5 sm:w-4 sm:h-4"
                           fill={isWishlisted ? "currentColor" : "none"}
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -162,12 +192,14 @@ function ShopContent() {
                     </div>
 
                     {/* Image Area */}
-                    <div className="relative aspect-square w-full rounded-xl md:rounded-[2rem] bg-[#FFFFFF] overflow-hidden mt-2 md:mt-3 mb-2 md:mb-3 transition-colors duration-500 group-hover:bg-[#F8F9FA] flex items-center justify-center p-3 md:p-5">
-                      <div className="absolute inset-0 bg-gradient-to-tr from-[#1A1917]/0 to-[#1A1917]/2 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                      <img
+                    <div className="relative aspect-square w-full rounded-xl sm:rounded-2xl bg-[#FFFFFF] overflow-hidden mt-2 mb-2 sm:mt-2.5 sm:mb-2.5 transition-colors duration-500 group-hover:bg-[#F8F9FA] flex items-center justify-center">
+                      <div className="absolute inset-0 bg-gradient-to-tr from-[#1A1917]/0 to-[#1A1917]/2 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10 pointer-events-none" />
+                      <Image
                         src={product.image}
                         alt={product.name}
-                        className="max-h-full max-w-full object-contain transition-all duration-500 group-hover:scale-106 group-hover:rotate-1"
+                        fill
+                        sizes="(max-width: 640px) 150px, (max-width: 768px) 250px, 300px"
+                        className="object-cover transition-all duration-500 group-hover:scale-106 group-hover:rotate-1"
                         style={{
                           filter: "drop-shadow(0 12px 20px rgba(26,25,23,0.06))"
                         }}
@@ -175,43 +207,42 @@ function ShopContent() {
                     </div>
 
                     {/* Meta info block */}
-                    <div className="space-y-1.5 md:space-y-2">
-                      <div className="flex items-center justify-between text-[8px] md:text-[10px] font-bold text-[#1E293B]/40 uppercase tracking-widest">
+                    <div className="space-y-1 sm:space-y-1.5">
+                      <div className="flex items-center justify-between text-[8px] sm:text-[9px] font-bold text-[#1E293B]/40 uppercase tracking-wider">
                         <span>{product.category}</span>
-                        <span className="flex items-center gap-1 md:gap-1.5">
+                        <span className="flex items-center gap-1 sm:gap-1.5">
                           <span
-                            className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full border border-[#1E293B]/15 shadow-xs"
+                            className="w-2 h-2 sm:w-2 sm:h-2 rounded-full border border-[#1E293B]/15 shadow-xs"
                             style={{ backgroundColor: swatchColor }}
                             title={product.color}
                           />
-                          <span className="text-[8px] md:text-[9px] font-semibold tracking-normal text-[#1E293B]/50 lowercase first-letter:uppercase">{product.color}</span>
+                          <span className="text-[8px] sm:text-[9px] font-semibold tracking-normal text-[#1E293B]/50 lowercase first-letter:uppercase">{product.color}</span>
                         </span>
                       </div>
 
-                      <h3 className="font-display font-bold text-xs md:text-lg text-[#1E293B] tracking-tight line-clamp-1 group-hover:text-[#3674B5] transition-colors duration-300">
+                      <h3 className="font-display font-bold text-[11px] sm:text-sm md:text-base text-[#1E293B] tracking-tight line-clamp-1 group-hover:text-[#3674B5] transition-colors duration-300">
                         {product.name}
                       </h3>
 
                       {/* Hidden on mobile to fit 2-column grid cleanly */}
-                      <div className="hidden sm:flex flex-wrap gap-1.5">
+                      <div className="hidden sm:flex flex-wrap gap-1">
                         {specItems.map((spec, i) => (
                           <span
                             key={i}
-                            className="text-[10px] font-semibold text-[#1E293B]/60 bg-[#F8F9FA] px-2.5 py-1 rounded-lg border border-[#1E293B]/2 line-clamp-2"
+                            className="text-[8px] sm:text-[9px] font-semibold text-[#1E293B]/60 bg-[#F8F9FA] px-1.5 py-0.5 rounded-md border border-[#1E293B]/2 line-clamp-2"
                           >
                             {spec}
                           </span>
                         ))}
                       </div>
 
-                      <div className="flex items-center gap-1.5 md:gap-2">
+                      <div className="flex items-center gap-1 sm:gap-1.5">
                         <div className="flex items-center text-amber-400">
                           {Array.from({ length: 5 }).map((_, i) => (
                             <svg
                               key={i}
-                              className={`w-2.5 h-2.5 md:w-3.5 md:h-3.5 ${
-                                  i < Math.floor(product.rating) ? "fill-current" : "stroke-current fill-none"
-                              }`}
+                              className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${i < Math.floor(product.rating) ? "fill-current" : "stroke-current fill-none"
+                                }`}
                               viewBox="0 0 24 24"
                             >
                               <path
@@ -223,23 +254,23 @@ function ShopContent() {
                             </svg>
                           ))}
                         </div>
-                        <span className="text-[10px] md:text-xs font-bold text-[#1E293B]">{product.rating}</span>
-                        <span className="text-[9px] md:text-[10px] text-[#1E293B]/40 font-medium">({product.reviewsCount})</span>
+                        <span className="text-[9px] sm:text-xs font-bold text-[#1E293B]">{product.rating}</span>
+                        <span className="text-[8px] sm:text-[9px] text-[#1E293B]/40 font-medium">({product.reviewsCount})</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Price & Add to Cart */}
-                  <div className="flex items-center justify-between pt-2 md:pt-3 border-t border-[#1E293B]/10 mt-2 md:mt-4 relative z-10">
+                  <div className="flex items-center justify-between pt-2 border-t border-[#1E293B]/10 mt-2 relative z-10">
                     <div className="space-y-0.5">
-                      <span className="text-[8px] md:text-[9px] font-extrabold text-[#3674B5] uppercase tracking-wider">
+                      <span className="text-[8px] sm:text-[9px] font-extrabold text-[#3674B5] uppercase tracking-wider">
                         Save ₹{(product.originalPrice - product.price).toLocaleString()}
                       </span>
-                      <div className="flex items-baseline gap-1 md:gap-1.5">
-                        <span className="text-sm md:text-xl font-black text-[#3674B5]">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-xs sm:text-sm md:text-base font-black text-[#3674B5]">
                           ₹{product.price.toLocaleString()}
                         </span>
-                        <span className="text-[10px] md:text-xs text-[#1E293B]/30 line-through font-medium">
+                        <span className="text-[9px] sm:text-[10px] text-[#1E293B]/30 line-through font-medium">
                           ₹{product.originalPrice.toLocaleString()}
                         </span>
                       </div>
@@ -250,10 +281,10 @@ function ShopContent() {
                         e.stopPropagation();
                         addToCart(product);
                       }}
-                      className="px-3 py-2 md:px-5 md:py-3 rounded-xl md:rounded-2xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-[10px] md:text-xs font-bold transition-all duration-300 hover:scale-[1.03] active:scale-97 flex items-center gap-1 shadow-md shadow-[#1A1917]/5"
+                      className="px-2.5 py-1.5 sm:px-4 sm:py-2.5 rounded-xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-[9px] sm:text-xs font-bold transition-all duration-300 hover:scale-[1.03] active:scale-97 flex items-center justify-center gap-1 shadow-md shadow-[#1A1917]/5"
                     >
                       <span>Add</span>
-                      <svg className="w-3 h-3 md:w-3.5 md:h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
                       </svg>
                     </button>

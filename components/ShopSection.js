@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "../app/context/CartContext";
+import Image from "next/image";
 
 export default function ShopSection({ productList = [], loading = false }) {
   const router = useRouter();
@@ -11,32 +12,6 @@ export default function ShopSection({ productList = [], loading = false }) {
   // Display exactly 8 products that are featured on the home page shop catalog
   const shopProducts = Array.isArray(productList) ? productList.filter((p) => p.featured).slice(0, 8) : [];
 
-  if (loading) {
-    return (
-      <section id="homepage-shop" className="py-8 md:py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-bg-brand">
-        <div className="max-w-7xl mx-auto space-y-8 md:space-y-12 relative z-10">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-[#1E293B]/10 pb-4 md:pb-8">
-            <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/30">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
-                <span className="text-[10px] font-extrabold text-[#3674B5] uppercase tracking-wider">
-                  Our Catalog
-                </span>
-              </div>
-              <h2 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-[#1E293B] tracking-tight leading-tight">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#3674B5] to-[#578FCA]">Shop</span>
-              </h2>
-            </div>
-          </div>
-          <div className="py-16 text-center space-y-4">
-            <div className="w-12 h-12 border-4 border-[#3674B5] border-t-transparent rounded-full animate-spin mx-auto"></div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest animate-pulse font-sans">Loading Catalog...</p>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
   return (
     <section id="homepage-shop" className="py-8 md:py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-bg-brand">
       {/* Decorative subtle background ambient glows */}
@@ -44,7 +19,7 @@ export default function ShopSection({ productList = [], loading = false }) {
       <div className="absolute bottom-1/4 right-1/10 w-96 h-96 rounded-full bg-[#E8EFE5] opacity-25 blur-3xl pointer-events-none z-0" />
 
       <div className="max-w-7xl mx-auto space-y-8 md:space-y-12 relative z-10">
-        
+
         {/* Section Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-[#1E293B]/10 pb-4 md:pb-8">
           <div className="space-y-4">
@@ -61,28 +36,62 @@ export default function ShopSection({ productList = [], loading = false }) {
         </div>
 
         {/* Products Grid: 2 columns on mobile, 4 columns on desktop (forms 2 rows of 4 items) */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
-          {shopProducts.map((product) => {
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          {loading ? (
+            Array.from({ length: 8 }).map((_, idx) => (
+              <div
+                key={idx}
+                className="group relative rounded-xl sm:rounded-3xl bg-white border border-[#1E293B]/10 p-2.5 sm:p-4.5 flex flex-col justify-between overflow-hidden shadow-2xs w-full max-w-[300px] mx-auto h-[320px] xs:h-[360px] sm:h-[420px] md:h-[450px] animate-pulse animate-duration-1000"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <div className="h-4.5 w-16 bg-slate-100 dark:bg-slate-800 rounded-full" />
+                    <div className="h-7 w-7 rounded-full bg-slate-100 dark:bg-slate-800" />
+                  </div>
+                  <div className="aspect-square w-full rounded-xl sm:rounded-2xl bg-slate-100 dark:bg-slate-800 mt-2 mb-2 sm:mt-2.5 sm:mb-2.5" />
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <div className="h-3 w-1/3 bg-slate-100 dark:bg-slate-800 rounded" />
+                      <div className="h-3 w-6 bg-slate-100 dark:bg-slate-800 rounded-full" />
+                    </div>
+                    <div className="h-4 w-5/6 bg-slate-100 dark:bg-slate-800 rounded" />
+                    <div className="hidden sm:flex gap-1">
+                      <div className="h-3.5 w-12 bg-slate-50 dark:bg-slate-800 rounded" />
+                      <div className="h-3.5 w-16 bg-slate-50 dark:bg-slate-800 rounded" />
+                    </div>
+                    <div className="h-3 w-1/4 bg-slate-100 dark:bg-slate-800 rounded" />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t border-slate-100 mt-2">
+                  <div className="space-y-1">
+                    <div className="h-2.5 w-12 bg-slate-100 dark:bg-slate-800 rounded" />
+                    <div className="h-4 w-20 bg-slate-100 dark:bg-slate-800 rounded" />
+                  </div>
+                  <div className="h-7 w-12 sm:h-9 sm:w-16 rounded-xl bg-slate-100 dark:bg-slate-800" />
+                </div>
+              </div>
+            ))
+          ) : shopProducts.map((product) => {
             const isWishlisted = wishlist.some((item) => item.id === product.id);
-            const specItems = product.shortSpec.split(" · ");
+            const specItems = product.shortSpec.split(" · ").filter(spec => spec.length < 25 && spec.trim().length > 0);
 
             // Ambient hover glow
             const glowColor =
               product.id === "p1" ? "rgba(140, 153, 133, 0.15)" :
-              product.id === "p2" ? "rgba(222, 200, 158, 0.25)" :
-              "rgba(195, 146, 129, 0.15)";
+                product.id === "p2" ? "rgba(222, 200, 158, 0.25)" :
+                  "rgba(195, 146, 129, 0.15)";
 
             // Swatch color
             const swatchColor =
               product.color.includes("Sage") ? "#8C9985" :
-              product.color.includes("Sand") || product.color.includes("Gold") ? "#DEC89E" :
-              product.color.includes("Clay") ? "#C39281" :
-              product.color.includes("Cream") ? "#EDECE6" : "#1A1917";
+                product.color.includes("Sand") || product.color.includes("Gold") ? "#DEC89E" :
+                  product.color.includes("Clay") ? "#C39281" :
+                    product.color.includes("Cream") ? "#EDECE6" : "#1A1917";
 
             return (
               <div
                 key={product.id}
-                className="group relative rounded-[1.5rem] sm:rounded-[2.5rem] bg-white border border-[#1E293B]/10 p-3 sm:p-6 flex flex-col justify-between hover-lift transition-all duration-500 overflow-hidden cursor-pointer"
+                className="group relative rounded-xl sm:rounded-3xl bg-white border border-[#1E293B]/10 p-2.5 sm:p-4.5 flex flex-col justify-between hover-lift transition-all duration-500 overflow-hidden cursor-pointer w-full max-w-[300px] mx-auto"
                 style={{
                   boxShadow: "0 10px 30px -15px rgba(26, 25, 23, 0.03)"
                 }}
@@ -99,7 +108,7 @@ export default function ShopSection({ productList = [], loading = false }) {
                 <div>
                   {/* Card Header: Badges & Wishlist */}
                   <div className="flex items-center justify-between z-10 relative">
-                    <span className="text-[8px] sm:text-[10px] font-extrabold uppercase px-2 py-0.5 sm:px-3 sm:py-1 rounded-full backdrop-blur-md bg-white/80 border border-[#1E293B]/10 text-[#1E293B] tracking-wider flex items-center gap-1 sm:gap-1.5 shadow-xs">
+                    <span className="text-[8px] sm:text-[9px] font-extrabold uppercase px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full backdrop-blur-md bg-white/80 border border-[#1E293B]/10 text-[#1E293B] tracking-wider flex items-center gap-1 sm:gap-1.5 shadow-xs">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
                       {product.discountBadge || "BESTSELLER"}
                     </span>
@@ -109,15 +118,14 @@ export default function ShopSection({ productList = [], loading = false }) {
                         e.stopPropagation();
                         toggleWishlist(product);
                       }}
-                      className={`p-1.5 sm:p-2.5 rounded-full border backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-xs ${
-                        isWishlisted
+                      className={`p-1.5 sm:p-2 rounded-full border backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 shadow-xs ${isWishlisted
                           ? "bg-[#3674B5]/15 border-[#3674B5]/40 text-[#3674B5]"
                           : "bg-white/80 border-[#1E293B]/10 text-[#1E293B]/40 hover:text-[#1E293B] hover:bg-white"
-                      }`}
+                        }`}
                       aria-label="Add to Wishlist"
                     >
                       <svg
-                        className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5"
+                        className="w-3.5 h-3.5 sm:w-4 sm:h-4"
                         fill={isWishlisted ? "currentColor" : "none"}
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -133,11 +141,14 @@ export default function ShopSection({ productList = [], loading = false }) {
                   </div>
 
                   {/* Image */}
-                  <div className="relative aspect-square w-full rounded-[1.2rem] sm:rounded-[2rem] bg-[#FFFFFF] overflow-hidden mt-2 mb-2 sm:mt-4 sm:mb-4 transition-colors duration-500 group-hover:bg-[#F8F9FA] flex items-center justify-center p-2">
-                    <img
+                  <div className="relative aspect-square w-full rounded-xl sm:rounded-2xl bg-[#FFFFFF] overflow-hidden mt-2 mb-2 sm:mt-2.5 sm:mb-2.5 transition-colors duration-500 group-hover:bg-[#F8F9FA] flex items-center justify-center">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-[#1A1917]/0 to-[#1A1917]/2 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10 pointer-events-none" />
+                    <Image
                       src={product.image}
                       alt={product.name}
-                      className="max-h-full max-w-full object-contain transition-all duration-500 group-hover:scale-106 group-hover:rotate-1"
+                      fill
+                      sizes="(max-width: 640px) 150px, (max-width: 768px) 250px, 300px"
+                      className="object-cover transition-all duration-500 group-hover:scale-106 group-hover:rotate-1"
                       style={{
                         filter: "drop-shadow(0 12px 20px rgba(26,25,23,0.06))"
                       }}
@@ -145,19 +156,19 @@ export default function ShopSection({ productList = [], loading = false }) {
                   </div>
 
                   {/* Specs & Name */}
-                  <div className="space-y-1.5 sm:space-y-2">
-                    <div className="flex items-center justify-between text-[8px] sm:text-[10px] font-bold text-[#1E293B]/40 uppercase tracking-wider">
+                  <div className="space-y-1 sm:space-y-1.5">
+                    <div className="flex items-center justify-between text-[8px] sm:text-[9px] font-bold text-[#1E293B]/40 uppercase tracking-wider">
                       <span>{product.category}</span>
                       <span className="flex items-center gap-1.5">
                         <span
-                          className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full border border-[#1E293B]/15 shadow-xs"
+                          className="w-2 h-2 sm:w-2 sm:h-2 rounded-full border border-[#1E293B]/15 shadow-xs"
                           style={{ backgroundColor: swatchColor }}
                         />
                         <span className="text-[8px] sm:text-[9px] font-semibold text-[#1E293B]/50 lowercase first-letter:uppercase">{product.color}</span>
                       </span>
                     </div>
 
-                    <h3 className="font-display font-bold text-xs sm:text-lg text-[#1E293B] tracking-tight line-clamp-1 group-hover:text-[#3674B5] transition-colors duration-300">
+                    <h3 className="font-display font-bold text-[11px] sm:text-sm md:text-base text-[#1E293B] tracking-tight line-clamp-1 group-hover:text-[#3674B5] transition-colors duration-300">
                       {product.name}
                     </h3>
 
@@ -165,7 +176,7 @@ export default function ShopSection({ productList = [], loading = false }) {
                       {specItems.map((spec, i) => (
                         <span
                           key={i}
-                          className="text-[8px] sm:text-[10px] font-semibold text-[#1E293B]/60 bg-[#F8F9FA] px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg border border-[#1E293B]/2 line-clamp-2"
+                          className="text-[8px] sm:text-[9px] font-semibold text-[#1E293B]/60 bg-[#F8F9FA] px-1.5 py-0.5 rounded-md border border-[#1E293B]/2 line-clamp-2"
                         >
                           {spec}
                         </span>
@@ -175,16 +186,16 @@ export default function ShopSection({ productList = [], loading = false }) {
                 </div>
 
                 {/* Price & Buy Button */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-2 sm:pt-4 border-t border-[#1E293B]/10 mt-2 sm:mt-4 gap-2">
+                <div className="flex items-center justify-between pt-2 border-t border-[#1E293B]/10 mt-2">
                   <div className="space-y-0.5">
                     <span className="text-[8px] sm:text-[9px] font-extrabold text-[#3674B5] uppercase tracking-wider">
                       Save ₹{(product.originalPrice - product.price).toLocaleString()}
                     </span>
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-sm sm:text-xl font-black text-[#3674B5]">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-xs sm:text-sm md:text-base font-black text-[#3674B5]">
                         ₹{product.price.toLocaleString()}
                       </span>
-                      <span className="text-[10px] sm:text-xs text-[#1E293B]/30 line-through font-medium">
+                      <span className="text-[9px] sm:text-[10px] text-[#1E293B]/30 line-through font-medium">
                         ₹{product.originalPrice.toLocaleString()}
                       </span>
                     </div>
@@ -195,10 +206,10 @@ export default function ShopSection({ productList = [], loading = false }) {
                       e.stopPropagation();
                       addToCart(product);
                     }}
-                    className="w-full sm:w-auto px-3 py-2 sm:px-5 sm:py-3 rounded-xl sm:rounded-2xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-[10px] sm:text-xs font-bold transition-all duration-300 hover:scale-[1.03] active:scale-97 flex items-center justify-center gap-1 sm:gap-1.5 shadow-md"
+                    className="px-2.5 py-1.5 sm:px-4 sm:py-2.5 rounded-xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-[9px] sm:text-xs font-bold transition-all duration-300 hover:scale-[1.03] active:scale-97 flex items-center justify-center gap-1 shadow-md shadow-[#1A1917]/5"
                   >
                     <span>Add</span>
-                    <svg className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
                     </svg>
                   </button>

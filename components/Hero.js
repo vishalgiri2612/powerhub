@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Plug, Monitor, Globe } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Hero() {
   const [animationState, setAnimationState] = useState("retracted");
@@ -525,28 +526,30 @@ export default function Hero() {
             <Link href={(animationState === "connected" ? products[connectedIndex]?.productId : products[disconnectedIndex]?.productId) ? `/product/${(animationState === "connected" ? products[connectedIndex]?.productId : products[disconnectedIndex]?.productId)}` : "/shop"}>
               <div className="relative z-10 rounded-[2rem] bg-[#F8F9FA] p-3 shadow-xl border border-white/40 overflow-hidden cursor-pointer group hover:scale-[1.02] hover:shadow-2xl transition-all duration-700 h-[280px] sm:h-[320px] lg:h-[400px]">
                 {/* Disconnected Image */}
-                <img
+                <Image
                   src={products[disconnectedIndex]?.disconnected || "/images/hero.png"}
                   alt="Ravtron B2B Solutions"
-                  className="w-full h-full rounded-[2rem] object-contain absolute inset-4"
+                  fill
+                  priority
+                  sizes="(max-width: 640px) 450px, 450px"
+                  className="rounded-[2rem] object-contain p-4"
                   style={{
                     opacity: (animationState === "connected") ? 0 : 1,
                     transform: (animationState === "connected") ? "scale(0.95)" : "scale(1)",
-                    width: "calc(100% - 2rem)",
-                    height: "calc(100% - 2rem)",
                     transition: "opacity 0.3s ease-in-out, transform 0.3s ease-in-out"
                   }}
                 />
                 {/* Connected Image */}
-                <img
+                <Image
                   src={products[connectedIndex]?.connected || "/images/cable.png"}
                   alt="Ravtron Connected Active State"
-                  className="w-full h-full rounded-[2rem] object-contain absolute inset-4"
+                  fill
+                  priority
+                  sizes="(max-width: 640px) 450px, 450px"
+                  className="rounded-[2rem] object-contain p-4"
                   style={{
                     opacity: (animationState === "connected") ? 1 : 0,
                     transform: (animationState === "connected") ? "scale(1)" : "scale(1.05)",
-                    width: "calc(100% - 2rem)",
-                    height: "calc(100% - 2rem)",
                     transition: "opacity 0.3s ease-in-out, transform 0.3s ease-in-out"
                   }}
                 />

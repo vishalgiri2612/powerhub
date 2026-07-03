@@ -102,16 +102,18 @@ export default function CartDrawer() {
                 key={item.id}
                 className="flex gap-4 p-3 rounded-2xl bg-[#F8F9FA] border border-[#1E293B]/10 transition-all hover:border-[#1E293B]/15"
               >
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="w-20 h-20 rounded-xl object-contain bg-white p-1 flex-shrink-0"
-                />
+                <div className="w-20 h-20 rounded-xl bg-white flex-shrink-0 overflow-hidden flex items-center justify-center border border-[#1E293B]/5">
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
                 <div className="flex-1 min-w-0 flex flex-col justify-between">
                   <div>
                     <div className="flex justify-between items-start gap-2">
                       <h5 className="font-bold text-sm text-[#1E293B] truncate">{item.name}</h5>
-                      <button 
+                      <button
                         onClick={() => removeFromCart(item.id, item.selectedSize)}
                         className="text-[#1E293B]/40 hover:text-[#3674B5] transition-all flex-shrink-0"
                       >
@@ -128,7 +130,7 @@ export default function CartDrawer() {
                   <div className="flex justify-between items-end mt-2">
                     {/* Quantity Controls */}
                     <div className="flex items-center gap-1.5 bg-white rounded-lg p-1 border border-[#1E293B]/10">
-                      <button 
+                      <button
                         onClick={() => updateQuantity(item.id, -1, item.selectedSize)}
                         className="w-6 h-6 flex items-center justify-center rounded hover:bg-[#F8F9FA] text-[#1E293B] font-semibold text-xs transition-all"
                       >
@@ -137,7 +139,7 @@ export default function CartDrawer() {
                       <span className="w-6 text-center text-xs font-bold text-[#1E293B]">
                         {item.quantity}
                       </span>
-                      <button 
+                      <button
                         onClick={() => updateQuantity(item.id, 1, item.selectedSize)}
                         className="w-6 h-6 flex items-center justify-center rounded hover:bg-[#F8F9FA] text-[#1E293B] font-semibold text-xs transition-all"
                       >

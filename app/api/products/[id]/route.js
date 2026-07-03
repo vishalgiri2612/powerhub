@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Product from "@/models/Product";
 import { verifyAdmin } from "@/lib/auth";
+import { clearProductsCache } from "@/lib/cache";
 
 export async function GET(request, { params }) {
   try {
@@ -32,6 +33,10 @@ export async function PUT(request, { params }) {
     if (!updatedProduct) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
+    
+    // Invalidate product cache
+    clearProductsCache();
+
     return NextResponse.json(updatedProduct);
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -49,6 +54,10 @@ export async function DELETE(request, { params }) {
     if (!deletedProduct) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
+    
+    // Invalidate product cache
+    clearProductsCache();
+
     return NextResponse.json({ success: true, message: "Product deleted" });
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

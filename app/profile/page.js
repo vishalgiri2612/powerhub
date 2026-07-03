@@ -3,18 +3,19 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "../context/CartContext";
-import { 
-  User, 
-  ShoppingBag, 
-  MapPin, 
-  Settings, 
-  LogOut, 
-  Edit3, 
-  Check, 
-  Package, 
-  Truck, 
-  Calendar, 
-  ShieldAlert, 
+import Image from "next/image";
+import {
+  User,
+  ShoppingBag,
+  MapPin,
+  Settings,
+  LogOut,
+  Edit3,
+  Check,
+  Package,
+  Truck,
+  Calendar,
+  ShieldAlert,
   CreditCard,
   Bell,
   Heart,
@@ -32,7 +33,7 @@ export default function ProfilePage() {
   const { wishlist, getCartCount, toggleWishlist, addToCart, showToast } = useCart();
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState("overview"); // overview, orders, wishlist, addresses, settings
-  
+
   // Settings form states
   const [profileName, setProfileName] = useState("");
   const [profileEmail, setProfileEmail] = useState("");
@@ -137,7 +138,7 @@ export default function ProfilePage() {
       setSaveSuccess(true);
       window.dispatchEvent(new Event("ravtron_auth_change"));
       showToast("Profile details updated successfully.");
-      
+
       setTimeout(() => {
         setSaveSuccess(false);
       }, 3000);
@@ -183,13 +184,13 @@ export default function ProfilePage() {
       }
       const updatedOrder = await response.json();
       showToast("Order cancelled successfully.");
-      
+
       setOrders(prev =>
-        prev.map(o => (o.id === orderId ? { 
-          ...o, 
-          status: "Cancelled", 
+        prev.map(o => (o.id === orderId ? {
+          ...o,
+          status: "Cancelled",
           statusColor: "text-rose-500 bg-rose-50",
-          trackingSteps: updatedOrder.trackingSteps 
+          trackingSteps: updatedOrder.trackingSteps
         } : o))
       );
     } catch (e) {
@@ -208,11 +209,11 @@ export default function ProfilePage() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-white text-[#1E293B] antialiased font-sans">
-      
+
       {/* LEFT SIDEBAR */}
       <aside className="w-64 border-r border-slate-100 flex flex-col justify-between p-6 bg-white shrink-0 h-full">
         <div className="space-y-8">
-          
+
           {/* User Profile Header */}
           <div className="flex items-center gap-3 px-3">
             <div className="w-10 h-10 rounded-full bg-[#3674B5]/10 text-[#3674B5] flex items-center justify-center font-display font-black text-sm uppercase border border-[#3674B5]/20">
@@ -232,11 +233,10 @@ export default function ProfilePage() {
           <nav className="space-y-1">
             <button
               onClick={() => setActiveTab("overview")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                activeTab === "overview" 
-                  ? "bg-slate-50 text-slate-900 font-bold" 
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${activeTab === "overview"
+                  ? "bg-slate-50 text-slate-900 font-bold"
                   : "text-slate-500 hover:bg-slate-50/50 hover:text-slate-900"
-              }`}
+                }`}
             >
               <User className="w-4 h-4 text-slate-400" />
               <span>Overview</span>
@@ -244,11 +244,10 @@ export default function ProfilePage() {
 
             <button
               onClick={() => setActiveTab("orders")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                activeTab === "orders" 
-                  ? "bg-slate-50 text-slate-900 font-bold" 
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${activeTab === "orders"
+                  ? "bg-slate-50 text-slate-900 font-bold"
                   : "text-slate-500 hover:bg-slate-50/50 hover:text-slate-900"
-              }`}
+                }`}
             >
               <ShoppingBag className="w-4 h-4 text-slate-400" />
               <span>Order History</span>
@@ -256,11 +255,10 @@ export default function ProfilePage() {
 
             <button
               onClick={() => setActiveTab("wishlist")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                activeTab === "wishlist" 
-                  ? "bg-slate-50 text-slate-900 font-bold" 
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${activeTab === "wishlist"
+                  ? "bg-slate-50 text-slate-900 font-bold"
                   : "text-slate-500 hover:bg-slate-50/50 hover:text-slate-900"
-              }`}
+                }`}
             >
               <Heart className="w-4 h-4 text-slate-400" />
               <span>Wishlist</span>
@@ -268,11 +266,10 @@ export default function ProfilePage() {
 
             <button
               onClick={() => setActiveTab("addresses")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                activeTab === "addresses" 
-                  ? "bg-slate-50 text-slate-900 font-bold" 
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${activeTab === "addresses"
+                  ? "bg-slate-50 text-slate-900 font-bold"
                   : "text-slate-500 hover:bg-slate-50/50 hover:text-slate-900"
-              }`}
+                }`}
             >
               <MapPin className="w-4 h-4 text-slate-400" />
               <span>Addresses</span>
@@ -280,11 +277,10 @@ export default function ProfilePage() {
 
             <button
               onClick={() => setActiveTab("settings")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                activeTab === "settings" 
-                  ? "bg-slate-50 text-slate-900 font-bold" 
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${activeTab === "settings"
+                  ? "bg-slate-50 text-slate-900 font-bold"
                   : "text-slate-500 hover:bg-slate-50/50 hover:text-slate-900"
-              }`}
+                }`}
             >
               <Settings className="w-4 h-4 text-slate-400" />
               <span>Settings</span>
@@ -322,7 +318,7 @@ export default function ProfilePage() {
 
       {/* MAIN CONTENT CONTAINER */}
       <main className="flex-grow p-8 md:p-12 bg-slate-50/50 h-full overflow-y-auto">
-        
+
         {/* HEADER AREA */}
         <div className="flex justify-between items-start mb-8">
           <div className="space-y-1">
@@ -453,7 +449,7 @@ export default function ProfilePage() {
                               {order.status}
                             </span>
                           </td>
-                           <td className="p-4 text-center">
+                          <td className="p-4 text-center">
                             <div className="flex gap-2 justify-center">
                               <button
                                 onClick={() => setTrackingOrder(order)}
@@ -501,22 +497,22 @@ export default function ProfilePage() {
         {activeTab === "wishlist" && (
           <div className="space-y-8 animate-fade-in">
             {wishlist.length > 0 ? (
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 {wishlist.map((product) => (
-                  <div 
+                  <div
                     key={product.id}
-                    className="group relative rounded-2xl border border-slate-100 p-4 flex flex-col justify-between hover:border-[#3674B5]/30 bg-white transition-all shadow-3xs"
+                    className="group relative rounded-xl border border-slate-100 p-2.5 flex flex-col justify-between hover:border-[#3674B5]/30 bg-white transition-all shadow-3xs w-full max-w-[280px] mx-auto"
                   >
                     <div>
-                      <div 
-                        className="relative aspect-square w-full rounded-xl bg-slate-50 border border-slate-100 overflow-hidden mb-3 cursor-pointer flex items-center justify-center p-2"
+                      <div
+                        className="relative aspect-square w-full rounded-xl bg-slate-50 border border-slate-100 overflow-hidden mb-2.5 cursor-pointer flex items-center justify-center"
                         onClick={() => router.push(`/product/${product.id}`)}
                       >
-                        <img src={product.image} alt={product.name} className="max-h-full max-w-full object-contain p-1" />
+                        <Image src={product.image} alt={product.name} fill sizes="(max-width: 640px) 150px, (max-width: 768px) 250px, 300px" className="object-cover" />
                       </div>
                       <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest block mb-1">{product.category}</span>
-                      <h4 
-                        className="font-bold text-xs text-slate-900 group-hover:text-[#3674B5] transition-colors line-clamp-1 cursor-pointer mb-2"
+                      <h4
+                        className="font-bold text-[11px] sm:text-xs text-slate-900 group-hover:text-[#3674B5] transition-colors line-clamp-1 cursor-pointer mb-2"
                         onClick={() => router.push(`/product/${product.id}`)}
                       >
                         {product.name}
@@ -524,16 +520,16 @@ export default function ProfilePage() {
                       <p className="font-bold text-slate-900 text-xs mb-3">₹{product.price.toLocaleString()}</p>
                     </div>
 
-                    <div className="flex gap-2 pt-3 border-t border-slate-100 mt-2">
+                    <div className="flex gap-2 pt-2.5 border-t border-slate-100 mt-2">
                       <button
                         onClick={() => addToCart(product)}
-                        className="flex-grow py-2 rounded-lg bg-black hover:bg-slate-800 text-white text-[10px] font-bold uppercase transition-all flex items-center justify-center gap-1.5"
+                        className="flex-grow py-1.5 rounded-lg bg-black hover:bg-slate-800 text-white text-[9px] sm:text-[10px] font-bold uppercase transition-all flex items-center justify-center gap-1"
                       >
-                        <span>Add to Bag</span>
+                        <span>Add</span>
                       </button>
                       <button
                         onClick={() => toggleWishlist(product)}
-                        className="px-2.5 py-2 rounded-lg border border-rose-100 bg-rose-50/30 hover:bg-rose-50 text-rose-600 text-[10px] font-bold uppercase transition-all"
+                        className="px-2 py-1.5 rounded-lg border border-rose-100 bg-rose-50/30 hover:bg-rose-50 text-rose-600 text-[9px] sm:text-[10px] font-bold uppercase transition-all"
                       >
                         Remove
                       </button>
@@ -566,7 +562,7 @@ export default function ProfilePage() {
           <div className="space-y-8 animate-fade-in">
             {!isEditingAddress ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
+
                 {/* Shipping Card */}
                 <div className="rounded-2xl border border-slate-100 p-5 space-y-4 bg-white flex flex-col justify-between shadow-3xs">
                   <div className="space-y-2">
@@ -587,7 +583,7 @@ export default function ProfilePage() {
                       )}
                     </div>
                   </div>
-                  <button 
+                  <button
                     onClick={() => {
                       setTempAddress({ ...shippingAddress });
                       setIsEditingAddress(true);
@@ -619,7 +615,7 @@ export default function ProfilePage() {
                       )}
                     </div>
                   </div>
-                  <button 
+                  <button
                     onClick={() => alert("Billing details are synchronized with default shipping details.")}
                     className="w-full mt-4 py-2.5 rounded-xl border border-slate-100 bg-slate-50 text-xs font-bold text-slate-400 transition-all text-center cursor-default"
                   >
@@ -633,7 +629,7 @@ export default function ProfilePage() {
               <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm max-w-lg">
                 <form onSubmit={handleSaveAddress} className="space-y-4">
                   <h3 className="font-bold text-sm text-slate-900 border-b border-slate-50 pb-3">Update Shipping Coordinates</h3>
-                  
+
                   <div className="space-y-1.5">
                     <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Street Address</label>
                     <input
@@ -718,7 +714,7 @@ export default function ProfilePage() {
             {/* Form settings */}
             <div className="bg-white border border-slate-100 rounded-3xl p-6 md:p-8 shadow-sm max-w-lg space-y-6">
               <h3 className="font-bold text-sm text-slate-900 border-b border-slate-50 pb-3">Update Personal Credentials</h3>
-              
+
               <form onSubmit={handleSaveProfile} className="space-y-4">
                 <div className="space-y-1.5">
                   <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Full Name</label>
@@ -847,7 +843,7 @@ export default function ProfilePage() {
       {trackingOrder && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center px-4 bg-black/30 backdrop-blur-xs">
           <div className="w-full max-w-md rounded-2xl bg-white border border-slate-100 p-6 md:p-8 shadow-2xl relative animate-fade-in">
-            <button 
+            <button
               onClick={() => setTrackingOrder(null)}
               className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 text-slate-400"
             >
@@ -868,11 +864,10 @@ export default function ProfilePage() {
                       <div className={`absolute top-6 left-3.5 -bottom-5 w-[2px] ${step.done ? "bg-emerald-500" : "bg-slate-100"}`} />
                     )}
 
-                    <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 z-10 ${
-                      step.done 
-                        ? "bg-emerald-500 text-white" 
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 z-10 ${step.done
+                        ? "bg-emerald-500 text-white"
                         : "bg-slate-50 text-slate-400 border border-slate-100"
-                    }`}>
+                      }`}>
                       {step.done ? <Check className="w-3.5 h-3.5" /> : <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />}
                     </div>
 
@@ -884,7 +879,7 @@ export default function ProfilePage() {
                 ))}
               </div>
 
-              <button 
+              <button
                 onClick={() => setTrackingOrder(null)}
                 className="w-full mt-4 py-2.5 rounded-xl bg-black hover:bg-slate-800 text-white text-xs font-bold transition-all"
               >

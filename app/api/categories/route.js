@@ -3,13 +3,23 @@ import dbConnect from "@/lib/dbConnect";
 import Category from "@/models/Category";
 import Product from "@/models/Product";
 import { verifyAdmin } from "@/lib/auth";
+import { getCachedCategories, setCachedCategories, clearCategoriesCache, clearProductsCache } from "@/lib/cache";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
+    // Serve from cache if available (5-minute TTL)
+    const cached = getCachedCategories();
+    if (cached) {
+      return NextResponse.json(cached);
+    }
+
+    // First request: connect to real database and cache the result
     await dbConnect();
     const categories = await Category.find({}).sort({ name: 1 });
+    setCachedCategories(categories);
+
     return NextResponse.json(categories);
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -31,6 +41,10 @@ export async function POST(request) {
     }
     
     const newCategory = await Category.create(body);
+    
+    // Invalidate categories cache
+    clearCategoriesCache();
+
     return NextResponse.json(newCategory, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -55,6 +69,9 @@ export async function DELETE(request) {
       return NextResponse.json({ error: "Category not found" }, { status: 404 });
     }
     
+    // Invalidate categories cache
+    clearCategoriesCache();
+
     return NextResponse.json({ success: true, message: "Category deleted successfully" });
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -110,9 +127,13 @@ export async function PUT(request) {
       return NextResponse.json({ error: "Category not found" }, { status: 404 });
     }
     
-    // If name was updated, cascade to all products in this category
+    // Invalidate categories cache
+    clearCategoriesCache();
+
+    // If name was updated, cascade to all products in this category and invalidate products cache
     if (newName && newName.trim() !== name) {
       await Product.updateMany({ category: name }, { $set: { category: newName.trim() } });
+      clearProductsCache();
     }
     
     return NextResponse.json(updated);

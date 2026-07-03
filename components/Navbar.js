@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useCart } from "../app/context/CartContext";
 import { Zap } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import HardwareThemeToggle from "./HardwareThemeToggle";
 
@@ -98,10 +99,14 @@ export default function Navbar() {
           
           {/* Logo Brand */}
           <Link href="/" className="flex items-center group">
-            <img 
+            <Image 
               src="/images/logo.png" 
               alt="RAVTRON®" 
-              className="h-[24px] sm:h-[28px] w-auto object-contain mix-blend-multiply transition-all duration-300 group-hover:scale-105"
+              width={154}
+              height={28}
+              priority
+              className="h-[24px] sm:h-[28px] object-contain mix-blend-multiply transition-all duration-300 group-hover:scale-105"
+              style={{ width: "auto" }}
             />
           </Link>
 

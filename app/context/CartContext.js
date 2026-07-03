@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { products as fallbackProducts, categories as fallbackCategories } from "../data/products";
 
 const CartContext = createContext(null);
 
@@ -21,7 +22,7 @@ export function CartProvider({ children }) {
   const [categories, setCategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (retries = 3, delay = 1000) => {
     if (products.length === 0) {
       setProductsLoading(true);
     }
@@ -36,13 +37,32 @@ export function CartProvider({ children }) {
         } catch (e) {}
       }
     } catch (err) {
-      console.error("Failed to fetch products globally", err);
+      console.error(`Failed to fetch products globally (retries left: ${retries})`, err);
+      if (retries > 0) {
+        setTimeout(() => fetchProducts(retries - 1, delay * 1.5), delay);
+      } else {
+        // Fallback to cached products if available, otherwise local static products
+        try {
+          const cached = localStorage.getItem("powerhub_products_cache");
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setProducts(parsed);
+              return;
+            }
+          }
+        } catch (e) {}
+        
+        setProducts(fallbackProducts);
+      }
     } finally {
-      setProductsLoading(false);
+      if (retries === 0) {
+        setProductsLoading(false);
+      }
     }
   };
 
-  const fetchCategories = async () => {
+  const fetchCategories = async (retries = 3, delay = 1000) => {
     if (categories.length === 0) {
       setCategoriesLoading(true);
     }
@@ -57,9 +77,28 @@ export function CartProvider({ children }) {
         } catch (e) {}
       }
     } catch (err) {
-      console.error("Failed to fetch categories globally", err);
+      console.error(`Failed to fetch categories globally (retries left: ${retries})`, err);
+      if (retries > 0) {
+        setTimeout(() => fetchCategories(retries - 1, delay * 1.5), delay);
+      } else {
+        // Fallback to cached categories if available, otherwise local static categories
+        try {
+          const cached = localStorage.getItem("powerhub_categories_cache");
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setCategories(parsed);
+              return;
+            }
+          }
+        } catch (e) {}
+        
+        setCategories(fallbackCategories);
+      }
     } finally {
-      setCategoriesLoading(false);
+      if (retries === 0) {
+        setCategoriesLoading(false);
+      }
     }
   };
 
@@ -85,7 +124,7 @@ export function CartProvider({ children }) {
           setProductsLoading(false);
         }
       }
-      
+
       const cachedCats = localStorage.getItem("powerhub_categories_cache");
       if (cachedCats) {
         const parsed = JSON.parse(cachedCats);
@@ -284,10 +323,10 @@ export function CartProvider({ children }) {
           <div
             key={toast.id}
             className={`pointer-events-auto px-5 py-4 rounded-xl shadow-lg border text-sm font-medium flex items-center gap-3 animate-fade-in-up ${toast.type === "success"
+              ? "bg-[#3674B5] text-white border-[#3674B5]/40"
+              : toast.type === "error"
                 ? "bg-[#3674B5] text-white border-[#3674B5]/40"
-                : toast.type === "error"
-                  ? "bg-[#3674B5] text-white border-[#3674B5]/40"
-                  : "bg-[#EDECE6] text-[#1E293B] border-[#1E293B]/15"
+                : "bg-[#EDECE6] text-[#1E293B] border-[#1E293B]/15"
               }`}
           >
             {toast.type === "success" && (

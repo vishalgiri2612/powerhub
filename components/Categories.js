@@ -3,6 +3,7 @@
 import React, { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "../app/context/CartContext";
+import Image from "next/image";
 
 /**
  * Dynamic home page categories grid.
@@ -76,10 +77,12 @@ export default function Categories() {
               onClick={() => handleCategoryClick(cat.name)}
               className={`group relative rounded-2xl md:rounded-[2rem] bg-white border border-[#1E293B]/10 overflow-hidden cursor-pointer shadow-xs flex items-center justify-center hover-lift transition-all duration-500 w-full ${getColClass(index)} ${getHeightClass(index)}`}
             >
-              <img
+              <Image
                 src={cat.image || "/images/charger.png"}
                 alt={cat.name}
-                className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                fill
+                sizes="(max-width: 768px) 50vw, (max-width: 1024px) 250px, 350px"
+                className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-black/5 group-hover:bg-black/10 transition-colors duration-500" />
               <span className="bg-black/80 backdrop-blur-xs text-white text-[9px] sm:text-xs font-black uppercase px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-md sm:rounded-lg absolute bottom-3 left-3 sm:bottom-6 sm:left-6 tracking-wider z-10">

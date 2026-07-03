@@ -2,13 +2,23 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import HeroSlide from "@/models/HeroSlide";
 import { verifyAdmin } from "@/lib/auth";
+import { getCachedHero, setCachedHero, clearHeroCache } from "@/lib/cache";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
+    // Serve from cache if available (5-minute TTL)
+    const cached = getCachedHero();
+    if (cached) {
+      return NextResponse.json(cached);
+    }
+
+    // First request: connect to real database and cache the result
     await dbConnect();
     const slides = await HeroSlide.find({}).sort({ slideIndex: 1 });
+    setCachedHero(slides);
+
     return NextResponse.json(slides);
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -52,6 +62,9 @@ export async function POST(request) {
       { new: true, upsert: true }
     );
 
+    // Invalidate hero cache
+    clearHeroCache();
+
     return NextResponse.json(updatedSlide, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -65,6 +78,10 @@ export async function DELETE() {
     }
     await dbConnect();
     await HeroSlide.deleteMany({});
+    
+    // Invalidate hero cache
+    clearHeroCache();
+
     return NextResponse.json({ success: true, message: "All custom hero slides deleted successfully." });
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

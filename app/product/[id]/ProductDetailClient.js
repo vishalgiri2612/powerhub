@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useCart } from "../../context/CartContext";
 import Navbar from "../../../components/Navbar";
+import Image from "next/image";
 import Footer from "../../../components/Footer";
 import { Star, Package, Zap, RotateCcw } from "lucide-react";
 
@@ -658,40 +659,43 @@ export default function ProductDetailPage({ params }) {
             </h3>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {relatedProducts.map((p) => {
-              const specList = p.shortSpec.split(" · ");
+              const specList = p.shortSpec.split(" · ").filter(spec => spec.length < 25 && spec.trim().length > 0);
               return (
                 <div
                   key={p.id}
                   onClick={() => router.push(`/product/${p.id}`)}
-                  className="group relative rounded-2xl md:rounded-[2.5rem] bg-white border border-[#1E293B]/10 p-3 md:p-5 flex flex-col justify-between hover-lift transition-all duration-500 cursor-pointer shadow-2xs"
+                  className="group relative rounded-xl sm:rounded-3xl bg-white border border-[#1E293B]/10 p-2.5 sm:p-4.5 flex flex-col justify-between hover-lift transition-all duration-500 overflow-hidden cursor-pointer shadow-2xs w-full max-w-[300px] mx-auto"
                 >
-                  <div className="relative aspect-square w-full rounded-xl md:rounded-[2rem] bg-[#FFFFFF] overflow-hidden mb-3 md:mb-5 flex items-center justify-center p-3 md:p-5">
-                    <img
+                  <div className="relative aspect-square w-full rounded-xl sm:rounded-2xl bg-[#FFFFFF] overflow-hidden mb-2 sm:mb-3 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-[#1A1917]/0 to-[#1A1917]/2 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10 pointer-events-none" />
+                    <Image
                       src={p.image}
                       alt={p.name}
-                      className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-105"
+                      fill
+                      sizes="(max-width: 640px) 150px, (max-width: 768px) 250px, 300px"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
                       style={{
                         filter: "drop-shadow(0 10px 15px rgba(26,25,23,0.06))"
                       }}
                     />
                   </div>
 
-                  <div className="space-y-2 md:space-y-3.5">
+                  <div className="space-y-1 sm:space-y-1.5">
                     <span className="text-[8px] md:text-[9px] font-extrabold text-[#1E293B]/40 uppercase tracking-widest">{p.category}</span>
-                    <h4 className="font-display font-bold text-xs md:text-base text-[#1E293B] group-hover:text-[#3674B5] transition-colors line-clamp-1">{p.name}</h4>
+                    <h4 className="font-display font-bold text-[11px] sm:text-sm md:text-base text-[#1E293B] group-hover:text-[#3674B5] transition-colors line-clamp-1">{p.name}</h4>
 
                     {/* Hidden on mobile to fit two-column grid cleanly */}
                     <div className="hidden sm:flex flex-wrap gap-1">
                       {specList.slice(0, 2).map((sp, idx) => (
-                        <span key={idx} className="text-[9px] font-bold text-[#1E293B]/50 bg-[#F8F9FA] px-2 py-0.5 rounded-md">{sp}</span>
+                        <span key={idx} className="text-[8px] sm:text-[9px] font-bold text-[#1E293B]/50 bg-[#F8F9FA] px-1.5 py-0.5 rounded-md">{sp}</span>
                       ))}
                     </div>
 
-                    <div className="flex items-center justify-between pt-2.5 border-t border-[#1E293B]/10 mt-3 md:mt-4">
-                      <span className="font-black text-[#3674B5] text-sm md:text-base">₹{p.price.toLocaleString()}</span>
-                      <span className="text-[10px] md:text-xs font-bold text-[#1E293B]/40 group-hover:text-[#1E293B] transition-all flex items-center gap-0.5 md:gap-1">
+                    <div className="flex items-center justify-between pt-2 border-t border-[#1E293B]/10 mt-2">
+                      <span className="font-black text-[#3674B5] text-xs sm:text-sm md:text-base">₹{p.price.toLocaleString()}</span>
+                      <span className="text-[9px] sm:text-xs font-bold text-[#1E293B]/40 group-hover:text-[#1E293B] transition-all flex items-center gap-0.5 md:gap-1">
                         <span>Details</span>
                         <span className="group-hover:translate-x-1 transition-transform">→</span>
                       </span>

@@ -4,6 +4,7 @@ import React, { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "../app/context/CartContext";
 import { categories as defaultCategories } from "../app/data/products";
+import Image from "next/image";
 
 // Helper to sort categories
 const sortCategories = (list) => {
@@ -56,10 +57,12 @@ export default function CircularCategories() {
                   >
                     {/* Circular Image Container */}
                     <div className="relative w-20 h-20 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-full overflow-hidden border border-[#1E293B]/10 bg-white flex items-center justify-center transition-all duration-500 group-hover:scale-105 group-hover:border-[#3674B5] group-hover:ring-4 group-hover:ring-[#3674B5]/15 shadow-xs">
-                      <img
+                      <Image
                         src={cat.image || "/images/charger.png"}
                         alt={cat.name}
-                        className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                        fill
+                        sizes="(max-width: 640px) 80px, (max-width: 768px) 112px, 128px"
+                        className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                       />
                       {/* Hover Overlay */}
                       <div className="absolute inset-0 bg-[#3674B5]/0 group-hover:bg-[#3674B5]/5 transition-colors duration-500" />
