@@ -20,8 +20,8 @@ export default function HardwareThemeToggle() {
     setMounted(true);
     const savedTheme = localStorage.getItem("ravtron_theme");
     
-    // Default is dark mode. We only set light-mode if specifically saved as 'light'
-    const isLight = savedTheme === "light";
+    // Default is light mode. We set light-mode if saved as 'light' or if no saved preference exists
+    const isLight = savedTheme === "light" || savedTheme === null;
     setIsConnected(isLight);
 
     if (isLight) {

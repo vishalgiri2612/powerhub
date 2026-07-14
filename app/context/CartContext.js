@@ -145,7 +145,7 @@ export function CartProvider({ children }) {
 
     // Global theme initialization
     const savedTheme = localStorage.getItem("ravtron_theme");
-    if (savedTheme === "light") {
+    if (savedTheme === "light" || savedTheme === null) {
       document.documentElement.classList.add("light-mode");
     } else {
       document.documentElement.classList.remove("light-mode");
@@ -154,7 +154,7 @@ export function CartProvider({ children }) {
     // Listen for theme toggle events
     const handleThemeChange = () => {
       const updatedTheme = localStorage.getItem("ravtron_theme");
-      if (updatedTheme === "light") {
+      if (updatedTheme === "light" || updatedTheme === null) {
         document.documentElement.classList.add("light-mode");
       } else {
         document.documentElement.classList.remove("light-mode");
