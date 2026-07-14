@@ -36,6 +36,7 @@ export function CartProvider({ children }) {
           localStorage.setItem("powerhub_products_cache", JSON.stringify(data));
         } catch (e) {}
       }
+      setProductsLoading(false);
     } catch (err) {
       console.error(`Failed to fetch products globally (retries left: ${retries})`, err);
       if (retries > 0) {
@@ -48,12 +49,14 @@ export function CartProvider({ children }) {
             const parsed = JSON.parse(cached);
             if (Array.isArray(parsed) && parsed.length > 0) {
               setProducts(parsed);
+              setProductsLoading(false);
               return;
             }
           }
         } catch (e) {}
         
         setProducts(fallbackProducts);
+        setProductsLoading(false);
       }
     } finally {
       if (retries === 0) {
@@ -76,6 +79,7 @@ export function CartProvider({ children }) {
           localStorage.setItem("powerhub_categories_cache", JSON.stringify(data));
         } catch (e) {}
       }
+      setCategoriesLoading(false);
     } catch (err) {
       console.error(`Failed to fetch categories globally (retries left: ${retries})`, err);
       if (retries > 0) {
@@ -88,12 +92,14 @@ export function CartProvider({ children }) {
             const parsed = JSON.parse(cached);
             if (Array.isArray(parsed) && parsed.length > 0) {
               setCategories(parsed);
+              setCategoriesLoading(false);
               return;
             }
           }
         } catch (e) {}
         
         setCategories(fallbackCategories);
+        setCategoriesLoading(false);
       }
     } finally {
       if (retries === 0) {
