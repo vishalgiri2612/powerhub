@@ -12,6 +12,11 @@ export async function POST(request) {
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
     }
 
+    const isProduction = process.env.NODE_ENV === "production";
+    const forwardedProto = request.headers.get("x-forwarded-proto");
+    const isHttps = forwardedProto === "https" || request.url.startsWith("https://");
+    const secure = isProduction && isHttps;
+
     if (loginMode === "admin") {
       if (password !== "admin123" && password !== "admin") {
         return NextResponse.json({ error: "Invalid administrative security credentials." }, { status: 401 });
@@ -43,7 +48,7 @@ export async function POST(request) {
         name: "ravtron_session",
         value: encodeURIComponent(JSON.stringify(sessionUser)),
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure,
         path: "/",
         maxAge: 86400, // 1 day
         sameSite: "lax"
@@ -90,7 +95,7 @@ export async function POST(request) {
         name: "ravtron_session",
         value: encodeURIComponent(JSON.stringify(sessionUser)),
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure,
         path: "/",
         maxAge: 86400,
         sameSite: "lax"

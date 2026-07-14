@@ -50,6 +50,11 @@ export async function PUT(request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    const isProduction = process.env.NODE_ENV === "production";
+    const forwardedProto = request.headers.get("x-forwarded-proto");
+    const isHttps = forwardedProto === "https" || request.url.startsWith("https://");
+    const secure = isProduction && isHttps;
+
     // Update session cookie if the user is updating their own profile
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get("ravtron_session")?.value;
@@ -70,7 +75,7 @@ export async function PUT(request) {
             name: "ravtron_session",
             value: encodeURIComponent(JSON.stringify(sessionUser)),
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
+            secure,
             path: "/",
             maxAge: 86400,
             sameSite: "lax"
@@ -116,12 +121,17 @@ export async function POST(request) {
       isLoggedIn: true
     };
 
+    const isProduction = process.env.NODE_ENV === "production";
+    const forwardedProto = request.headers.get("x-forwarded-proto");
+    const isHttps = forwardedProto === "https" || request.url.startsWith("https://");
+    const secure = isProduction && isHttps;
+
     const cookieStore = await cookies();
     cookieStore.set({
       name: "ravtron_session",
       value: encodeURIComponent(JSON.stringify(sessionUser)),
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure,
       path: "/",
       maxAge: 86400, // 1 day
       sameSite: "lax"
