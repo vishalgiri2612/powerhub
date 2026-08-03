@@ -28,12 +28,12 @@ export default function Hero() {
       tag3: "Power Cord", tag3Desc: "Heavy Duty"
     },
     {
-      disconnected: "/images/powerbank.png",
-      connected: "/images/earbuds.png",
+      disconnected: "/images/webcam.png",
+      connected: "/images/cable.png",
       productId: "p5",
-      tag1: "Smart Bank", tag1Desc: "OLED Diagnostics",
-      tag2: "Hi-Fi Buds", tag2Desc: "ANC Workspace",
-      tag3: "USB-C Cable", tag3Desc: "100W PD Power"
+      tag1: "Privacy Filter", tag1Desc: "Anti-Glare 60°",
+      tag2: "Cat6 Patch", tag2Desc: "10Gbps Speed",
+      tag3: "USB-C Cable", tag3Desc: "High Speed PD"
     }
   ];
 
@@ -528,7 +528,7 @@ export default function Hero() {
                 {/* Disconnected Image */}
                 <Image
                   src={products[disconnectedIndex]?.disconnected || "/images/hero.png"}
-                  alt="Ravtron B2B Solutions"
+                  alt="RAVTRON B2B Solutions"
                   fill
                   priority
                   sizes="(max-width: 640px) 450px, 450px"
@@ -542,7 +542,7 @@ export default function Hero() {
                 {/* Connected Image */}
                 <Image
                   src={products[connectedIndex]?.connected || "/images/cable.png"}
-                  alt="Ravtron Connected Active State"
+                  alt="RAVTRON Connected Active State"
                   fill
                   priority
                   sizes="(max-width: 640px) 450px, 450px"

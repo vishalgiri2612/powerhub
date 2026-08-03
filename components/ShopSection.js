@@ -141,14 +141,14 @@ export default function ShopSection({ productList = [], loading = false }) {
                   </div>
 
                   {/* Image */}
-                  <div className="relative aspect-square w-full rounded-xl sm:rounded-2xl bg-[#FFFFFF] overflow-hidden mt-2 mb-2 sm:mt-2.5 sm:mb-2.5 transition-colors duration-500 group-hover:bg-[#F8F9FA] flex items-center justify-center">
+                  <div className="relative aspect-square w-full rounded-xl sm:rounded-2xl bg-[#FFFFFF] overflow-hidden mt-2 mb-2 sm:mt-2.5 sm:mb-2.5 transition-colors duration-500 group-hover:bg-[#F8F9FA] flex items-center justify-center hover-lift-inner">
                     <div className="absolute inset-0 bg-gradient-to-tr from-[#1A1917]/0 to-[#1A1917]/2 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10 pointer-events-none" />
                     <Image
                       src={product.image}
                       alt={product.name}
                       fill
                       sizes="(max-width: 640px) 150px, (max-width: 768px) 250px, 300px"
-                      className="object-cover transition-all duration-500 group-hover:scale-106 group-hover:rotate-1"
+                      className="object-cover transition-all duration-500 group-hover:scale-106 group-hover:rotate-1 pointer-events-none"
                       style={{
                         filter: "drop-shadow(0 12px 20px rgba(26,25,23,0.06))"
                       }}
@@ -159,13 +159,15 @@ export default function ShopSection({ productList = [], loading = false }) {
                   <div className="space-y-1 sm:space-y-1.5">
                     <div className="flex items-center justify-between text-[8px] sm:text-[9px] font-bold text-[#1E293B]/40 uppercase tracking-wider">
                       <span>{product.category}</span>
-                      <span className="flex items-center gap-1.5">
-                        <span
-                          className="w-2 h-2 sm:w-2 sm:h-2 rounded-full border border-[#1E293B]/15 shadow-xs"
-                          style={{ backgroundColor: swatchColor }}
-                        />
-                        <span className="text-[8px] sm:text-[9px] font-semibold text-[#1E293B]/50 lowercase first-letter:uppercase">{product.color}</span>
-                      </span>
+                      {product.color && product.color.toLowerCase() !== "standard" && (
+                        <span className="flex items-center gap-1.5">
+                          <span
+                            className="w-2 h-2 sm:w-2 sm:h-2 rounded-full border border-[#1E293B]/15 shadow-xs"
+                            style={{ backgroundColor: swatchColor }}
+                          />
+                          <span className="text-[8px] sm:text-[9px] font-semibold text-[#1E293B]/50 lowercase first-letter:uppercase">{product.color}</span>
+                        </span>
+                      )}
                     </div>
 
                     <h3 className="font-display font-bold text-[11px] sm:text-sm md:text-base text-[#1E293B] tracking-tight line-clamp-1 group-hover:text-[#3674B5] transition-colors duration-300">

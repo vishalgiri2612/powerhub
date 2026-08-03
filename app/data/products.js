@@ -1,7 +1,7 @@
 export const products = [
   {
     id: "p1",
-    name: "Ravtron 65W GaN Wall Charger",
+    name: "RAVTRON 65W GaN Wall Charger",
     shortSpec: "2x USB-C · 1x USB-A · 65W · GaN Fast Charge",
     price: 2499,
     originalPrice: 3499,
@@ -23,30 +23,30 @@ export const products = [
   },
   {
     id: "p2",
-    name: "Ravtron Smart OLED 20K Power Bank",
-    shortSpec: "20,000 mAh · 65W Max · Triple Ports",
+    name: "RAVTRON 11-in-1 Type-C Multiport Docking Station",
+    shortSpec: "11 Ports · 100W PD · 4K Dual HDMI · Gigabit LAN",
     price: 3999,
     originalPrice: 4999,
     discountBadge: "Bestseller",
     rating: 4.9,
     reviewsCount: 340,
-    image: "/images/powerbank.png",
+    image: "/images/magsafe.png",
     gallery: [
-      "/images/powerbank.png",
-      "/images/powerbank_side.png",
-      "/images/powerbank_use.png"
+      "/images/magsafe.png",
+      "/images/charger.png",
+      "/images/cable.png"
     ],
-    category: "Accessories",
+    category: "Docking Stations",
     featured: true,
     isNewArrival: false,
-    color: "Sand Beige",
+    color: "Anodized Grey",
     stock: 25,
-    description: "Power up on the move with confidence. This massive 20,000 mAh high-density portable charger supplies up to 65W power, capable of recharging laptops and phones at maximum speeds. The integrated real-time OLED screen keeps you updated on the precise remaining battery life.",
+    description: "Engineered for maximum workstation productivity. This premium solid aluminum 11-in-1 Type-C docking station features dual 4K HDMI displays, 100W Power Delivery pass-through, Gigabit Ethernet, SD/MicroSD card readers, and high-speed USB 3.0 ports.",
     topSelling: true
   },
   {
     id: "p3",
-    name: "Ravtron Braided 100W Wattage Cable",
+    name: "RAVTRON Braided 100W Wattage Cable",
     shortSpec: "1.8m · 100W PD · Digital Live Wattage Display",
     price: 899,
     originalPrice: 1299,
@@ -69,7 +69,7 @@ export const products = [
   },
   {
     id: "p4",
-    name: "Ravtron Ultra HD 4K Ringlight Webcam",
+    name: "RAVTRON Ultra HD 4K Ringlight Webcam",
     shortSpec: "4K UHD · Built-in LED Ring · Glass Lens",
     price: 5499,
     originalPrice: 7999,
@@ -91,48 +91,72 @@ export const products = [
   },
   {
     id: "p5",
-    name: "PowerBuds Active Noise Canceling Earbuds",
-    shortSpec: "ANC 40dB · 40hr Battery · Sand Gold Charging Case",
-    price: 2999,
-    originalPrice: 4499,
+    name: "RAVTRON Privacy Screen Filter for Laptops",
+    shortSpec: "60° Viewing Angle · Anti-Glare · Blue Light Filter",
+    price: 1999,
+    originalPrice: 2999,
     discountBadge: "-33%",
     rating: 4.8,
     reviewsCount: 124,
-    image: "/images/earbuds.png",
+    image: "/images/webcam.png",
     gallery: [
-      "/images/earbuds.png",
-      "/images/charger.png",
-      "/images/powerbank.png"
+      "/images/webcam.png",
+      "/images/cable.png"
     ],
     category: "Accessories",
     featured: false,
     isNewArrival: true,
-    color: "Sand & Gold",
-    stock: 3,
-    description: "Immerse yourself in rich, high-fidelity acoustics. These wireless earbuds feature premium active noise cancellation up to 40dB, crystal-clear microphones for calls, and a sleek sand-gold charging case providing up to 40 hours of combined, uninterrupted playtime.",
+    color: "Black Matte",
+    stock: 25,
+    description: "Protect your confidential work data on the go with RAVTRON Privacy Screen Filter. Engineered with microlouver technology to block side-angle viewing beyond 60 degrees, while shielding your eyes from glare and blue light radiation.",
     topSelling: true
   },
   {
     id: "p6",
-    name: "Ravtron 3-in-1 Wood MagSafe Stand",
-    shortSpec: "15W MagSafe · Beechwood Base · Phone/Watch/AirPods",
-    price: 4500,
-    originalPrice: 5999,
-    discountBadge: "Premium",
+    name: "RAVTRON High-Performance Cat6 Patch Cord Cable",
+    shortSpec: "10Gbps Speed · Gold-Plated RJ45 · Snagless Molded Boot",
+    price: 499,
+    originalPrice: 899,
+    discountBadge: "Best Value",
     rating: 4.9,
     reviewsCount: 88,
-    image: "/images/magsafe.png",
+    image: "/images/ravtron_networking.png",
     gallery: [
-      "/images/magsafe.png",
-      "/images/powerbank.png",
-      "/images/charger.png"
+      "/images/ravtron_networking.png",
+      "/images/cable.png"
     ],
-    category: "Accessories",
+    category: "Networking",
     featured: false,
     isNewArrival: false,
-    color: "Beechwood Sand",
-    stock: 18,
-    description: "A sophisticated multi-device charger for your modern nightstand or desk. Crafted from sustainable premium beechwood and solid aluminum, this stand magnetically mounts and charges your iPhone, Apple Watch, and AirPods simultaneously at maximum Qi wireless charging speeds."
+    color: "Blue",
+    stock: 50,
+    description: "Engineered for high-density network connectivity. Features 100% pure copper conductors and gold-plated RJ45 connectors to deliver crystal-clear Gigabit and 10Gbps data transmission speeds with zero latency."
+  },
+  {
+    id: "p7",
+    name: "RAVTRON CCTV Power Supply (SMPS)",
+    shortSpec: "Power Supply for CCTV Cameras · Input AC 150-240V · LED for Individual Channel",
+    price: 900,
+    originalPrice: 1530,
+    discountBadge: "Save 41%",
+    rating: 4.8,
+    reviewsCount: 1,
+    image: "/images/ravtron_utility_dev.png",
+    gallery: [
+      "/images/ravtron_utility_dev.png"
+    ],
+    category: "Surveillance",
+    channels: ["4 Channel", "8 Channel", "16 Channel"],
+    sizePrices: [
+      { size: "4 Channel", price: 900, originalPrice: 1530 },
+      { size: "8 Channel", price: 1500, originalPrice: 2200 },
+      { size: "16 Channel", price: 2800, originalPrice: 3900 }
+    ],
+    featured: true,
+    isNewArrival: true,
+    color: "White",
+    stock: 30,
+    description: "POWER SUPPLY FOR CCTV CAMERAS POWER LED MONITOR FOR INDIVIDUAL CAMERA CHANNEL INDIVIDUAL CAMERA DRIVE. INPUT AC: 150-240V, 1A 50-60HZ. COLOUR: WHITE OUTPUT CURRENT: 1 AMPS OUTPUT VOLTAGE: 12 VOLTS SPECIAL FEATURE: LED FOR INDIVIDUAL CHANNEL"
   }
 ];
 
@@ -191,7 +215,7 @@ export const categories = [
     icon: "💻",
     image: "/images/magsafe.png",
     showOnHome: true,
-    subcategories: ["Dual Type C", "Type C", "USB Hubs"]
+    subcategories: ["Dual Type C", "Type C"]
   },
   {
     name: "Audio Video",
@@ -205,6 +229,13 @@ export const categories = [
     icon: "🌐",
     image: "/images/ravtron_networking.png",
     showOnHome: false,
-    subcategories: ["Patch Cord", "Cat6 Cable"]
+    subcategories: ["PATCH CORD", "CAT6 CABLE"]
+  },
+  {
+    name: "USB HUBS",
+    icon: "🔌",
+    image: "/images/magsafe.png",
+    showOnHome: true,
+    subcategories: ["TYPE C", "USB"]
   }
 ];

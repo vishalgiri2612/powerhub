@@ -69,7 +69,7 @@ export default function SignupPage() {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          name: name || "Ravtron User",
+          name: name || "RAVTRON User",
           email: email,
           role: "Customer",
           joinDate: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
@@ -212,7 +212,7 @@ export default function SignupPage() {
                 <input
                   type="tel"
                   required
-                  placeholder="+91 98765 43210"
+                  placeholder="0124 4111620"
                   className="w-full bg-[#F8F9FA] border border-[#1E293B]/10 rounded-2xl pl-11 pr-4 py-3.5 text-xs font-semibold text-[#1E293B] placeholder-[#1E293B]/30 outline-none focus:bg-white focus:border-[#3674B5] focus:ring-1 focus:ring-[#3674B5] transition-all"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}

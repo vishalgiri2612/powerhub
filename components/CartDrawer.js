@@ -114,7 +114,7 @@ export default function CartDrawer() {
                     <div className="flex justify-between items-start gap-2">
                       <h5 className="font-bold text-sm text-[#1E293B] truncate">{item.name}</h5>
                       <button
-                        onClick={() => removeFromCart(item.id, item.selectedSize)}
+                        onClick={() => removeFromCart(item.id, item.selectedSize, item.selectedChannel)}
                         className="text-[#1E293B]/40 hover:text-[#3674B5] transition-all flex-shrink-0"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -125,13 +125,15 @@ export default function CartDrawer() {
                     <p className="text-xs text-[#1E293B]/60 truncate mt-0.5">
                       {item.color || item.shortSpec}
                       {item.selectedSize ? ` · Size: ${item.selectedSize}` : ""}
+                      {item.selectedPrivacySize ? ` · Size: ${item.selectedPrivacySize}` : ""}
+                      {item.selectedChannel ? ` · Channel: ${item.selectedChannel}` : ""}
                     </p>
                   </div>
                   <div className="flex justify-between items-end mt-2">
                     {/* Quantity Controls */}
                     <div className="flex items-center gap-1.5 bg-white rounded-lg p-1 border border-[#1E293B]/10">
                       <button
-                        onClick={() => updateQuantity(item.id, -1, item.selectedSize)}
+                        onClick={() => updateQuantity(item.id, -1, item.selectedSize, item.selectedChannel)}
                         className="w-6 h-6 flex items-center justify-center rounded hover:bg-[#F8F9FA] text-[#1E293B] font-semibold text-xs transition-all"
                       >
                         –
@@ -140,7 +142,7 @@ export default function CartDrawer() {
                         {item.quantity}
                       </span>
                       <button
-                        onClick={() => updateQuantity(item.id, 1, item.selectedSize)}
+                        onClick={() => updateQuantity(item.id, 1, item.selectedSize, item.selectedChannel)}
                         className="w-6 h-6 flex items-center justify-center rounded hover:bg-[#F8F9FA] text-[#1E293B] font-semibold text-xs transition-all"
                       >
                         +

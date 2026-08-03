@@ -107,7 +107,7 @@ export default function SupportPage() {
     {
       category: "Warranty & Support",
       question: "How do I claim product warranty?",
-      answer: "All RAVTRON® hardware (cables, adapters, power banks) is backed by a 1-year replacement warranty. You can register your product or submit a claim directly under the 'Warranty Claims' tab on this page."
+      answer: "All RAVTRON® hardware (cables, adapters, docking stations) is backed by a 1-year replacement warranty. You can register your product or submit a claim directly under the 'Warranty Claims' tab on this page."
     },
     {
       category: "Warranty & Support",

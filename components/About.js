@@ -20,7 +20,7 @@ export default function About() {
     {
       icon: <ShieldCheck className="w-6 h-6 text-[#3674B5]" />,
       title: "Device Intelligence & Safety",
-      desc: "Every product is built with custom smart circuitry. Real-time OLED power bank status tracking, digital wattage display cables, and advanced thermal protection keep your devices protected.",
+      desc: "Every product is built with custom smart circuitry. Multiport docking station connectivity, digital wattage display cables, and advanced thermal protection keep your devices protected.",
       glow: "rgba(54, 116, 181, 0.1)"
     }
   ];
@@ -50,11 +50,11 @@ export default function About() {
             </h2>
             
             <p className="text-sm sm:text-base font-semibold text-[#1E293B]/60 leading-relaxed">
-              At Ravtron, we believe workspace hardware should never be generic. We are an engineering collective focused on fusing high-performance connectivity with premium aesthetic precision.
+              At RAVTRON, we believe workspace hardware should never be generic. We are an engineering collective focused on fusing high-performance connectivity with premium aesthetic precision.
             </p>
             
             <p className="text-sm font-semibold text-[#1E293B]/50 leading-relaxed">
-              Whether it is our 65W GaN wall chargers wrapped in a muted Sage Green, our smart OLED power banks displaying live speed diagnostics, or our 4K ringlight webcams, each piece is engineered to elevate your daily digital production. We design for creators, tech enthusiasts, and professionals who curate their setups with intention.
+              Whether it is our 65W GaN wall chargers wrapped in a muted Sage Green, our 11-in-1 Type-C multiport docking stations, or our 4K ringlight webcams, each piece is engineered to elevate your daily digital production. We design for creators, tech enthusiasts, and professionals who curate their setups with intention.
             </p>
           </div>
 

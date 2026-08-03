@@ -19,7 +19,7 @@ const initialMockOrders = [
     customerEmail: "ravtron@admin.com",
     items: [
       {
-        name: "Ravtron Smart OLED 20K Power Bank",
+        name: "RAVTRON 11-in-1 Type-C Multiport Docking Station",
         image: "/images/powerbank.png",
         price: 3999,
         qty: 1
@@ -69,7 +69,7 @@ const initialMockOrders = [
 const initialMockUsers = [
   { name: "Visha Rawat", email: "ravtron@admin.com", role: "Administrator", joinDate: "June 2026", active: true },
   { name: "Rahul Sharma", email: "rahul@gmail.com", role: "Customer", joinDate: "May 2026", active: true },
-  { name: "Ksg Automation", email: "ksg@automation.com", role: "Customer", joinDate: "April 2026", active: false }
+  { name: "Ksg Automation", email: "support@ksgautomation.com", role: "Customer", joinDate: "April 2026", active: false }
 ];
 
 export async function GET(request) {

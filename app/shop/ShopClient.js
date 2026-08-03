@@ -13,6 +13,7 @@ function ShopContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get("category");
+  const searchParam = searchParams.get("search") || searchParams.get("q") || searchParams.get("tag") || searchParams.get("sub");
 
   const {
     addToCart,
@@ -43,11 +44,31 @@ function ShopContent() {
     }
   };
 
+  const handleClearSearch = () => {
+    if (categoryParam) {
+      router.push(`/shop?category=${encodeURIComponent(categoryParam)}`);
+    } else {
+      router.push("/shop");
+    }
+  };
+
   const filteredProducts = !Array.isArray(productList)
     ? []
-    : activeCategory === "All"
-      ? productList
-      : productList.filter((p) => p.category === activeCategory);
+    : productList.filter((p) => {
+        const matchesCategory = activeCategory === "All" || p.category.toLowerCase() === activeCategory.toLowerCase();
+        
+        if (!searchParam) return matchesCategory;
+
+        const term = searchParam.toLowerCase().trim();
+        const matchesSearch =
+          p.name.toLowerCase().includes(term) ||
+          p.category.toLowerCase().includes(term) ||
+          (p.shortSpec && p.shortSpec.toLowerCase().includes(term)) ||
+          (p.description && p.description.toLowerCase().includes(term)) ||
+          (p.color && p.color.toLowerCase().includes(term));
+
+        return matchesCategory && matchesSearch;
+      });
 
   const filterOptions = ["All", ...(Array.isArray(categoriesList) ? categoriesList.map((c) => c.name) : [])];
 
@@ -61,11 +82,11 @@ function ShopContent() {
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 md:px-3.5 md:py-1 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/30">
             <span className="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
             <span className="text-[9px] md:text-[10px] font-extrabold text-[#3674B5] uppercase tracking-wider">
-              Browse Ravtron
+              Browse RAVTRON
             </span>
           </div>
           <h1 className="font-display font-black text-2xl sm:text-5xl lg:text-6xl text-[#1E293B] tracking-tight leading-tight">
-            Ravtron <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#3674B5] to-[#578FCA]">Shop</span>
+            RAVTRON <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#3674B5] to-[#578FCA]">Shop</span>
           </h1>
           <p className="text-xs md:text-sm font-semibold text-[#1E293B]/50 leading-relaxed max-w-md mx-auto">
             Our complete catalog of professional GaN power delivery adapters, display cabling, and workstation gear.
@@ -87,6 +108,22 @@ function ShopContent() {
             </button>
           ))}
         </div>
+
+        {/* Active Subcategory / Search Filter Indicator Banner */}
+        {searchParam && (
+          <div className="flex items-center justify-between bg-[#3674B5]/8 border border-[#3674B5]/20 rounded-2xl px-5 py-3 text-xs font-bold text-[#1E293B] max-w-xl mx-auto shadow-2xs">
+            <span>
+              Showing results for <span className="text-[#3674B5] font-extrabold">&ldquo;{searchParam}&rdquo;</span>
+              {activeCategory !== "All" && <span> in <span className="text-[#1E293B] font-extrabold">{activeCategory}</span></span>}
+            </span>
+            <button
+              onClick={handleClearSearch}
+              className="text-[10px] font-extrabold text-[#3674B5] uppercase tracking-wider hover:underline bg-white px-2.5 py-1 rounded-lg border border-[#3674B5]/20 shadow-2xs transition-all hover:scale-105"
+            >
+              Clear Filter ✕
+            </button>
+          </div>
+        )}
 
         {/* Products Grid (2 columns on mobile, 4 columns on desktop) */}
         {loading ? (
@@ -192,14 +229,14 @@ function ShopContent() {
                     </div>
 
                     {/* Image Area */}
-                    <div className="relative aspect-square w-full rounded-xl sm:rounded-2xl bg-[#FFFFFF] overflow-hidden mt-2 mb-2 sm:mt-2.5 sm:mb-2.5 transition-colors duration-500 group-hover:bg-[#F8F9FA] flex items-center justify-center">
+                    <div className="relative aspect-square w-full rounded-xl sm:rounded-2xl bg-[#FFFFFF] overflow-hidden mt-2 mb-2 sm:mt-2.5 sm:mb-2.5 transition-colors duration-500 group-hover:bg-[#F8F9FA] flex items-center justify-center hover-lift-inner">
                       <div className="absolute inset-0 bg-gradient-to-tr from-[#1A1917]/0 to-[#1A1917]/2 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10 pointer-events-none" />
                       <Image
                         src={product.image}
                         alt={product.name}
                         fill
                         sizes="(max-width: 640px) 150px, (max-width: 768px) 250px, 300px"
-                        className="object-cover transition-all duration-500 group-hover:scale-106 group-hover:rotate-1"
+                        className="object-cover transition-all duration-500 group-hover:scale-106 group-hover:rotate-1 pointer-events-none"
                         style={{
                           filter: "drop-shadow(0 12px 20px rgba(26,25,23,0.06))"
                         }}
@@ -210,14 +247,16 @@ function ShopContent() {
                     <div className="space-y-1 sm:space-y-1.5">
                       <div className="flex items-center justify-between text-[8px] sm:text-[9px] font-bold text-[#1E293B]/40 uppercase tracking-wider">
                         <span>{product.category}</span>
-                        <span className="flex items-center gap-1 sm:gap-1.5">
-                          <span
-                            className="w-2 h-2 sm:w-2 sm:h-2 rounded-full border border-[#1E293B]/15 shadow-xs"
-                            style={{ backgroundColor: swatchColor }}
-                            title={product.color}
-                          />
-                          <span className="text-[8px] sm:text-[9px] font-semibold tracking-normal text-[#1E293B]/50 lowercase first-letter:uppercase">{product.color}</span>
-                        </span>
+                        {product.color && product.color.toLowerCase() !== "standard" && (
+                          <span className="flex items-center gap-1 sm:gap-1.5">
+                            <span
+                              className="w-2 h-2 sm:w-2 sm:h-2 rounded-full border border-[#1E293B]/15 shadow-xs"
+                              style={{ backgroundColor: swatchColor }}
+                              title={product.color}
+                            />
+                            <span className="text-[8px] sm:text-[9px] font-semibold tracking-normal text-[#1E293B]/50 lowercase first-letter:uppercase">{product.color}</span>
+                          </span>
+                        )}
                       </div>
 
                       <h3 className="font-display font-bold text-[11px] sm:text-sm md:text-base text-[#1E293B] tracking-tight line-clamp-1 group-hover:text-[#3674B5] transition-colors duration-300">
@@ -310,7 +349,7 @@ function ShopContent() {
 
 export default function ShopPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-bg-brand flex items-center justify-center text-sm font-bold text-[#1E293B]/40 uppercase tracking-widest">Loading Ravtron Shop...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-bg-brand flex items-center justify-center text-sm font-bold text-[#1E293B]/40 uppercase tracking-widest">Loading RAVTRON Shop...</div>}>
       <ShopContent />
     </Suspense>
   );

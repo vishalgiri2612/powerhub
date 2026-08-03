@@ -81,7 +81,7 @@ export default function AboutPage() {
             <div className="relative rounded-2xl md:rounded-[2.5rem] bg-white border border-[#1E293B]/10 p-2 md:p-4 shadow-xl hover-lift duration-500 overflow-hidden group">
               <img 
                 src="/images/ravtron_networking.png" 
-                alt="Ravtron IT & Networking Hardware Products"
+                alt="RAVTRON IT & Networking Hardware Products"
                 className="w-full h-auto rounded-xl md:rounded-[2rem] object-cover transition-transform duration-700 group-hover:scale-105"
               />
             </div>
@@ -119,7 +119,7 @@ export default function AboutPage() {
             <div className="relative rounded-2xl md:rounded-[2.5rem] bg-white border border-[#1E293B]/10 p-2 md:p-4 shadow-xl hover-lift duration-500 overflow-hidden group">
               <img 
                 src="/images/ravtron_utility_dev.png" 
-                alt="Ravtron Smart Security & Lifestyle Utility Products"
+                alt="RAVTRON Smart Security & Lifestyle Utility Products"
                 className="w-full h-auto rounded-xl md:rounded-[2rem] object-cover transition-transform duration-700 group-hover:scale-105"
               />
             </div>

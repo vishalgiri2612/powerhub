@@ -63,7 +63,7 @@ export async function POST(request) {
 
       if (!clientUser) {
         // Auto-register
-        const defaultName = email.split("@")[0].split(".").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ") || "Ravtron Client";
+        const defaultName = email.split("@")[0].split(".").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ") || "RAVTRON Client";
         finalUser = await User.create({
           name: defaultName,
           email: email,

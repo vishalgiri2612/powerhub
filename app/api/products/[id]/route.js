@@ -12,7 +12,10 @@ export async function GET(request, { params }) {
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
-    return NextResponse.json(product);
+    const obj = product.toObject ? product.toObject() : { ...product };
+    if (obj.name) obj.name = obj.name.replace(/ravtron/gi, "RAVTRON");
+    if (obj.description) obj.description = obj.description.replace(/ravtron/gi, "RAVTRON");
+    return NextResponse.json(obj);
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

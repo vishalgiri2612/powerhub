@@ -1,12 +1,12 @@
 {
-  "name": "Ravtron — Premium GaN Charging",
-  "short_name": "Ravtron",
+  "name": "RAVTRON — Premium GaN Charging",
+  "short_name": "RAVTRON",
   "description": "State-of-the-art Gallium Nitride engineering packed into a premium minimalist sand aesthetic.",
   "id": "/",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#080C16",
-  "theme_color": "#080C16",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FFFFFF",
   "orientation": "any",
   "icons": [
     {

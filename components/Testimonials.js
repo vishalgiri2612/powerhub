@@ -10,28 +10,28 @@ export default function Testimonials() {
       initials: "AM",
       rating: 5,
       text: "The GaN charger is a total lifesaver. It charges my MacBook Pro and iPhone simultaneously without breaking a sweat, and it fits into my pocket easily! The sand cream finish looks incredibly premium on my desk.",
-      product: "Ravtron 65W GaN Wall Charger"
+      product: "RAVTRON 65W GaN Wall Charger"
     },
     {
       name: "Priya Sharma",
       initials: "PS",
       rating: 5,
-      text: "Absolutely stunning power bank. The smart OLED screen is so helpful to see exactly how much speed is entering my iPad. Highly recommend this brand for premium aesthetics!",
-      product: "Ravtron Smart OLED 20K Power Bank"
+      text: "Absolutely stunning docking station. Expanding dual 4K screens and connecting all my workstation peripherals with one single cable has transformed my workspace setup!",
+      product: "RAVTRON 11-in-1 Type-C Multiport Docking Station"
     },
     {
       name: "Rohan Das",
       initials: "RD",
       rating: 5,
       text: "This display cable is amazing. Seeing the live charging wattage in real-time is fascinating. The braided fabric feels like it will last for ages, doesn't tangle at all.",
-      product: "Ravtron Braided 100W Wattage Cable"
+      product: "RAVTRON Braided 100W Wattage Cable"
     },
     {
       name: "Karan Johar",
       initials: "KJ",
       rating: 5,
       text: "Fitted the 4K webcam onto my monitor. The built-in ring light has completely changed how I look in zoom calls. Absolute value for money and beautiful design.",
-      product: "Ravtron Ultra HD 4K Ringlight Webcam"
+      product: "RAVTRON Ultra HD 4K Ringlight Webcam"
     }
   ];
 
@@ -92,7 +92,7 @@ export default function Testimonials() {
                   <div className="min-w-0">
                     <h4 className="font-bold text-sm text-[#1E293B] truncate">{rev.name}</h4>
                     <span className="text-[10px] font-bold text-[#3674B5] truncate block mt-0.5 uppercase tracking-wide">
-                      Verified Purchase: {rev.product.replace("Ravtron ", "")}
+                      Verified Purchase: {rev.product.replace("RAVTRON ", "")}
                     </span>
                   </div>
                 </div>

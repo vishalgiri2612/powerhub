@@ -90,7 +90,7 @@ const getCategoryIconDetails = (categoryName) => {
 
 export default function AdminPanelPage() {
   const router = useRouter();
-  const { showToast, refreshProducts, refreshCategories } = useCart();
+  const { showToast, refreshProducts, refreshCategories, products: cartProducts, categories: cartCategories } = useCart();
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminPassword, setAdminPassword] = useState("");
   const [activeTab, setActiveTab] = useState("overview"); // overview, products, orders, users, categories
@@ -132,6 +132,7 @@ export default function AdminPanelPage() {
     gallery: [],
     sizes: [],
     privacySizes: [],
+    channels: [],
     sizePrices: [],
     color: "",
     stock: "",
@@ -149,7 +150,25 @@ export default function AdminPanelPage() {
   // Category Form State
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newCategoryImage, setNewCategoryImage] = useState("");
+  const [newCategorySubcategories, setNewCategorySubcategories] = useState([]);
+  const [subcatInput, setSubcatInput] = useState("");
   const [editingCategory, setEditingCategory] = useState(null);
+
+  const handleAddSubcategory = (e) => {
+    if (e) e.preventDefault();
+    const trimmed = subcatInput.trim();
+    if (!trimmed) return;
+    if (newCategorySubcategories.some((s) => s.toLowerCase() === trimmed.toLowerCase())) {
+      showToast("Subcategory already added", "error");
+      return;
+    }
+    setNewCategorySubcategories((prev) => [...prev, trimmed]);
+    setSubcatInput("");
+  };
+
+  const handleRemoveSubcategory = (subToRemove) => {
+    setNewCategorySubcategories((prev) => prev.filter((s) => s !== subToRemove));
+  };
 
   const [isUploading, setIsUploading] = useState(false);
 
@@ -219,22 +238,21 @@ export default function AdminPanelPage() {
   const fetchAdminData = async () => {
     try {
       const [resProducts, resOrders, resCategories, resUsers] = await Promise.all([
-        fetch("/api/products").then((r) => r.json()),
-        fetch("/api/orders").then((r) => r.json()),
-        fetch("/api/categories").then((r) => r.json()),
-        fetch("/api/users").then((r) => r.json())
+        fetch("/api/products").then((r) => r.json()).catch(() => null),
+        fetch("/api/orders").then((r) => r.json()).catch(() => null),
+        fetch("/api/categories").then((r) => r.json()).catch(() => null),
+        fetch("/api/users").then((r) => r.json()).catch(() => null)
       ]);
-      setAdminProducts(Array.isArray(resProducts) ? resProducts : []);
+      setAdminProducts(Array.isArray(resProducts) ? resProducts : (cartProducts || []));
       setAdminOrders(Array.isArray(resOrders) ? resOrders : []);
-      setAdminCategories(Array.isArray(resCategories) ? resCategories : []);
+      setAdminCategories(Array.isArray(resCategories) ? resCategories : (cartCategories || []));
       setAdminUsers(Array.isArray(resUsers) ? resUsers : []);
 
       // Refresh global state cache to propagate changes instantly
-      refreshProducts();
-      refreshCategories();
+      if (typeof refreshProducts === "function") refreshProducts();
+      if (typeof refreshCategories === "function") refreshCategories();
     } catch (err) {
       console.error("Error loading admin data:", err);
-      showToast("Error loading administrator data.", "error");
     }
   };
 
@@ -242,9 +260,13 @@ export default function AdminPanelPage() {
     // Check if user session indicates administrator status
     const session = localStorage.getItem("ravtron_session");
     if (session) {
-      const parsed = JSON.parse(session);
-      if (parsed.role === "Administrator") {
-        setIsAdmin(true);
+      try {
+        const parsed = JSON.parse(session);
+        if (parsed && (parsed.role === "Administrator" || parsed.email === "ravtron@admin.com")) {
+          setIsAdmin(true);
+        }
+      } catch (e) {
+        console.error(e);
       }
     }
     fetchAdminData();
@@ -289,11 +311,43 @@ export default function AdminPanelPage() {
     }
   }, [activeTab]);
 
-  const handleAdminAuthSubmit = (e) => {
+  const handleAdminAuthSubmit = async (e) => {
     e.preventDefault();
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: "ravtron@admin.com",
+          password: adminPassword,
+          loginMode: "admin"
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.user) {
+        localStorage.setItem("ravtron_session", JSON.stringify(data.user));
+        setIsAdmin(true);
+        showToast("Access Granted. Welcome to Admin Panel.");
+        fetchAdminData();
+        return;
+      }
+    } catch (err) {
+      console.error("Admin Auth Error:", err);
+    }
+
+    // Direct password fallback
     if (adminPassword === "admin123" || adminPassword === "admin") {
+      const adminSession = {
+        name: "Visha Rawat",
+        email: "ravtron@admin.com",
+        role: "Administrator",
+        isLoggedIn: true
+      };
+      localStorage.setItem("ravtron_session", JSON.stringify(adminSession));
       setIsAdmin(true);
       showToast("Access Granted. Welcome to Admin Panel.");
+      fetchAdminData();
     } else {
       showToast("Invalid administrative credentials.", "error");
     }
@@ -317,6 +371,7 @@ export default function AdminPanelPage() {
       gallery: productForm.gallery || [],
       sizes: productForm.sizes || [],
       privacySizes: productForm.privacySizes || [],
+      channels: productForm.channels || [],
       sizePrices: (productForm.sizePrices || [])
         .filter((sp) => sp.size && sp.price)
         .map((sp) => ({
@@ -324,7 +379,7 @@ export default function AdminPanelPage() {
           price: Number(sp.price),
           originalPrice: Number(sp.originalPrice || sp.price)
         })),
-      color: productForm.color || "Standard",
+      color: productForm.color || "",
       stock: Number(productForm.stock || 0),
       isNewArrival: !!productForm.isNewArrival,
       featured: !!productForm.featured,
@@ -453,6 +508,8 @@ export default function AdminPanelPage() {
     setEditingCategory(category);
     setNewCategoryName(category.name);
     setNewCategoryImage(category.image || "");
+    setNewCategorySubcategories(Array.isArray(category.subcategories) ? category.subcategories : []);
+    setSubcatInput("");
   };
 
   const handleSaveCategory = async (e) => {
@@ -469,7 +526,8 @@ export default function AdminPanelPage() {
           body: JSON.stringify({
             name: editingCategory.name,
             newName: newCategoryName.trim(),
-            image: newCategoryImage.trim() || "/images/charger.png"
+            image: newCategoryImage.trim() || "/images/charger.png",
+            subcategories: newCategorySubcategories
           })
         });
         if (!response.ok) {
@@ -478,6 +536,8 @@ export default function AdminPanelPage() {
         }
         setNewCategoryName("");
         setNewCategoryImage("");
+        setNewCategorySubcategories([]);
+        setSubcatInput("");
         setEditingCategory(null);
         showToast("Category updated successfully!");
         await fetchAdminData();
@@ -505,7 +565,7 @@ export default function AdminPanelPage() {
             icon: "📦",
             image: newCategoryImage.trim() || "/images/charger.png",
             showOnHome: true,
-            subcategories: []
+            subcategories: newCategorySubcategories
           })
         });
         if (!response.ok) {
@@ -514,6 +574,8 @@ export default function AdminPanelPage() {
         }
         setNewCategoryName("");
         setNewCategoryImage("");
+        setNewCategorySubcategories([]);
+        setSubcatInput("");
         showToast("Category added successfully!");
         await fetchAdminData();
       } catch (err) {
@@ -627,6 +689,7 @@ export default function AdminPanelPage() {
         gallery: productToEdit.gallery || [],
         sizes: productToEdit.sizes || [],
         privacySizes: productToEdit.privacySizes || [],
+        channels: productToEdit.channels || [],
         sizePrices: productToEdit.sizePrices || [],
         color: productToEdit.color || "",
         stock: productToEdit.stock ?? 0,
@@ -648,8 +711,9 @@ export default function AdminPanelPage() {
         gallery: ["/images/charger.png"],
         sizes: [],
         privacySizes: [],
+        channels: [],
         sizePrices: [],
-        color: "Standard",
+        color: "",
         stock: 0,
         isNewArrival: true,
         featured: false,
@@ -712,17 +776,23 @@ export default function AdminPanelPage() {
     );
   }
 
-  // Filter logic for Products list
-  const filteredProducts = adminProducts.filter((product) => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.shortSpec.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = categoryFilter === "all" || product.category.toLowerCase() === categoryFilter.toLowerCase();
-    const matchesSubTab = subTab === "all" || product.category.toLowerCase() === subTab.toLowerCase();
+  // Filter logic for Products list (with defensive null checks)
+  const productsToDisplay = adminProducts.length > 0 ? adminProducts : (cartProducts || []);
+  const filteredProducts = productsToDisplay.filter((product) => {
+    if (!product) return false;
+    const nameStr = (product.name || "").toLowerCase();
+    const specStr = (product.shortSpec || "").toLowerCase();
+    const catStr = (product.category || "").toLowerCase();
+    const query = (searchQuery || "").toLowerCase();
+
+    const matchesSearch = nameStr.includes(query) || specStr.includes(query);
+    const matchesCategory = categoryFilter === "all" || catStr === categoryFilter.toLowerCase();
+    const matchesSubTab = subTab === "all" || catStr === subTab.toLowerCase();
 
     let matchesStatus = true;
-    if (statusFilter === "new") matchesStatus = product.isNewArrival;
-    else if (statusFilter === "featured") matchesStatus = product.featured;
-    else if (statusFilter === "active") matchesStatus = true; // all items are active in catalog
+    if (statusFilter === "new") matchesStatus = !!product.isNewArrival;
+    else if (statusFilter === "featured") matchesStatus = !!product.featured;
+    else if (statusFilter === "active") matchesStatus = true;
 
     return matchesSearch && matchesCategory && matchesSubTab && matchesStatus;
   });
@@ -1151,7 +1221,7 @@ export default function AdminPanelPage() {
             <div className="flex justify-between items-center">
               <div className="space-y-1">
                 <h1 className="text-2xl font-bold font-display tracking-tight text-slate-900">Products & Inventory</h1>
-                <p className="text-xs text-slate-400 font-medium">Manage adapters, cables, power banks and workspace inventories.</p>
+                <p className="text-xs text-slate-400 font-medium">Manage adapters, cables, docking stations and workspace inventories.</p>
               </div>
               <button
                 onClick={() => openProductForm()}
@@ -1250,8 +1320,6 @@ export default function AdminPanelPage() {
                       <th className="p-4">Category</th>
                       <th className="p-4">Price</th>
                       <th className="p-4">Orig Price</th>
-                      <th className="p-4">Badge</th>
-                      <th className="p-4">Color Accent</th>
                       <th className="p-4">Stock</th>
                       <th className="p-4">Status</th>
                       <th className="p-4 text-center">Actions</th>
@@ -1275,16 +1343,6 @@ export default function AdminPanelPage() {
                         <td className="p-4 text-slate-500 uppercase text-[9px] font-bold tracking-wider">{p.category}</td>
                         <td className="p-4 font-bold text-slate-900">₹{p.price.toLocaleString()}</td>
                         <td className="p-4 text-slate-400">₹{p.originalPrice.toLocaleString()}</td>
-                        <td className="p-4">
-                          {p.discountBadge ? (
-                            <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[9px] font-bold">
-                              {p.discountBadge}
-                            </span>
-                          ) : (
-                            <span className="text-slate-300">-</span>
-                          )}
-                        </td>
-                        <td className="p-4 text-slate-500 font-medium">{p.color}</td>
                         <td className="p-4">
                           {p.stock === 0 ? (
                             <span className="px-2 py-0.5 rounded bg-rose-50 text-rose-600 border border-rose-100 text-[10px] font-black">
@@ -1311,8 +1369,8 @@ export default function AdminPanelPage() {
                               </span>
                             )}
                             {!p.isNewArrival && !p.featured && (
-                              <span className="px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase bg-slate-50 text-slate-400">
-                                Standard
+                              <span className="px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase bg-emerald-50 text-emerald-600">
+                                Active
                               </span>
                             )}
                           </div>
@@ -1532,6 +1590,8 @@ export default function AdminPanelPage() {
                         setEditingCategory(null);
                         setNewCategoryName("");
                         setNewCategoryImage("");
+                        setNewCategorySubcategories([]);
+                        setSubcatInput("");
                       }}
                       className="text-[10px] font-bold text-rose-500 hover:text-rose-600 uppercase hover:underline"
                     >
@@ -1587,6 +1647,59 @@ export default function AdminPanelPage() {
                       )}
                     </div>
                   </div>
+
+                  {/* Subcategories Manager Input */}
+                  <div className="space-y-2 pt-2 border-t border-slate-100">
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      Add Subcategories
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="e.g. CAT6 CABLE, HDMI..."
+                        className="flex-1 bg-[#F8F9FA] border border-slate-200/60 rounded-2xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-[#3674B5] transition-all"
+                        value={subcatInput}
+                        onChange={(e) => setSubcatInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleAddSubcategory();
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddSubcategory}
+                        className="px-3.5 py-2.5 bg-[#3674B5]/10 hover:bg-[#3674B5]/20 border border-[#3674B5]/30 text-[#3674B5] text-xs font-bold rounded-2xl transition-all hover:scale-105 active:scale-95"
+                      >
+                        + Add
+                      </button>
+                    </div>
+
+                    {/* Active Subcategory Pills List */}
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {newCategorySubcategories.map((sub) => (
+                        <span
+                          key={sub}
+                          className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#1E293B] bg-slate-100 border border-slate-200/80 px-2.5 py-1 rounded-xl shadow-3xs"
+                        >
+                          <span>{sub}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveSubcategory(sub)}
+                            className="text-slate-400 hover:text-rose-500 font-black text-xs leading-none"
+                            title="Remove Subcategory"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                      {newCategorySubcategories.length === 0 && (
+                        <span className="text-[10px] text-slate-400 italic">No subcategories added yet.</span>
+                      )}
+                    </div>
+                  </div>
+
                   <button
                     type="submit"
                     className="w-full bg-[#3674B5] hover:bg-[#578FCA] text-white py-3.5 rounded-2xl text-xs font-bold transition-all duration-300 hover:scale-[1.02] active:scale-98 flex items-center justify-center gap-2 shadow-md shadow-[#3674B5]/10"
@@ -1611,7 +1724,7 @@ export default function AdminPanelPage() {
                 <div className="p-5 border-b border-slate-100 flex items-center justify-between">
                   <div>
                     <h3 className="font-bold text-sm text-slate-900">Active Categories Directory</h3>
-                    <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Set home page position (max 6 slots) or hide categories.</p>
+                    <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Set home page position (max 6 slots) or manage subcategories.</p>
                   </div>
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200">
                     <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Home Slots Used:</span>
@@ -1626,7 +1739,7 @@ export default function AdminPanelPage() {
                   <thead>
                     <tr className="bg-slate-50/80 border-b border-slate-100 uppercase text-[9px] tracking-wider text-slate-400 font-black">
                       <th className="p-4 w-12 text-center">SNo</th>
-                      <th className="p-4">Category</th>
+                      <th className="p-4">Category & Subcategories</th>
                       <th className="p-4 text-center">Home Position (1–6)</th>
                       <th className="p-4 text-center">Actions</th>
                     </tr>
@@ -1638,11 +1751,25 @@ export default function AdminPanelPage() {
                         <tr key={c.name} className="border-b border-slate-50 hover:bg-slate-50/40 transition-colors">
                           <td className="p-4 text-center font-bold text-slate-400">{idx + 1}</td>
                           <td className="p-4 font-bold text-slate-900">
-                            <div className="flex items-center gap-3">
-                              <span className={`flex items-center justify-center w-8 h-8 rounded-xl border ${iconObj.bg}`}>
-                                {iconObj.icon}
-                              </span>
-                              <span className="text-slate-800 text-sm font-semibold">{c.name}</span>
+                            <div className="flex flex-col gap-2">
+                              <div className="flex items-center gap-3">
+                                <span className={`flex items-center justify-center w-8 h-8 rounded-xl border ${iconObj.bg}`}>
+                                  {iconObj.icon}
+                                </span>
+                                <span className="text-slate-800 text-sm font-semibold">{c.name}</span>
+                              </div>
+                              {Array.isArray(c.subcategories) && c.subcategories.length > 0 && (
+                                <div className="flex flex-wrap gap-1 pl-11">
+                                  {c.subcategories.map((sub) => (
+                                    <span
+                                      key={sub}
+                                      className="text-[9px] font-bold text-slate-600 bg-slate-100 border border-slate-200/60 px-2 py-0.5 rounded-md"
+                                    >
+                                      {sub}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           </td>
                           <td className="p-4 text-center">
@@ -1775,17 +1902,25 @@ export default function AdminPanelPage() {
                 />
               </div>
 
-              {/* Spec */}
+              {/* Technical Feature Badges */}
               <div className="space-y-1.5 text-left">
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Short Specifications</label>
+                <div className="flex items-center justify-between">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    Feature Badges / Technical Specs
+                  </label>
+                  <span className="text-[9px] font-bold text-[#3674B5]">Separate with ( · ) or KEY: VALUE</span>
+                </div>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. 3x USB-C · 120W Max"
+                  placeholder="e.g. INPUT: TYPE C MALE · OUTPUT: VGA · RESOLUTION: 1080P · DRIVER: PLUG & PLAY"
                   className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-slate-350"
                   value={productForm.shortSpec}
                   onChange={(e) => setProductForm({ ...productForm, shortSpec: e.target.value })}
                 />
+                <p className="text-[9px] text-slate-400 font-medium">
+                  Enter key specs or feature badges separated by dots (·). For example: <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-600 font-mono text-[9px]">INPUT: TYPE C MALE · OUTPUT: VGA · RESOLUTION: 1080P</code>. These render as blue feature pills on the front-end product page.
+                </p>
               </div>
 
               {/* Description */}
@@ -1825,30 +1960,145 @@ export default function AdminPanelPage() {
                 </div>
               </div>
 
-              {/* Category & Badge */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Category</label>
-                  <select
-                    className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-semibold text-slate-700 outline-none focus:bg-white"
-                    value={productForm.category}
-                    onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
-                  >
-                    {categoriesListToUse.map((c) => (
-                      <option key={c.name} value={c.name}>{c.name}</option>
-                    ))}
-                  </select>
+              {/* Category */}
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Category</label>
+                <select
+                  className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-semibold text-slate-700 outline-none focus:bg-white"
+                  value={productForm.category}
+                  onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
+                >
+                  {categoriesListToUse.map((c) => (
+                    <option key={c.name} value={c.name}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Dynamic Channel Configurations (Power Supply / CCTV / Multi-channel products) */}
+              <div className="space-y-3.5 border-t-2 border-[#3674B5]/20 bg-blue-50/40 p-4 rounded-2xl border text-left">
+                <div className="flex items-center justify-between">
+                  <label className="block text-[11px] font-extrabold text-[#3674B5] uppercase tracking-wider">
+                    ⚡ Channel Variants (e.g. 4 Channel, 8 Channel, 16 Channel)
+                  </label>
+                  <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded bg-[#3674B5] text-white">
+                    Power Supply / CCTV
+                  </span>
                 </div>
-                <div className="space-y-1.5">
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Promo Badge</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. New, Bestseller"
-                    className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-slate-350"
-                    value={productForm.discountBadge}
-                    onChange={(e) => setProductForm({ ...productForm, discountBadge: e.target.value })}
-                  />
+
+                {/* Common Presets */}
+                <div className="space-y-1">
+                  <span className="block text-[9px] font-extrabold text-slate-500 uppercase tracking-wider">Common Channel Options</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      "1 Channel",
+                      "2 Channel",
+                      "4 Channel",
+                      "8 Channel",
+                      "16 Channel",
+                      "32 Channel"
+                    ].map((ch) => {
+                      const isChecked = productForm.channels?.includes(ch);
+                      return (
+                        <button
+                          key={ch}
+                          type="button"
+                          onClick={() => {
+                            let newChannels = [...(productForm.channels || [])];
+                            if (newChannels.includes(ch)) {
+                              newChannels = newChannels.filter((c) => c !== ch);
+                            } else {
+                              newChannels.push(ch);
+                            }
+                            setProductForm({ ...productForm, channels: newChannels });
+                          }}
+                          className={`px-3.5 py-1.5 rounded-lg border text-[11px] font-bold transition-all duration-200 ${
+                            isChecked
+                              ? "bg-[#3674B5] text-white border-[#3674B5] shadow-xs font-black scale-105"
+                              : "bg-white text-slate-700 border-slate-250 hover:bg-slate-50 hover:text-slate-900 font-bold"
+                          }`}
+                        >
+                          {ch}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
+
+                {/* Custom Add Channel */}
+                <div className="space-y-1.5 pt-1">
+                  <span className="block text-[9px] font-extrabold text-slate-500 uppercase tracking-wider">Add Custom Channel</span>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="e.g. 6 Channel, 12 Channel, 24 Channel"
+                      className="flex-1 bg-white border border-slate-200/80 rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-[#3674B5] transition-all"
+                      id="customChannelInput"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          const val = e.target.value.trim();
+                          if (val && !productForm.channels?.includes(val)) {
+                            setProductForm({
+                              ...productForm,
+                              channels: [...(productForm.channels || []), val]
+                            });
+                            e.target.value = "";
+                          }
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const input = document.getElementById("customChannelInput");
+                        const val = input?.value.trim();
+                        if (val && !productForm.channels?.includes(val)) {
+                          setProductForm({
+                            ...productForm,
+                            channels: [...(productForm.channels || []), val]
+                          });
+                          input.value = "";
+                        }
+                      }}
+                      className="px-4 bg-[#3674B5] text-white text-xs font-bold rounded-xl hover:bg-[#578FCA] transition-all"
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
+
+                {/* Selected Output Preview */}
+                {productForm.channels && productForm.channels.length > 0 && (
+                  <div className="space-y-1.5 pt-1">
+                    <span className="block text-[9px] font-extrabold text-[#3674B5] uppercase tracking-wider">Configured Channels (Store Preview)</span>
+                    <div className="flex flex-wrap gap-1.5 p-2.5 bg-white rounded-xl border border-blue-100 shadow-2xs">
+                      {productForm.channels.map((ch) => (
+                        <span
+                          key={ch}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 border border-blue-200 text-[#3674B5] text-[10px] font-extrabold rounded-lg"
+                        >
+                          <span>{ch}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setProductForm({
+                                ...productForm,
+                                channels: productForm.channels.filter((c) => c !== ch)
+                              });
+                            }}
+                            className="text-[#3674B5]/60 hover:text-rose-600 transition-colors"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <p className="text-[9px] text-slate-500 font-medium">
+                  Select preset channel options or enter custom ones. Admins can add channels to any product.
+                </p>
               </div>
 
               {/* Cable Sizes Configurations — Always Visible */}
@@ -2094,16 +2344,22 @@ export default function AdminPanelPage() {
                 </div>
 
               {/* Variant Pricing overrides */}
-              {((productForm.sizes && productForm.sizes.length > 0) || (productForm.privacySizes && productForm.privacySizes.length > 0)) && (
+              {((productForm.sizes && productForm.sizes.length > 0) ||
+                (productForm.privacySizes && productForm.privacySizes.length > 0) ||
+                (productForm.channels && productForm.channels.length > 0)) && (
                 <div className="space-y-3 border-t border-slate-100 pt-3 text-left">
                   <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                     Variant Specific Pricing overrides
                   </label>
                   <p className="text-[9px] text-slate-400 font-medium -mt-1 leading-normal">
-                    Specify different prices for different length/size segments. Leave blank to default to the base product price.
+                    Specify different prices for different length/size/channel segments. Leave blank to default to the base product price.
                   </p>
                   <div className="space-y-2 bg-slate-50/50 rounded-xl p-3 border border-slate-200/60 max-h-[220px] overflow-y-auto">
-                    {[...(productForm.sizes || []), ...(productForm.privacySizes || [])].map((sz) => {
+                    {[
+                      ...(productForm.sizes || []),
+                      ...(productForm.privacySizes || []),
+                      ...(productForm.channels || [])
+                    ].map((sz) => {
                       const currentOverride = (productForm.sizePrices || []).find((sp) => sp.size === sz) || { size: sz, price: "", originalPrice: "" };
                       return (
                         <div key={sz} className="grid grid-cols-12 gap-2 items-center">

@@ -14,6 +14,7 @@ const ProductSchema = new mongoose.Schema(
     gallery: { type: [String], default: [] },
     sizes: { type: [String], default: [] },
     privacySizes: { type: [String], default: [] },
+    channels: { type: [String], default: [] },
     sizePrices: {
       type: [
         {

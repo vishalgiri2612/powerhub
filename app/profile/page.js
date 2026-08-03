@@ -801,7 +801,7 @@ export default function ProfilePage() {
                   <input type="checkbox" defaultChecked className="w-4 h-4 rounded border-slate-200 text-slate-900 mt-0.5" />
                   <span className="text-xs text-slate-500 font-semibold leading-relaxed">
                     <strong className="text-slate-800 block">Product Announcements</strong>
-                    Weekly email newsletters detailing newly launched power banks and adapters.
+                    Weekly email newsletters detailing newly launched docking stations and adapters.
                   </span>
                 </label>
                 <label className="flex items-start gap-3 cursor-pointer">

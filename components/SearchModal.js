@@ -65,7 +65,7 @@ export default function SearchModal() {
           <input
             ref={inputRef}
             type="text"
-            placeholder="Search power banks, Gan chargers, type-c cables..."
+            placeholder="Search docking stations, converters, type-c cables..."
             className="flex-1 bg-transparent text-xl font-medium text-[#1E293B] outline-none placeholder-[#334155]/40"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -86,7 +86,7 @@ export default function SearchModal() {
             <div>
               <h4 className="text-xs font-semibold text-[#1E293B]/40 uppercase tracking-wider mb-3">Popular Searches</h4>
               <div className="flex flex-wrap gap-2">
-                {["65W GaN", "Power Bank", "MagSafe", "Webcam", "Cables"].map((tag) => (
+                {["65W GaN", "Docking Stations", "MagSafe", "Webcam", "Cables"].map((tag) => (
                   <button
                     key={tag}
                     onClick={() => setQuery(tag)}

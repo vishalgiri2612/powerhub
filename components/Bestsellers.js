@@ -31,7 +31,7 @@ export default function Bestsellers({ productList = [], loading = false }) {
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/30">
               <span className="w-1.5 h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
               <span className="text-[10px] font-extrabold text-[#3674B5] uppercase tracking-wider">
-                Ravtron Shop
+                RAVTRON Shop
               </span>
             </div>
             <h2 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-[#1E293B] tracking-tight leading-tight">
@@ -146,14 +146,16 @@ export default function Bestsellers({ productList = [], loading = false }) {
                         {/* Category & Color Indicator Row */}
                         <div className="flex items-center justify-between text-[8px] sm:text-[9px] font-bold text-[#1E293B]/40 uppercase tracking-wider sm:tracking-widest">
                           <span>{product.category}</span>
-                          <span className="flex items-center gap-1 sm:gap-1.5">
-                            <span
-                              className="w-2 h-2 sm:w-2 sm:h-2 rounded-full border border-[#1E293B]/15 shadow-xs"
-                              style={{ backgroundColor: swatchColor }}
-                              title={product.color}
-                            />
-                            <span className="text-[8px] sm:text-[9px] font-semibold tracking-normal text-[#1E293B]/50 lowercase first-letter:uppercase">{product.color}</span>
-                          </span>
+                          {product.color && product.color.toLowerCase() !== "standard" && (
+                            <span className="flex items-center gap-1 sm:gap-1.5">
+                              <span
+                                className="w-2 h-2 sm:w-2 sm:h-2 rounded-full border border-[#1E293B]/15 shadow-xs"
+                                style={{ backgroundColor: swatchColor }}
+                                title={product.color}
+                              />
+                              <span className="text-[8px] sm:text-[9px] font-semibold tracking-normal text-[#1E293B]/50 lowercase first-letter:uppercase">{product.color}</span>
+                            </span>
+                          )}
                         </div>
 
                         {/* Name */}

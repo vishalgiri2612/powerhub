@@ -85,7 +85,7 @@ export async function PUT(request) {
     }
     await dbConnect();
     const body = await request.json();
-    const { name, newName, image, showOnHome, homePosition } = body;
+    const { name, newName, image, showOnHome, homePosition, subcategories } = body;
     
     if (!name) {
       return NextResponse.json({ error: "Category name parameter is required" }, { status: 400 });
@@ -101,6 +101,9 @@ export async function PUT(request) {
     }
     if (image !== undefined) updateData.image = image;
     if (showOnHome !== undefined) updateData.showOnHome = showOnHome;
+    if (subcategories !== undefined && Array.isArray(subcategories)) {
+      updateData.subcategories = subcategories.map((s) => s.trim()).filter(Boolean);
+    }
 
     // Handle homePosition: 0 = hidden, 1-6 = slot on home page
     if (homePosition !== undefined) {

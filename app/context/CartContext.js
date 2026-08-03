@@ -31,9 +31,14 @@ export function CartProvider({ children }) {
       if (!res.ok) throw new Error("Failed to fetch products");
       const data = await res.json();
       if (Array.isArray(data)) {
-        setProducts(data);
+        const formatted = data.map((p) => ({
+          ...p,
+          name: p.name ? p.name.replace(/ravtron/gi, "RAVTRON") : p.name,
+          description: p.description ? p.description.replace(/ravtron/gi, "RAVTRON") : p.description
+        }));
+        setProducts(formatted);
         try {
-          localStorage.setItem("powerhub_products_cache", JSON.stringify(data));
+          localStorage.setItem("powerhub_products_cache", JSON.stringify(formatted));
         } catch (e) {}
       }
       setProductsLoading(false);
@@ -143,24 +148,11 @@ export function CartProvider({ children }) {
       console.warn("Failed to load products/categories cache on mount", e);
     }
 
-    // Global theme initialization
-    const savedTheme = localStorage.getItem("ravtron_theme");
-    if (savedTheme === "light" || savedTheme === null) {
-      document.documentElement.classList.add("light-mode");
-    } else {
-      document.documentElement.classList.remove("light-mode");
-    }
-
-    // Listen for theme toggle events
-    const handleThemeChange = () => {
-      const updatedTheme = localStorage.getItem("ravtron_theme");
-      if (updatedTheme === "light" || updatedTheme === null) {
-        document.documentElement.classList.add("light-mode");
-      } else {
-        document.documentElement.classList.remove("light-mode");
-      }
-    };
-    window.addEventListener("ravtron_theme_change", handleThemeChange);
+    // Global theme initialization (Default & permanent Light Mode)
+    document.documentElement.classList.add("light-mode");
+    try {
+      localStorage.removeItem("ravtron_theme");
+    } catch (e) {}
 
     const savedCart = localStorage.getItem("ravtron_cart");
     const savedWishlist = localStorage.getItem("ravtron_wishlist");
@@ -180,9 +172,7 @@ export function CartProvider({ children }) {
     }
     isInitialized.current = true;
 
-    return () => {
-      window.removeEventListener("ravtron_theme_change", handleThemeChange);
-    };
+
   }, []);
 
   // Save cart to localStorage on changes
@@ -209,37 +199,48 @@ export function CartProvider({ children }) {
   };
 
   const addToCart = (product, quantityToAdd = 1) => {
+    const variantTag = product.selectedSize || product.selectedPrivacySize || product.selectedChannel;
     setCart((prevCart) => {
-      const existing = prevCart.find((item) => item.id === product.id && item.selectedSize === product.selectedSize);
+      const existing = prevCart.find(
+        (item) =>
+          item.id === product.id &&
+          item.selectedSize === product.selectedSize &&
+          item.selectedPrivacySize === product.selectedPrivacySize &&
+          item.selectedChannel === product.selectedChannel
+      );
       if (existing) {
-        showToast(`Added ${quantityToAdd}x ${product.name}${product.selectedSize ? ` (${product.selectedSize})` : ""} to cart`);
+        showToast(`Added ${quantityToAdd}x ${product.name}${variantTag ? ` (${variantTag})` : ""} to cart`);
         return prevCart.map((item) =>
-          item.id === product.id && item.selectedSize === product.selectedSize
+          item.id === product.id &&
+          item.selectedSize === product.selectedSize &&
+          item.selectedPrivacySize === product.selectedPrivacySize &&
+          item.selectedChannel === product.selectedChannel
             ? { ...item, quantity: item.quantity + quantityToAdd }
             : item
         );
       }
-      showToast(`Added ${quantityToAdd}x ${product.name}${product.selectedSize ? ` (${product.selectedSize})` : ""} to cart`);
+      showToast(`Added ${quantityToAdd}x ${product.name}${variantTag ? ` (${variantTag})` : ""} to cart`);
       return [...prevCart, { ...product, quantity: quantityToAdd }];
     });
     setIsCartOpen(true);
   };
 
-  const removeFromCart = (productId, selectedSize = null) => {
+  const removeFromCart = (productId, selectedSize = null, selectedChannel = null) => {
     setCart((prevCart) => {
-      const item = prevCart.find((i) => i.id === productId && i.selectedSize === selectedSize);
+      const item = prevCart.find((i) => i.id === productId && i.selectedSize === selectedSize && i.selectedChannel === selectedChannel);
+      const variantTag = selectedSize || (item && item.selectedPrivacySize) || selectedChannel;
       if (item) {
-        showToast(`Removed ${item.name}${selectedSize ? ` (${selectedSize})` : ""} from cart`, "info");
+        showToast(`Removed ${item.name}${variantTag ? ` (${variantTag})` : ""} from cart`, "info");
       }
-      return prevCart.filter((item) => !(item.id === productId && item.selectedSize === selectedSize));
+      return prevCart.filter((item) => !(item.id === productId && item.selectedSize === selectedSize && item.selectedChannel === selectedChannel));
     });
   };
 
-  const updateQuantity = (productId, amount, selectedSize = null) => {
+  const updateQuantity = (productId, amount, selectedSize = null, selectedChannel = null) => {
     setCart((prevCart) =>
       prevCart
         .map((item) => {
-          if (item.id === productId && item.selectedSize === selectedSize) {
+          if (item.id === productId && item.selectedSize === selectedSize && item.selectedChannel === selectedChannel) {
             const nextQty = item.quantity + amount;
             return { ...item, quantity: nextQty };
           }

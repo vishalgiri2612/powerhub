@@ -1,26 +1,85 @@
-"use client";
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useCart } from "../app/context/CartContext";
-import { Zap } from "lucide-react";
+import { Zap, ChevronDown, Grid, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
-import HardwareThemeToggle from "./HardwareThemeToggle";
+import { usePathname, useRouter } from "next/navigation";
 
 export default function Navbar() {
+  const router = useRouter();
   const { 
     cart, 
     wishlist, 
     setIsCartOpen, 
     setIsSearchOpen, 
-    getCartCount 
+    getCartCount,
+    categories: categoriesListFromContext
   } = useCart();
   
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
+  const hoverTimeoutRef = useRef(null);
+
+  const handleCategoriesMouseEnter = () => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    setIsCategoriesOpen(true);
+  };
+
+  const handleCategoriesMouseLeave = () => {
+    hoverTimeoutRef.current = setTimeout(() => {
+      setIsCategoriesOpen(false);
+    }, 200);
+  };
+
+  const defaultCategoriesData = [
+    {
+      name: "Cables",
+      image: "/images/cable.png",
+      subcategories: ["HDMI Cables", "VGA Cables", "Power Cords", "Converter Cables"]
+    },
+    {
+      name: "Converters",
+      image: "/images/charger.png",
+      subcategories: ["HDMI", "VGA", "Display Port", "Mini DP", "Type C"]
+    },
+    {
+      name: "Docking Stations",
+      image: "/images/magsafe.png",
+      subcategories: ["TYPE C", "USB", "Dual Type C"]
+    },
+    {
+      name: "Accessories",
+      image: "/images/webcam.png",
+      subcategories: ["Privacy Filter", "Webcam", "Power Adapter", "Laptop Stand"]
+    },
+    {
+      name: "Audio Video",
+      image: "/images/hero.png",
+      subcategories: ["HDMI Extender", "HDMI Splitter", "HDMI Switcher", "Matrix"]
+    },
+    {
+      name: "Networking",
+      image: "/images/ravtron_networking.png",
+      subcategories: ["PATCH CORD", "CAT6 CABLE"]
+    },
+    {
+      name: "Surveillance",
+      image: "/images/ravtron_utility_dev.png",
+      subcategories: ["CCTV Cables", "Power Supply", "PoE Switch", "BNC Connector"]
+    },
+    {
+      name: "USB HUBS",
+      image: "/images/magsafe.png",
+      subcategories: ["TYPE C", "USB"]
+    }
+  ];
+
+  const categoriesToRender = Array.isArray(categoriesListFromContext) && categoriesListFromContext.length > 0
+    ? categoriesListFromContext
+    : defaultCategoriesData;
 
   const handleSignOut = async () => {
     localStorage.removeItem("ravtron_session");
@@ -91,7 +150,7 @@ export default function Navbar() {
           ? "top-3 px-4 sm:px-6 lg:px-8"
           : "top-0 px-0"
       }`}>
-        <nav className={`mx-auto flex items-center justify-between overflow-visible transition-all duration-500 ease-in-out ${
+        <nav className={`mx-auto flex items-center justify-between overflow-visible transition-all duration-500 ease-in-out relative ${
           isScrolled
             ? "max-w-5xl bg-white/95 backdrop-blur-md border border-[#1E293B]/10 rounded-full px-4 sm:px-6 py-2 shadow-lg hover:shadow-xl"
             : "max-w-full bg-white border-b border-[#1E293B]/10 rounded-none px-4 sm:px-12 py-3.5 sm:py-5 shadow-none"
@@ -99,14 +158,10 @@ export default function Navbar() {
           
           {/* Logo Brand */}
           <Link href="/" className="flex items-center group">
-            <Image 
+            <img 
               src="/images/logo.png" 
               alt="RAVTRON®" 
-              width={154}
-              height={28}
-              priority
-              className="h-[24px] sm:h-[28px] object-contain mix-blend-multiply transition-all duration-300 group-hover:scale-105"
-              style={{ width: "auto" }}
+              className="h-8 sm:h-9 w-auto object-contain mix-blend-multiply transition-all duration-300 group-hover:scale-105"
             />
           </Link>
 
@@ -114,6 +169,127 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => {
               const active = isActive(link.href);
+
+              if (link.name === "Categories") {
+                return (
+                  <div
+                    key={link.name}
+                    className="relative py-1 group"
+                    onMouseEnter={handleCategoriesMouseEnter}
+                    onMouseLeave={handleCategoriesMouseLeave}
+                  >
+                    <Link
+                      href={link.href}
+                      className={`text-sm transition-colors relative py-1 inline-flex items-center gap-1 after:absolute after:bottom-0 after:h-[2px] after:bg-[#3674B5] after:transition-all ${
+                        active
+                          ? "font-bold text-[#3674B5] after:w-full after:left-0"
+                          : "font-semibold text-[#1E293B]/70 hover:text-[#1E293B] after:left-1/2 after:w-0 hover:after:w-full hover:after:left-0"
+                      }`}
+                    >
+                      <span>{link.name}</span>
+                      <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${isCategoriesOpen ? "rotate-180 text-[#3674B5]" : "text-[#1E293B]/50"}`} />
+                    </Link>
+
+                    {/* Mega Dropdown Menu for Categories */}
+                    <div 
+                      className={`absolute top-full left-1/2 -translate-x-1/2 mt-3 w-[88vw] max-w-5xl bg-white/98 backdrop-blur-2xl border border-[#1E293B]/12 rounded-3xl p-6 sm:p-7 shadow-2xl transition-all duration-300 z-[100] ${
+                        isCategoriesOpen ? "opacity-100 scale-100 pointer-events-auto" : "opacity-0 scale-95 pointer-events-none"
+                      }`}
+                      onMouseEnter={handleCategoriesMouseEnter}
+                      onMouseLeave={handleCategoriesMouseLeave}
+                    >
+                      {/* Dropdown Header */}
+                      <div className="flex items-center justify-between border-b border-[#1E293B]/10 pb-4 mb-5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/20 flex items-center justify-center text-[#3674B5]">
+                            <Grid className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-black text-[#1E293B] uppercase tracking-wider">RAVTRON Product Ecosystem</h4>
+                            <p className="text-[10px] font-semibold text-[#1E293B]/50">Explore structured hardware collections with official specs</p>
+                          </div>
+                        </div>
+                        <Link 
+                          href="/categories"
+                          onClick={() => setIsCategoriesOpen(false)}
+                          className="text-xs font-bold text-[#3674B5] hover:text-white hover:bg-[#3674B5] flex items-center gap-1.5 transition-all bg-[#3674B5]/8 px-3.5 py-1.5 rounded-full border border-[#3674B5]/20"
+                        >
+                          <span>Explore All Categories</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </Link>
+                      </div>
+
+                      {/* Structured Categories Grid (4 Columns) */}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+                        {categoriesToRender.map((cat) => {
+                          const imgPath = cat.image || "/images/charger.png";
+                          const subs = cat.subcategories || [];
+                          return (
+                            <div
+                              key={cat.name}
+                              className="group/item bg-[#F8F9FA] hover:bg-white border border-[#1E293B]/8 hover:border-[#3674B5]/30 rounded-2xl p-3 transition-all duration-300 hover:shadow-lg flex flex-col justify-between cursor-pointer"
+                              onClick={() => {
+                                setIsCategoriesOpen(false);
+                                router.push(`/shop?category=${encodeURIComponent(cat.name)}`);
+                              }}
+                            >
+                              {/* Card Header: Thumbnail Image & Category Name */}
+                              <div className="flex items-center gap-3">
+                                <div className="w-11 h-11 rounded-xl bg-white border border-[#1E293B]/10 p-1 flex-shrink-0 flex items-center justify-center overflow-hidden group-hover/item:scale-105 transition-transform">
+                                  <img 
+                                    src={imgPath} 
+                                    alt={cat.name}
+                                    className="w-full h-full object-contain"
+                                  />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <h5 className="font-display font-bold text-xs text-[#1E293B] group-hover/item:text-[#3674B5] transition-colors truncate">
+                                    {cat.name}
+                                  </h5>
+                                  <span className="text-[9px] font-extrabold text-[#3674B5] uppercase tracking-wider flex items-center gap-0.5 opacity-80 group-hover/item:opacity-100">
+                                    <span>Browse</span>
+                                    <span className="group-hover/item:translate-x-1 transition-transform">→</span>
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Subcategories Tags List */}
+                              {subs.length > 0 && (
+                                <div className="flex flex-wrap gap-1 pt-2.5 mt-2 border-t border-[#1E293B]/5">
+                                  {subs.slice(0, 3).map((sub) => (
+                                    <button
+                                      key={sub}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setIsCategoriesOpen(false);
+                                        router.push(`/shop?category=${encodeURIComponent(cat.name)}&search=${encodeURIComponent(sub)}`);
+                                      }}
+                                      className="text-[9px] font-bold text-[#1E293B]/60 bg-white hover:bg-[#3674B5] hover:text-white px-2 py-0.5 rounded-md border border-[#1E293B]/8 hover:border-[#3674B5] transition-all"
+                                    >
+                                      {sub}
+                                    </button>
+                                  ))}
+                                  {subs.length > 3 && (
+                                    <span className="text-[9px] font-bold text-[#3674B5] self-center ml-0.5">+{subs.length - 3}</span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Footer Trust Ribbon */}
+                      <div className="mt-5 pt-3.5 border-t border-[#1E293B]/10 flex items-center justify-between text-[10px] font-bold text-[#1E293B]/60 px-1">
+                        <span className="flex items-center gap-1.5"><span className="text-[#3674B5]">✓</span> 100% Genuine RAVTRON® Hardware</span>
+                        <span className="flex items-center gap-1.5"><span className="text-[#3674B5]">⚡</span> Express Pan-India Delivery</span>
+                        <span className="flex items-center gap-1.5"><span className="text-[#3674B5]">🛡️</span> Official Warranty Protection</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
               return (
                 <Link
                   key={link.name}
@@ -175,10 +351,6 @@ export default function Navbar() {
               )}
             </button>
 
-            {/* Hardware Theme Toggle */}
-            <div className="relative z-50 flex items-center justify-center overflow-visible">
-              <HardwareThemeToggle />
-            </div>
 
             {/* Login / Sign Up or Profile Dropdown */}
             {user ? (
