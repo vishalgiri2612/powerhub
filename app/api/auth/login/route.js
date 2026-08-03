@@ -50,7 +50,7 @@ export async function POST(request) {
         httpOnly: true,
         secure,
         path: "/",
-        maxAge: 86400, // 1 day
+        maxAge: 345600, // 4 days (4 * 24 * 60 * 60)
         sameSite: "lax"
       });
 
@@ -97,7 +97,7 @@ export async function POST(request) {
         httpOnly: true,
         secure,
         path: "/",
-        maxAge: 86400,
+        maxAge: 345600, // 4 days (4 * 24 * 60 * 60)
         sameSite: "lax"
       });
 

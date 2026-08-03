@@ -92,8 +92,9 @@ export default function AdminPanelPage() {
   const router = useRouter();
   const { showToast, refreshProducts, refreshCategories, products: cartProducts, categories: cartCategories } = useCart();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
   const [adminPassword, setAdminPassword] = useState("");
-  const [activeTab, setActiveTab] = useState("overview"); // overview, products, orders, users, categories
+  const [activeTab, setActiveTab] = useState("products"); // products, orders, users, categories, hero
 
   // Data States
   const [adminProducts, setAdminProducts] = useState([]);
@@ -102,6 +103,7 @@ export default function AdminPanelPage() {
   const [adminUsers, setAdminUsers] = useState([]);
   const [heroSlides, setHeroSlides] = useState([]);
   const [isLoadingHero, setIsLoadingHero] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [expandedOrderId, setExpandedOrderId] = useState(null);
 
@@ -237,9 +239,10 @@ export default function AdminPanelPage() {
 
   // Fetch administrator records from MongoDB APIs
   const fetchAdminData = async () => {
+    setIsLoadingData(true);
     try {
       const [resProducts, resOrders, resCategories, resUsers] = await Promise.all([
-        fetch("/api/products").then((r) => r.json()).catch(() => null),
+        fetch("/api/products?excludeGallery=true").then((r) => r.json()).catch(() => null),
         fetch("/api/orders").then((r) => r.json()).catch(() => null),
         fetch("/api/categories").then((r) => r.json()).catch(() => null),
         fetch("/api/users").then((r) => r.json()).catch(() => null)
@@ -254,6 +257,8 @@ export default function AdminPanelPage() {
       if (typeof refreshCategories === "function") refreshCategories();
     } catch (err) {
       console.error("Error loading admin data:", err);
+    } finally {
+      setIsLoadingData(false);
     }
   };
 
@@ -270,6 +275,7 @@ export default function AdminPanelPage() {
         console.error(e);
       }
     }
+    setIsAuthChecking(false);
     fetchAdminData();
   }, []);
 
@@ -727,7 +733,13 @@ export default function AdminPanelPage() {
     setIsProductModalOpen(true);
   };
 
-  const totalSalesVal = adminOrders.reduce((sum, o) => sum + (o.status !== "Cancelled" ? o.total : 0), 0);
+  if (isAuthChecking && !isAdmin) {
+    return (
+      <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-300 border-t-[#3674B5]" />
+      </div>
+    );
+  }
 
   // Authentication protection check screen
   if (!isAdmin) {
@@ -815,17 +827,6 @@ export default function AdminPanelPage() {
           {/* Navigation Links */}
           <nav className="space-y-1">
             <button
-              onClick={() => setActiveTab("overview")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${activeTab === "overview"
-                  ? "bg-slate-50 text-slate-900 font-bold"
-                  : "text-slate-500 hover:bg-slate-50/50 hover:text-slate-900"
-                }`}
-            >
-              <BarChart2 className="w-4 h-4 text-slate-400" />
-              <span>Overview</span>
-            </button>
-
-            <button
               onClick={() => {
                 setActiveTab("products");
                 setSubTab("all");
@@ -907,315 +908,6 @@ export default function AdminPanelPage() {
 
       {/* MAIN CONTENT AREA */}
       <main className="flex-grow p-8 md:p-12 bg-slate-50/50 h-full overflow-y-auto">
-
-        {/* TAB: OVERVIEW */}
-        {activeTab === "overview" && (() => {
-          const totalRevenue = adminOrders.reduce((sum, o) => sum + (o.status !== "Cancelled" && o.status !== "CANCELLED" ? o.total : 0), 0) || 42001;
-          const ordersCount = adminOrders.length || 17;
-          const customersCount = adminUsers.length || 6;
-          const lowStockProducts = adminProducts.filter((p) => typeof p.stock === "number" && p.stock <= 5);
-
-          const categorySalesMap = {};
-          // Pre-seed some default baseline data
-          categorySalesMap["Cables"] = 120;
-          categorySalesMap["Converters"] = 85;
-          categorySalesMap["Accessories"] = 60;
-
-          adminOrders.forEach((order) => {
-            if (order.status !== "Cancelled" && order.status !== "CANCELLED") {
-              order.items.forEach((item) => {
-                const prod = adminProducts.find((p) => p.name === item.name);
-                const category = prod ? prod.category : "Accessories";
-                categorySalesMap[category] = (categorySalesMap[category] || 0) + item.qty;
-              });
-            }
-          });
-
-          const categoryPerformance = Object.entries(categorySalesMap)
-            .map(([categoryName, units]) => ({ categoryName, units }))
-            .sort((a, b) => b.units - a.units)
-            .slice(0, 3);
-
-          const maxUnits = Math.max(...categoryPerformance.map(c => c.units), 1);
-
-          const mockTransactions = [
-            { id: "RVT-CANCEL-01", customerName: "Visha Rawat", status: "CANCELLED", date: "6/4/2026", total: 1 },
-            { id: "RVT-DELIVER-02", customerName: "Rahul Sharma", status: "DELIVERED", date: "6/4/2026", total: 12500 },
-            { id: "RVT-DELIVER-03", customerName: "Ksg Automation", status: "DELIVERED", date: "6/4/2026", total: 4500 },
-            { id: "RVT-CANCEL-04", customerName: "ravtron", status: "CANCELLED", date: "6/4/2026", total: 1 },
-            { id: "RVT-CANCEL-05", customerName: "Rahul Sharma", status: "CANCELLED", date: "6/4/2026", total: 7890 }
-          ];
-
-          const transactionsToDisplay = adminOrders.length > 0
-            ? adminOrders.map(o => ({
-              id: o.id,
-              customerName: o.customerName,
-              status: o.status.toUpperCase(),
-              date: o.date.split(" ")[0] || o.date,
-              total: o.total
-            }))
-            : mockTransactions;
-
-          return (
-            <div className="space-y-8 animate-fade-in">
-              {/* Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <h1 className="text-2xl font-bold font-display tracking-tight text-slate-900">Dashboard Overview</h1>
-                  <p className="text-xs text-slate-400 font-medium">Real-time store performance and logistics.</p>
-                </div>
-                <button
-                  onClick={fetchAdminData}
-                  className="w-fit inline-flex items-center gap-1.5 px-4.5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-600 hover:text-slate-900 transition-all shadow-2xs"
-                >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  <span>Refresh</span>
-                </button>
-              </div>
-
-              {/* Stats Cards Row */}
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                {/* Total Revenue */}
-                <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-2">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Revenue</p>
-                  <h3 className="text-2xl font-bold tracking-tight text-slate-900">₹{totalRevenue.toLocaleString()}</h3>
-                  <p className="text-[10px] text-slate-400 font-semibold">₹0 today</p>
-                </div>
-                {/* Orders */}
-                <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-2">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Orders</p>
-                  <h3 className="text-2xl font-bold tracking-tight text-slate-900">{ordersCount}</h3>
-                  <p className="text-[10px] text-slate-400 font-semibold">0 placed today</p>
-                </div>
-                {/* Low Stock */}
-                <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-2">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Low Stock</p>
-                  <h3 className="text-2xl font-bold tracking-tight text-slate-900">{lowStockProducts.length}</h3>
-                  <p className={`text-[10px] font-semibold ${lowStockProducts.length > 0 ? 'text-amber-500' : 'text-slate-400'}`}>
-                    {lowStockProducts.length > 0 ? `${lowStockProducts.length} items low` : 'Requires attention'}
-                  </p>
-                </div>
-                {/* Support */}
-                <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-2">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Support</p>
-                  <h3 className="text-2xl font-bold tracking-tight text-slate-900">0</h3>
-                  <p className="text-[10px] text-slate-400 font-semibold">Active tickets</p>
-                </div>
-                {/* Customers */}
-                <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-2">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Customers</p>
-                  <h3 className="text-2xl font-bold tracking-tight text-slate-900">{customersCount}</h3>
-                  <p className="text-[10px] text-slate-400 font-semibold">Registered users</p>
-                </div>
-              </div>
-
-              {/* Chart and Brand Row */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-                {/* Revenue Trend Chart */}
-                <div className="lg:col-span-8 bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-6">
-                  <div className="flex justify-between items-start border-b border-slate-100/60 pb-4">
-                    <div>
-                      <h3 className="font-bold text-base text-slate-900">Revenue Trend</h3>
-                      <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Performance over the last 30 days</p>
-                    </div>
-                    <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-100">Last 30 Days</span>
-                  </div>
-
-                  <div className="flex items-baseline gap-2">
-                    <h4 className="text-2xl font-black text-slate-900">₹17,001</h4>
-                  </div>
-
-                  {/* SVG Chart Graphic */}
-                  <div className="relative w-full h-48 flex items-stretch">
-                    {/* Y Axis */}
-                    <div className="flex flex-col justify-between text-[10px] font-bold text-slate-400 h-36 pr-4 border-r border-slate-100/60 text-right w-12 shrink-0">
-                      <span>₹18k</span>
-                      <span>₹14k</span>
-                      <span>₹9k</span>
-                      <span>₹5k</span>
-                      <span>₹0</span>
-                    </div>
-                    {/* Chart Area */}
-                    <div className="flex-grow relative h-36 ml-2">
-                      <svg className="w-full h-full overflow-visible" viewBox="0 0 400 144" preserveAspectRatio="none">
-                        <defs>
-                          <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#3674B5" stopOpacity="0.18" />
-                            <stop offset="100%" stopColor="#3674B5" stopOpacity="0.0" />
-                          </linearGradient>
-                        </defs>
-                        {/* Horizontal guidelines */}
-                        <line x1="0" y1="0" x2="400" y2="0" stroke="#F1F5F9" strokeWidth="1" strokeDasharray="3,3" />
-                        <line x1="0" y1="36" x2="400" y2="36" stroke="#F1F5F9" strokeWidth="1" strokeDasharray="3,3" />
-                        <line x1="0" y1="72" x2="400" y2="72" stroke="#F1F5F9" strokeWidth="1" strokeDasharray="3,3" />
-                        <line x1="0" y1="108" x2="400" y2="108" stroke="#F1F5F9" strokeWidth="1" strokeDasharray="3,3" />
-                        <line x1="0" y1="144" x2="400" y2="144" stroke="#E2E8F0" strokeWidth="1.5" />
-
-                        {/* Chart Area Fill */}
-                        <path
-                          d="M 0 130 C 80 110, 120 40, 200 60 C 280 80, 320 20, 400 10 L 400 144 L 0 144 Z"
-                          fill="url(#chartGrad)"
-                        />
-
-                        {/* Chart Line Path */}
-                        <path
-                          d="M 0 130 C 80 110, 120 40, 200 60 C 280 80, 320 20, 400 10"
-                          fill="none"
-                          stroke="#3674B5"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                        />
-
-                        {/* Chart Points */}
-                        <circle cx="200" cy="60" r="4.5" fill="#3674B5" stroke="#FFFFFF" strokeWidth="2.5" />
-                        <circle cx="400" cy="10" r="4.5" fill="#3674B5" stroke="#FFFFFF" strokeWidth="2.5" />
-                      </svg>
-                      {/* X Axis labels */}
-                      <div className="flex justify-between text-[10px] font-bold text-slate-400 mt-2 px-1">
-                        <span>06/03</span>
-                        <span>06/04</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Category Performance */}
-                <div className="lg:col-span-4 bg-white border border-slate-100 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
-                  <div className="space-y-5">
-                    <div className="border-b border-slate-100 pb-3">
-                      <h3 className="font-bold text-sm text-slate-900">Category Performance</h3>
-                      <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Top selling by volume</p>
-                    </div>
-
-                    <div className="space-y-4 pt-1">
-                      {categoryPerformance.map((item, idx) => {
-                        const colors = ["bg-[#3674B5]", "bg-[#DEC89E]", "bg-[#C39281]"];
-                        const color = colors[idx] || "bg-slate-400";
-                        const pct = (item.units / maxUnits) * 100;
-                        return (
-                          <div key={item.categoryName} className="space-y-1.5">
-                            <div className="flex justify-between text-xs font-semibold">
-                              <span className="text-slate-600 font-bold">{item.categoryName}</span>
-                              <span className="text-slate-950 font-black">{item.units} units</span>
-                            </div>
-                            <div className="w-full bg-slate-50 h-2 rounded-full overflow-hidden border border-slate-100">
-                              <div className={`${color} h-full rounded-full`} style={{ width: `${pct}%` }} />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => setActiveTab("categories")}
-                    className="w-full mt-6 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-100 text-xs font-bold text-slate-600 hover:text-slate-900 transition-all text-center flex items-center justify-center gap-1.5 shadow-3xs"
-                  >
-                    <span>Manage Categories</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Transactions and Alerts Row */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-                {/* Recent Transactions */}
-                <div className="lg:col-span-8 bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-6">
-                  <div className="border-b border-slate-100 pb-4 flex items-center justify-between">
-                    <div>
-                      <h3 className="font-bold text-base text-slate-900">Recent Transactions</h3>
-                      <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Logs of recent order activity</p>
-                    </div>
-                    <button
-                      onClick={() => setActiveTab("orders")}
-                      className="text-xs font-bold text-[#3674B5] hover:text-[#578FCA] hover:underline"
-                    >
-                      View All Orders
-                    </button>
-                  </div>
-
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse text-xs font-semibold text-slate-800">
-                      <thead>
-                        <tr className="bg-slate-50/80 border-b border-slate-100 uppercase text-[9px] tracking-wider text-slate-400 font-black">
-                          <th className="p-3">Order ID</th>
-                          <th className="p-3">Customer</th>
-                          <th className="p-3">Status</th>
-                          <th className="p-3">Date</th>
-                          <th className="p-3">Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {transactionsToDisplay.slice(0, 5).map((tx) => {
-                          const statusColor =
-                            tx.status.toUpperCase() === "CANCELLED" ? "text-rose-500 bg-rose-50" :
-                              tx.status.toUpperCase() === "DELIVERED" ? "text-emerald-500 bg-emerald-50" :
-                                "text-amber-500 bg-amber-50";
-                          return (
-                            <tr key={tx.id} className="border-b border-slate-50 hover:bg-slate-50/40 transition-colors">
-                              <td className="p-3 font-bold text-slate-900">{tx.id}</td>
-                              <td className="p-3 text-slate-600 font-semibold">{tx.customerName}</td>
-                              <td className="p-3">
-                                <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider ${statusColor}`}>
-                                  {tx.status}
-                                </span>
-                              </td>
-                              <td className="p-3 text-slate-400 font-semibold">{tx.date}</td>
-                              <td className="p-3 font-black text-slate-900">₹{tx.total.toLocaleString()}</td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                {/* Low Stock Alerts */}
-                <div className="lg:col-span-4 bg-white border border-slate-100 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
-                  <div className="space-y-4">
-                    <div className="border-b border-slate-100 pb-3">
-                      <h3 className="font-bold text-sm text-slate-900">Low Stock</h3>
-                      <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Critical stock level notifications</p>
-                    </div>
-                    {lowStockProducts.length === 0 ? (
-                      <div className="py-6 text-center space-y-3">
-                        <div className="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center mx-auto text-emerald-500">
-                          <Check className="w-6 h-6" />
-                        </div>
-                        <div className="space-y-1">
-                          <h4 className="text-xl font-bold text-slate-900">0 Alerts</h4>
-                          <p className="text-xs text-slate-400 font-semibold">Inventory levels healthy</p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1 scrollbar-thin">
-                        {lowStockProducts.map((p) => (
-                          <div key={p.id} className="flex items-center justify-between p-2 rounded-xl bg-amber-50/40 border border-amber-100/60 gap-2">
-                            <div className="flex items-center gap-2 min-w-0">
-                              <img src={p.image} alt={p.name} className="w-7 h-7 object-contain rounded bg-white p-0.5 border border-slate-100 shrink-0" />
-                              <span className="text-xs font-bold text-slate-800 truncate">{p.name}</span>
-                            </div>
-                            <span className="text-[10px] font-black text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded-md shrink-0">
-                              {p.stock} units
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <button
-                    onClick={() => setActiveTab("products")}
-                    className="w-full mt-6 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-100 text-xs font-bold text-slate-600 hover:text-slate-900 transition-all text-center flex items-center justify-center gap-1.5 shadow-3xs"
-                  >
-                    <span>Check All Products</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
-        })()}
 
         {/* TAB: PRODUCTS (Exactly copies styling filters, capsules, tables and buttons from screenshot) */}
         {activeTab === "products" && (

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Order from "@/models/Order";
 import { verifyAdmin, verifyUser } from "@/lib/auth";
+import { clearOrdersCache } from "@/lib/cache";
 
 export async function PUT(request, { params }) {
   try {
@@ -20,6 +21,7 @@ export async function PUT(request, { params }) {
     if (!updatedOrder) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
+    clearOrdersCache();
     return NextResponse.json(updatedOrder);
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

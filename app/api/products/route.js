@@ -11,31 +11,23 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const excludeGallery = searchParams.get("excludeGallery") === "true";
 
-    await dbConnect();
-
-    // Auto-update any existing mixed-case "Ravtron" product names in MongoDB to capital "RAVTRON"
-    try {
-      const itemsToFix = await Product.find({ name: { $regex: /ravtron/i } });
-      for (const p of itemsToFix) {
-        if (p.name && /ravtron/i.test(p.name) && !p.name.includes("RAVTRON")) {
-          p.name = p.name.replace(/ravtron/gi, "RAVTRON");
-          if (p.description) p.description = p.description.replace(/ravtron/gi, "RAVTRON");
-          await p.save();
-        }
-      }
-    } catch (e) {
-      console.error("Auto-correcting MongoDB product names:", e);
+    // 1. Return immediately from in-memory cache if valid (< 1ms response)
+    const cached = getCachedProducts(excludeGallery);
+    if (cached) {
+      return NextResponse.json(cached);
     }
 
-    const rawProducts = await Product.find({}).sort({ createdAt: -1 });
+    await dbConnect();
+
+    const rawProducts = await Product.find({}).sort({ createdAt: -1 }).lean();
     const products = rawProducts.map((p) => {
-      const obj = p.toObject ? p.toObject() : { ...p };
+      const obj = { ...p };
       if (obj.name) obj.name = obj.name.replace(/ravtron/gi, "RAVTRON");
       if (obj.description) obj.description = obj.description.replace(/ravtron/gi, "RAVTRON");
       return obj;
     });
 
-    // Cache both variants so all subsequent requests are instant
+    // Cache both full & gallery-excluded variants
     setCachedProducts(products, false);
     setCachedProducts(
       products.map((p) => {

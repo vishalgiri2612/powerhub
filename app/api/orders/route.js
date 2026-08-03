@@ -3,6 +3,7 @@ import dbConnect from "@/lib/dbConnect";
 import Order from "@/models/Order";
 import Product from "@/models/Product";
 import { verifyAdmin, verifyUser } from "@/lib/auth";
+import { getCachedOrders, setCachedOrders, clearOrdersCache } from "@/lib/cache";
 
 export async function GET(request) {
   try {
@@ -17,11 +18,18 @@ export async function GET(request) {
       if (!(await verifyAdmin())) {
         return NextResponse.json({ error: "Unauthorized access: Administrator role required" }, { status: 403 });
       }
+      const cached = getCachedOrders();
+      if (cached) {
+        return NextResponse.json(cached);
+      }
     }
 
     await dbConnect();
     const query = email ? { customerEmail: email } : {};
-    const orders = await Order.find(query).sort({ createdAt: -1 });
+    const orders = await Order.find(query).sort({ createdAt: -1 }).lean();
+    if (!email) {
+      setCachedOrders(orders);
+    }
     return NextResponse.json(orders);
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -104,6 +112,7 @@ export async function POST(request) {
     }
     
     const newOrder = await Order.create(body);
+    clearOrdersCache();
     return NextResponse.json(newOrder, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

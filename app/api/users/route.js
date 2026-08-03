@@ -3,14 +3,20 @@ import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
 import { verifyAdmin, verifyUser } from "@/lib/auth";
 import { cookies } from "next/headers";
+import { getCachedUsers, setCachedUsers, clearUsersCache } from "@/lib/cache";
 
 export async function GET() {
   try {
     if (!(await verifyAdmin())) {
       return NextResponse.json({ error: "Unauthorized access: Administrator role required" }, { status: 403 });
     }
+    const cached = getCachedUsers();
+    if (cached) {
+      return NextResponse.json(cached);
+    }
     await dbConnect();
-    const users = await User.find({}).sort({ name: 1 });
+    const users = await User.find({}).sort({ name: 1 }).lean();
+    setCachedUsers(users);
     return NextResponse.json(users);
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -77,7 +83,7 @@ export async function PUT(request) {
             httpOnly: true,
             secure,
             path: "/",
-            maxAge: 86400,
+            maxAge: 345600, // 4 days
             sameSite: "lax"
           });
         }
@@ -86,6 +92,7 @@ export async function PUT(request) {
       }
     }
 
+    clearUsersCache();
     return NextResponse.json(updatedUser);
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -133,10 +140,11 @@ export async function POST(request) {
       httpOnly: true,
       secure,
       path: "/",
-      maxAge: 86400, // 1 day
+      maxAge: 345600, // 4 days
       sameSite: "lax"
     });
 
+    clearUsersCache();
     return NextResponse.json(userToSession, { status: existing ? 200 : 201 });
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

@@ -362,26 +362,29 @@ export default function Navbar() {
                       <p className="text-[10px] font-bold text-[#1E293B]/40 uppercase tracking-wider">Account</p>
                       <p className="text-xs font-black text-[#1E293B] truncate">{user.name}</p>
                     </div>
-                    <Link
-                      href="/profile"
-                      onClick={() => setDropdownOpen(false)}
-                      className="px-3 py-2.5 rounded-xl hover:bg-[#3674B5]/5 text-xs font-extrabold text-[#1E293B]/70 hover:text-[#1E293B] transition-all flex items-center gap-2 text-left"
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                      <span>Dashboard</span>
-                    </Link>
-                    <Link
-                      href="/admin"
-                      onClick={() => setDropdownOpen(false)}
-                      className="px-3 py-2.5 rounded-xl hover:bg-[#3674B5]/5 text-xs font-extrabold text-[#1E293B]/70 hover:text-[#1E293B] transition-all flex items-center gap-2 text-left"
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                      </svg>
-                      <span>Admin Panel</span>
-                    </Link>
+                    {user.role === "Administrator" || user.email === "ravtron@admin.com" ? (
+                      <Link
+                        href="/admin"
+                        onClick={() => setDropdownOpen(false)}
+                        className="px-3 py-2.5 rounded-xl hover:bg-[#3674B5]/5 text-xs font-extrabold text-[#1E293B]/70 hover:text-[#1E293B] transition-all flex items-center gap-2 text-left"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                        <span>Admin Panel</span>
+                      </Link>
+                    ) : (
+                      <Link
+                        href="/profile"
+                        onClick={() => setDropdownOpen(false)}
+                        className="px-3 py-2.5 rounded-xl hover:bg-[#3674B5]/5 text-xs font-extrabold text-[#1E293B]/70 hover:text-[#1E293B] transition-all flex items-center gap-2 text-left"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <span>Dashboard</span>
+                      </Link>
+                    )}
                     <button
                       onClick={() => {
                         setDropdownOpen(false);
@@ -447,13 +450,23 @@ export default function Navbar() {
             })}
             {user ? (
               <div className="flex flex-col gap-2 pt-2 border-t border-[#1E293B]/5 w-full">
-                <Link
-                  href="/profile"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="w-full py-3 rounded-xl bg-[#3674B5]/5 hover:bg-[#3674B5]/10 text-[#3674B5] text-sm font-bold transition-all text-center block"
-                >
-                  My Profile Dashboard
-                </Link>
+                {user.role === "Administrator" || user.email === "ravtron@admin.com" ? (
+                  <Link
+                    href="/admin"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full py-3 rounded-xl bg-[#3674B5]/5 hover:bg-[#3674B5]/10 text-[#3674B5] text-sm font-bold transition-all text-center block"
+                  >
+                    Admin Panel
+                  </Link>
+                ) : (
+                  <Link
+                    href="/profile"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full py-3 rounded-xl bg-[#3674B5]/5 hover:bg-[#3674B5]/10 text-[#3674B5] text-sm font-bold transition-all text-center block"
+                  >
+                    My Profile Dashboard
+                  </Link>
+                )}
                 <button
                   onClick={() => {
                     setMobileMenuOpen(false);
