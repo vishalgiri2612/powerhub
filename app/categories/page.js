@@ -157,6 +157,24 @@ export default function CategoriesPage() {
                     <h3 className="font-display font-black text-xs md:text-xl text-[#1E293B] group-hover:text-[#3674B5] transition-colors duration-300">
                       {category.name}
                     </h3>
+                    {/* Inline list of subcategories */}
+                    {Array.isArray(category.subcategories) && category.subcategories.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 pt-1 z-10">
+                        {category.subcategories.map((sub) => (
+                          <button
+                            key={sub}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              router.push(`/shop?category=${encodeURIComponent(category.name)}&search=${encodeURIComponent(sub)}`);
+                            }}
+                            className="text-[10px] font-bold text-[#1E293B]/70 bg-[#F8F9FA] px-2.5 py-1 rounded-md border border-[#1E293B]/10 hover:bg-[#3674B5] hover:text-white hover:border-[#3674B5] transition-all cursor-pointer shadow-2xs active:scale-95"
+                            title={`Browse ${sub} in ${category.name}`}
+                          >
+                            {sub}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Bottom Browse CTA Link */}
