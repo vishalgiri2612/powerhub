@@ -86,10 +86,11 @@ export default function WishlistPage() {
                   <div>
                     {/* Top Row: Badges & Wishlist Toggle */}
                     <div className="flex items-center justify-between z-10 relative">
-                      <span className="text-[8px] sm:text-[9px] font-extrabold uppercase px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full backdrop-blur-md bg-white/80 border border-[#1E293B]/10 text-[#1E293B] tracking-wider flex items-center gap-1.5 shadow-xs">
-                        <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
-                        {product.discountBadge || "WISHLIST"}
-                      </span>
+                      {Boolean(product.discountBadge && product.discountBadge.trim()) ? (
+                        <span className="text-[8px] sm:text-[9px] font-extrabold uppercase px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full backdrop-blur-md bg-white/80 border border-[#1E293B]/10 text-[#1E293B] tracking-wider shadow-xs">
+                          {product.discountBadge}
+                        </span>
+                      ) : <div />}
 
                       <button
                         onClick={(e) => {

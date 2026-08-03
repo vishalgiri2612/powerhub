@@ -26,6 +26,7 @@ const ProductSchema = new mongoose.Schema(
       default: []
     },
     category: { type: String, required: true },
+    subcategory: { type: String, default: "" },
     featured: { type: Boolean, default: false },
     isNewArrival: { type: Boolean, default: false },
     color: { type: String, required: true },

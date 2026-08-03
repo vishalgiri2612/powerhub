@@ -60,14 +60,20 @@ function ShopContent() {
         if (!searchParam) return matchesCategory;
 
         const term = searchParam.toLowerCase().trim();
-        const matchesSearch =
-          p.name.toLowerCase().includes(term) ||
-          p.category.toLowerCase().includes(term) ||
-          (p.shortSpec && p.shortSpec.toLowerCase().includes(term)) ||
-          (p.description && p.description.toLowerCase().includes(term)) ||
-          (p.color && p.color.toLowerCase().includes(term));
+        const fullText = `${p.name} ${p.category} ${p.shortSpec || ""} ${p.description || ""} ${p.color || ""}`.toLowerCase();
 
-        return matchesCategory && matchesSearch;
+        // 1. Direct exact substring match
+        if (fullText.includes(term)) return matchesCategory;
+
+        // 2. Tokenized & plural-insensitive match (e.g., "HDMI Cables" -> "hdmi", "cable")
+        const tokens = term
+          .split(/[\s,·\-\/]+/)
+          .map((w) => w.trim().replace(/s$/, "")) // stem trailing 's'
+          .filter((w) => w.length > 1);
+
+        const matchesTokens = tokens.length > 0 && tokens.every((tok) => fullText.includes(tok));
+
+        return matchesCategory && matchesTokens;
       });
 
   const filterOptions = ["All", ...(Array.isArray(categoriesList) ? categoriesList.map((c) => c.name) : [])];
@@ -196,10 +202,11 @@ function ShopContent() {
                   <div>
                     {/* Top Row: Badges & Wishlist */}
                     <div className="flex items-center justify-between z-10 relative">
-                      <span className="text-[8px] sm:text-[9px] font-extrabold uppercase px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full backdrop-blur-md bg-white/80 border border-[#1E293B]/10 text-[#1E293B] tracking-wider flex items-center gap-1.5 shadow-xs">
-                        <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
-                        {product.discountBadge}
-                      </span>
+                      {Boolean(product.discountBadge && product.discountBadge.trim()) ? (
+                        <span className="text-[8px] sm:text-[9px] font-extrabold uppercase px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full backdrop-blur-md bg-white/80 border border-[#1E293B]/10 text-[#1E293B] tracking-wider shadow-xs">
+                          {product.discountBadge}
+                        </span>
+                      ) : <div />}
 
                       <button
                         onClick={(e) => {

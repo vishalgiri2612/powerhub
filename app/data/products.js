@@ -15,6 +15,7 @@ export const products = [
       "/images/charger_pack.png"
     ],
     category: "Accessories",
+    subcategory: "Power Adapter",
     featured: true,
     isNewArrival: false,
     color: "Sage Green",
@@ -37,6 +38,7 @@ export const products = [
       "/images/cable.png"
     ],
     category: "Docking Stations",
+    subcategory: "TYPE C",
     featured: true,
     isNewArrival: false,
     color: "Anodized Grey",
@@ -60,6 +62,7 @@ export const products = [
       "/images/charger_angle.png"
     ],
     category: "Cables",
+    subcategory: "Power Cords",
     sizes: ["1.8 Mtr", "3.0 Mtr", "5 Mtr"],
     featured: true,
     isNewArrival: true,
@@ -83,6 +86,7 @@ export const products = [
       "/images/charger.png"
     ],
     category: "Accessories",
+    subcategory: "Webcam",
     featured: true,
     isNewArrival: true,
     color: "Clay Grey",
@@ -104,6 +108,7 @@ export const products = [
       "/images/cable.png"
     ],
     category: "Accessories",
+    subcategory: "Privacy Filter",
     featured: false,
     isNewArrival: true,
     color: "Black Matte",
@@ -126,6 +131,7 @@ export const products = [
       "/images/cable.png"
     ],
     category: "Networking",
+    subcategory: "PATCH CORD",
     featured: false,
     isNewArrival: false,
     color: "Blue",
@@ -146,6 +152,7 @@ export const products = [
       "/images/ravtron_utility_dev.png"
     ],
     category: "Surveillance",
+    subcategory: "Power Supply",
     channels: ["4 Channel", "8 Channel", "16 Channel"],
     sizePrices: [
       { size: "4 Channel", price: 900, originalPrice: 1530 },

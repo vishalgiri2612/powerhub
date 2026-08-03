@@ -28,12 +28,17 @@ export default function SearchModal() {
     if (query.trim() === "" || !Array.isArray(productList)) {
       setFiltered([]);
     } else {
-      const match = productList.filter(
-        (p) =>
-          p.name.toLowerCase().includes(query.toLowerCase()) ||
-          p.category.toLowerCase().includes(query.toLowerCase()) ||
-          p.shortSpec.toLowerCase().includes(query.toLowerCase())
-      );
+      const term = query.toLowerCase().trim();
+      const tokens = term
+        .split(/[\s,·\-\/]+/)
+        .map((w) => w.trim().replace(/s$/, ""))
+        .filter((w) => w.length > 1);
+
+      const match = productList.filter((p) => {
+        const fullText = `${p.name} ${p.category} ${p.shortSpec || ""} ${p.description || ""} ${p.color || ""}`.toLowerCase();
+        if (fullText.includes(term)) return true;
+        return tokens.length > 0 && tokens.every((tok) => fullText.includes(tok));
+      });
       setFiltered(match);
     }
   }, [query, productList]);

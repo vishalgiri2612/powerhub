@@ -21,7 +21,12 @@ export default function Navbar() {
   const [user, setUser] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const hoverTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleCategoriesMouseEnter = () => {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
@@ -220,7 +225,7 @@ export default function Navbar() {
                       </div>
 
                       {/* Structured Categories Grid (4 Columns) */}
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5" suppressHydrationWarning>
                         {categoriesToRender.map((cat) => {
                           const imgPath = cat.image || "/images/charger.png";
                           const subs = cat.subcategories || [];
@@ -252,28 +257,6 @@ export default function Navbar() {
                                   </span>
                                 </div>
                               </div>
-
-                              {/* Subcategories Tags List */}
-                              {subs.length > 0 && (
-                                <div className="flex flex-wrap gap-1 pt-2.5 mt-2 border-t border-[#1E293B]/5">
-                                  {subs.slice(0, 3).map((sub) => (
-                                    <button
-                                      key={sub}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setIsCategoriesOpen(false);
-                                        router.push(`/shop?category=${encodeURIComponent(cat.name)}&search=${encodeURIComponent(sub)}`);
-                                      }}
-                                      className="text-[9px] font-bold text-[#1E293B]/60 bg-white hover:bg-[#3674B5] hover:text-white px-2 py-0.5 rounded-md border border-[#1E293B]/8 hover:border-[#3674B5] transition-all"
-                                    >
-                                      {sub}
-                                    </button>
-                                  ))}
-                                  {subs.length > 3 && (
-                                    <span className="text-[9px] font-bold text-[#3674B5] self-center ml-0.5">+{subs.length - 3}</span>
-                                  )}
-                                </div>
-                              )}
                             </div>
                           );
                         })}

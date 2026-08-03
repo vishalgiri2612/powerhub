@@ -128,6 +128,7 @@ export default function AdminPanelPage() {
     originalPrice: "",
     discountBadge: "",
     category: "",
+    subcategory: "",
     image: "",
     gallery: [],
     sizes: [],
@@ -367,6 +368,7 @@ export default function AdminPanelPage() {
       originalPrice: origPriceNum,
       discountBadge: productForm.discountBadge || "",
       category: productForm.category,
+      subcategory: productForm.subcategory || "",
       image: productForm.image || (productForm.gallery?.[0] || "/images/charger.png"),
       gallery: productForm.gallery || [],
       sizes: productForm.sizes || [],
@@ -685,6 +687,7 @@ export default function AdminPanelPage() {
         originalPrice: productToEdit.originalPrice,
         discountBadge: productToEdit.discountBadge || "",
         category: productToEdit.category,
+        subcategory: productToEdit.subcategory || "",
         image: productToEdit.image,
         gallery: productToEdit.gallery || [],
         sizes: productToEdit.sizes || [],
@@ -707,6 +710,7 @@ export default function AdminPanelPage() {
         originalPrice: "",
         discountBadge: "",
         category: categoriesListToUse[0]?.name || "Accessories",
+        subcategory: "",
         image: "/images/charger.png",
         gallery: ["/images/charger.png"],
         sizes: [],
@@ -1340,7 +1344,10 @@ export default function AdminPanelPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="p-4 text-slate-500 uppercase text-[9px] font-bold tracking-wider">{p.category}</td>
+                        <td className="p-4 text-slate-500 uppercase text-[9px] font-bold tracking-wider">
+                          <span>{p.category}</span>
+                          {p.subcategory && <span className="block text-[8px] text-[#3674B5] font-extrabold">{p.subcategory}</span>}
+                        </td>
                         <td className="p-4 font-bold text-slate-900">₹{p.price.toLocaleString()}</td>
                         <td className="p-4 text-slate-400">₹{p.originalPrice.toLocaleString()}</td>
                         <td className="p-4">
@@ -1960,18 +1967,45 @@ export default function AdminPanelPage() {
                 </div>
               </div>
 
-              {/* Category */}
-              <div className="space-y-1.5">
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Category</label>
-                <select
-                  className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-semibold text-slate-700 outline-none focus:bg-white"
-                  value={productForm.category}
-                  onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
-                >
-                  {categoriesListToUse.map((c) => (
-                    <option key={c.name} value={c.name}>{c.name}</option>
-                  ))}
-                </select>
+              {/* Category & Subcategory Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Category</label>
+                  <select
+                    className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-semibold text-slate-700 outline-none focus:bg-white"
+                    value={productForm.category}
+                    onChange={(e) => {
+                      const newCat = e.target.value;
+                      setProductForm({ ...productForm, category: newCat, subcategory: "" });
+                    }}
+                  >
+                    {categoriesListToUse.map((c) => (
+                      <option key={c.name} value={c.name}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {(() => {
+                  const selectedCatObj = categoriesListToUse.find((c) => c.name.toLowerCase() === (productForm.category || "").toLowerCase());
+                  const availableSubs = Array.isArray(selectedCatObj?.subcategories) ? selectedCatObj.subcategories : [];
+                  return (
+                    <div className="space-y-1.5">
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        Subcategory {availableSubs.length === 0 ? "(Optional)" : ""}
+                      </label>
+                      <select
+                        className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-semibold text-slate-700 outline-none focus:bg-white"
+                        value={productForm.subcategory}
+                        onChange={(e) => setProductForm({ ...productForm, subcategory: e.target.value })}
+                      >
+                        <option value="">-- Select Subcategory (Optional) --</option>
+                        {availableSubs.map((sub) => (
+                          <option key={sub} value={sub}>{sub}</option>
+                        ))}
+                      </select>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Dynamic Channel Configurations (Power Supply / CCTV / Multi-channel products) */}
