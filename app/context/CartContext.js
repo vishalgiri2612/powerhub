@@ -245,22 +245,53 @@ export function CartProvider({ children }) {
     setIsCartOpen(true);
   };
 
-  const removeFromCart = (productId, selectedSize = null, selectedChannel = null) => {
+  const removeFromCart = (target, selectedSize = null, selectedChannel = null) => {
     setCart((prevCart) => {
-      const item = prevCart.find((i) => i.id === productId && i.selectedSize === selectedSize && i.selectedChannel === selectedChannel);
-      const variantTag = selectedSize || (item && item.selectedPrivacySize) || selectedChannel;
-      if (item) {
-        showToast(`Removed ${item.name}${variantTag ? ` (${variantTag})` : ""} from cart`, "info");
+      let itemToRemove = null;
+
+      if (typeof target === "object" && target !== null) {
+        itemToRemove = target;
+      } else {
+        itemToRemove = prevCart.find(
+          (i) =>
+            (String(i.id) === String(target) || String(i._id) === String(target)) &&
+            (i.selectedSize || null) === (selectedSize || null) &&
+            (i.selectedChannel || null) === (selectedChannel || null)
+        );
       }
-      return prevCart.filter((item) => !(item.id === productId && item.selectedSize === selectedSize && item.selectedChannel === selectedChannel));
+
+      if (itemToRemove) {
+        const variantTag = itemToRemove.selectedSize || itemToRemove.selectedPrivacySize || itemToRemove.selectedChannel;
+        showToast(`Removed ${itemToRemove.name}${variantTag ? ` (${variantTag})` : ""} from cart`, "info");
+      }
+
+      return prevCart.filter((i) => {
+        if (typeof target === "object" && target !== null) {
+          return i !== target;
+        }
+        const matchesId = String(i.id) === String(target) || String(i._id) === String(target);
+        const matchesSize = (i.selectedSize || null) === (selectedSize || null);
+        const matchesChannel = (i.selectedChannel || null) === (selectedChannel || null);
+        return !(matchesId && matchesSize && matchesChannel);
+      });
     });
   };
 
-  const updateQuantity = (productId, amount, selectedSize = null, selectedChannel = null) => {
+  const updateQuantity = (target, amount, selectedSize = null, selectedChannel = null) => {
     setCart((prevCart) =>
       prevCart
         .map((item) => {
-          if (item.id === productId && item.selectedSize === selectedSize && item.selectedChannel === selectedChannel) {
+          let isMatch = false;
+          if (typeof target === "object" && target !== null) {
+            isMatch = item === target;
+          } else {
+            const matchesId = String(item.id) === String(target) || String(item._id) === String(target);
+            const matchesSize = (item.selectedSize || null) === (selectedSize || null);
+            const matchesChannel = (item.selectedChannel || null) === (selectedChannel || null);
+            isMatch = matchesId && matchesSize && matchesChannel;
+          }
+
+          if (isMatch) {
             const nextQty = item.quantity + amount;
             return { ...item, quantity: nextQty };
           }
