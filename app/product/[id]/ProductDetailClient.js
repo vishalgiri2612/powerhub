@@ -38,11 +38,14 @@ export default function ProductDetailPage({ params }) {
     toggleWishlist,
     products,
     productsLoading,
-    showToast
+    showToast,
+    coupons,
+    applyCouponCode
   } = useCart();
 
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState("overview");
+  const [isOffersModalOpen, setIsOffersModalOpen] = useState(false);
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -534,6 +537,48 @@ export default function ProductDetailPage({ params }) {
               </div>
             </div>
 
+            {/* APPLY COUPON & OFFERS Banner (Matching Screenshot Design) */}
+            {(() => {
+              const applicableCoupons = Array.isArray(coupons)
+                ? coupons.filter((c) => c.active && (c.applicableCategory === "All" || c.applicableCategory.toLowerCase() === (product?.category || "").toLowerCase()))
+                : [];
+
+              return (
+                <div
+                  onClick={() => setIsOffersModalOpen(true)}
+                  className="bg-[#FFFDF7] border border-[#EAE3D2] hover:border-[#3674B5]/40 transition-all rounded-2xl p-4 flex items-center justify-between shadow-2xs cursor-pointer group hover:bg-[#FFFBF0]"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[#FEF3D6] text-[#B8860B] flex items-center justify-center text-lg flex-shrink-0 shadow-2xs group-hover:scale-110 transition-transform">
+                      🎁
+                    </div>
+                    <div className="space-y-0.5">
+                      <h4 className="text-xs font-black text-[#1E293B] uppercase tracking-wider flex items-center gap-2">
+                        <span>APPLY COUPON &amp; OFFERS</span>
+                        {applicableCoupons.length > 0 && (
+                          <span className="text-[9px] font-black bg-[#3674B5] text-white px-2 py-0.5 rounded-full">
+                            {applicableCoupons.length} Available
+                          </span>
+                        )}
+                      </h4>
+                      <p className="text-[11px] font-semibold text-[#1E293B]/60">
+                        {applicableCoupons.length > 0
+                          ? `View all ${applicableCoupons.length} promotional discounts & festive deals`
+                          : "View promotional discounts & coupons"}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="text-xs font-black text-[#B8860B] group-hover:text-[#3674B5] flex items-center gap-1 group-hover:translate-x-1 transition-transform"
+                  >
+                    <span>View All Offers</span>
+                    <span>&gt;</span>
+                  </button>
+                </div>
+              );
+            })()}
+
             {/* Premium Trust Badges Bar */}
             <div className="grid grid-cols-3 gap-2 py-3 px-4 bg-[#F8F9FA] rounded-2xl border border-slate-100 text-center">
               <div className="flex flex-col items-center gap-0.5">
@@ -780,6 +825,95 @@ export default function ProductDetailPage({ params }) {
         </div>
 
       </main>
+
+      {/* Available Offers Modal */}
+      {isOffersModalOpen && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center px-4 bg-black/40 backdrop-blur-xs animate-fade-in">
+          <div className="w-full max-w-md rounded-3xl bg-white border border-slate-100 p-6 shadow-2xl relative max-h-[85vh] overflow-y-auto text-left space-y-5">
+            <button
+              onClick={() => setIsOffersModalOpen(false)}
+              className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 text-slate-400 cursor-pointer"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div className="space-y-1 pr-6">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FEF3D6] text-[#B8860B] border border-[#EAE3D2] text-[10px] font-black uppercase tracking-wider">
+                <span>🎁 Promotional Savings</span>
+              </div>
+              <h3 className="font-display font-black text-lg text-[#1E293B]">Available Offers &amp; Coupons</h3>
+              <p className="text-xs text-[#1E293B]/50 font-semibold">Claim any offer below to automatically apply savings to your cart.</p>
+            </div>
+
+            <div className="space-y-3.5 pt-1">
+              {(Array.isArray(coupons)
+                ? coupons.filter((c) => c.active && (c.applicableCategory === "All" || c.applicableCategory.toLowerCase() === (product?.category || "").toLowerCase()))
+                : []).map((c) => (
+                <div
+                  key={c._id || c.code}
+                  className="bg-[#FFFDF7] border border-[#EAE3D2] rounded-2xl p-4 space-y-3 hover:border-[#3674B5]/40 transition-all shadow-2xs"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200">
+                          {c.badgeType || "Special Offer"}
+                        </span>
+                        <span className="text-xs font-black text-[#1E293B] uppercase tracking-wider bg-white px-2 py-0.5 rounded border border-slate-200">
+                          {c.code}
+                        </span>
+                      </div>
+                      <h4 className="font-bold text-xs text-[#1E293B] mt-1">{c.title}</h4>
+                      {c.description && <p className="text-[11px] font-semibold text-[#1E293B]/60 leading-normal">{c.description}</p>}
+                    </div>
+
+                    <div className="text-right flex-shrink-0">
+                      <span className="font-black text-sm text-[#3674B5] block">
+                        {c.type === "percentage" ? `${c.discountValue}% OFF` : `₹${c.discountValue} OFF`}
+                      </span>
+                      {c.minPurchase > 0 && (
+                        <span className="text-[9px] font-bold text-slate-400 block mt-0.5">
+                          Min ₹{c.minPurchase}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-[#EAE3D2]/60">
+                    <span className="text-[10px] font-bold text-slate-400">
+                      Applicable on {c.applicableCategory === "All" ? "All Items" : c.applicableCategory}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        try {
+                          navigator.clipboard.writeText(c.code);
+                        } catch (e) {}
+                        handleAdd();
+                        applyCouponCode(c.code);
+                        setIsOffersModalOpen(false);
+                      }}
+                      className="px-4 py-1.5 rounded-xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-extrabold uppercase tracking-wider transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer"
+                    >
+                      Claim Offer
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              {(Array.isArray(coupons)
+                ? coupons.filter((c) => c.active && (c.applicableCategory === "All" || c.applicableCategory.toLowerCase() === (product?.category || "").toLowerCase()))
+                : []).length === 0 && (
+                <div className="py-8 text-center text-xs font-semibold text-slate-400 italic">
+                  No active promotional coupon offers for this category right now.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Global Brand Footer */}
       <Footer />

@@ -16,11 +16,29 @@ export function CartProvider({ children }) {
   const [discount, setDiscount] = useState(0);
   const [toasts, setToasts] = useState([]);
 
-  // Global cache states for products and categories to optimize page load speeds
+  // Global cache states for products, categories, and coupons to optimize page load speeds
   const [products, setProducts] = useState([]);
   const [productsLoading, setProductsLoading] = useState(true);
   const [categories, setCategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [coupons, setCoupons] = useState([]);
+  const [couponsLoading, setCouponsLoading] = useState(true);
+
+  const fetchCoupons = async () => {
+    try {
+      const res = await fetch("/api/coupons");
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setCoupons(data);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch coupons in CartContext", err);
+    } finally {
+      setCouponsLoading(false);
+    }
+  };
 
   const fetchProducts = async (retries = 3, delay = 1000) => {
     if (products.length === 0) {
@@ -116,10 +134,12 @@ export function CartProvider({ children }) {
   useEffect(() => {
     fetchProducts();
     fetchCategories();
+    fetchCoupons();
   }, []);
 
   const refreshProducts = () => fetchProducts();
   const refreshCategories = () => fetchCategories();
+  const refreshCoupons = () => fetchCoupons();
 
   const isInitialized = React.useRef(false);
 
@@ -263,9 +283,37 @@ export function CartProvider({ children }) {
     });
   };
 
-  const applyCouponCode = (code) => {
-    showToast("Invalid coupon code", "error");
-    return false;
+  const applyCouponCode = (codeToApply) => {
+    if (!codeToApply || typeof codeToApply !== "string") {
+      showToast("Please enter a valid coupon code", "error");
+      return false;
+    }
+
+    const cleanCode = codeToApply.trim().toUpperCase();
+    const foundCoupon = coupons.find((c) => c.code === cleanCode && c.active);
+
+    if (!foundCoupon) {
+      showToast(`Coupon code '${cleanCode}' is invalid or expired`, "error");
+      return false;
+    }
+
+    const subtotal = getSubtotal();
+    if (foundCoupon.minPurchase > 0 && subtotal < foundCoupon.minPurchase) {
+      showToast(`Minimum order amount of ₹${foundCoupon.minPurchase} required for '${cleanCode}'`, "error");
+      return false;
+    }
+
+    let calculatedDiscount = 0;
+    if (foundCoupon.type === "percentage") {
+      calculatedDiscount = Math.round((subtotal * foundCoupon.discountValue) / 100);
+    } else {
+      calculatedDiscount = foundCoupon.discountValue;
+    }
+
+    setCoupon(cleanCode);
+    setDiscount(calculatedDiscount);
+    showToast(`Coupon '${cleanCode}' applied successfully! Saved ₹${calculatedDiscount}`);
+    return true;
   };
 
   const removeCoupon = () => {
@@ -318,8 +366,11 @@ export function CartProvider({ children }) {
         productsLoading,
         categories,
         categoriesLoading,
+        coupons,
+        couponsLoading,
         refreshProducts,
         refreshCategories,
+        refreshCoupons,
       }}
     >
       {children}

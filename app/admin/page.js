@@ -30,7 +30,9 @@ import {
   Laptop,
   Tv,
   Network,
-  Eye
+  Eye,
+  Tag,
+  Gift
 } from "lucide-react";
 import SearchModal from "../../components/SearchModal";
 import CartDrawer from "../../components/CartDrawer";
@@ -90,11 +92,140 @@ const getCategoryIconDetails = (categoryName) => {
 
 export default function AdminPanelPage() {
   const router = useRouter();
-  const { showToast, refreshProducts, refreshCategories, products: cartProducts, categories: cartCategories } = useCart();
+  const { 
+    showToast, 
+    refreshProducts, 
+    refreshCategories, 
+    products: cartProducts, 
+    categories: cartCategories,
+    coupons: globalCoupons,
+    couponsLoading,
+    refreshCoupons 
+  } = useCart();
   const [isAdmin, setIsAdmin] = useState(false);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
   const [adminPassword, setAdminPassword] = useState("");
-  const [activeTab, setActiveTab] = useState("products"); // products, orders, users, categories, hero
+  const [activeTab, setActiveTab] = useState("products"); // products, orders, users, categories, hero, coupons
+
+  // Coupon States & Handlers
+  const [isCouponModalOpen, setIsCouponModalOpen] = useState(false);
+  const [editingCoupon, setEditingCoupon] = useState(null);
+  const [isSavingCoupon, setIsSavingCoupon] = useState(false);
+  const [couponForm, setCouponForm] = useState({
+    code: "",
+    title: "",
+    description: "",
+    type: "percentage",
+    discountValue: "",
+    minPurchase: 0,
+    applicableCategory: "All",
+    badgeType: "Festive Offer",
+    active: true
+  });
+
+  const openCouponModal = (couponToEdit = null) => {
+    if (couponToEdit) {
+      setEditingCoupon(couponToEdit);
+      setCouponForm({
+        id: couponToEdit._id || couponToEdit.id,
+        code: couponToEdit.code || "",
+        title: couponToEdit.title || "",
+        description: couponToEdit.description || "",
+        type: couponToEdit.type || "percentage",
+        discountValue: couponToEdit.discountValue || "",
+        minPurchase: couponToEdit.minPurchase || 0,
+        applicableCategory: couponToEdit.applicableCategory || "All",
+        badgeType: couponToEdit.badgeType || "Festive Offer",
+        active: couponToEdit.active !== undefined ? couponToEdit.active : true
+      });
+    } else {
+      setEditingCoupon(null);
+      setCouponForm({
+        code: "",
+        title: "",
+        description: "",
+        type: "percentage",
+        discountValue: "",
+        minPurchase: 0,
+        applicableCategory: "All",
+        badgeType: "Festive Offer",
+        active: true
+      });
+    }
+    setIsCouponModalOpen(true);
+  };
+
+  const handleSaveCoupon = async (e) => {
+    e.preventDefault();
+    if (!couponForm.code || !couponForm.title || couponForm.discountValue === undefined || couponForm.discountValue === "") {
+      showToast("Coupon Code, Title, and Discount Value are required.", "error");
+      return;
+    }
+
+    setIsSavingCoupon(true);
+    try {
+      const response = await fetch("/api/coupons", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(couponForm)
+      });
+      if (response.ok) {
+        await refreshCoupons();
+        setIsCouponModalOpen(false);
+        showToast(editingCoupon ? "Coupon updated successfully!" : "New Coupon created successfully!");
+      } else {
+        const errData = await response.json();
+        showToast(errData.error || "Failed to save coupon", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Error saving coupon", "error");
+    } finally {
+      setIsSavingCoupon(false);
+    }
+  };
+
+  const handleDeleteCoupon = async (couponId, couponCode) => {
+    if (!confirm(`Are you sure you want to delete coupon '${couponCode}'?`)) return;
+    try {
+      const response = await fetch(`/api/coupons?id=${couponId}`, { method: "DELETE" });
+      if (response.ok) {
+        await refreshCoupons();
+        showToast(`Coupon '${couponCode}' deleted successfully.`);
+      } else {
+        const errData = await response.json();
+        showToast(errData.error || "Failed to delete coupon", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Error deleting coupon", "error");
+    }
+  };
+
+  const handleToggleCouponActive = async (targetCoupon) => {
+    try {
+      const updated = {
+        id: targetCoupon._id || targetCoupon.id,
+        code: targetCoupon.code,
+        title: targetCoupon.title,
+        type: targetCoupon.type,
+        discountValue: targetCoupon.discountValue,
+        active: !targetCoupon.active
+      };
+      const response = await fetch("/api/coupons", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updated)
+      });
+      if (response.ok) {
+        await refreshCoupons();
+        showToast(`Coupon '${targetCoupon.code}' is now ${!targetCoupon.active ? "Active" : "Inactive"}.`);
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to toggle coupon status", "error");
+    }
+  };
 
   // Data States
   const [adminProducts, setAdminProducts] = useState([]);
@@ -148,6 +279,7 @@ export default function AdminPanelPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all"); // all, active, new, featured
   const [categoryFilter, setCategoryFilter] = useState("all"); // all, categoryName
+  const [subcategoryFilter, setSubcategoryFilter] = useState("all"); // all, subcategoryName
   const [subTab, setSubTab] = useState("all"); // all, or category capsules
 
   // Category Form State
@@ -262,13 +394,15 @@ export default function AdminPanelPage() {
     }
   };
 
+  const defaultAdminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "ravtron@admin.com";
+
   useEffect(() => {
     // Check if user session indicates administrator status
     const session = localStorage.getItem("ravtron_session");
     if (session) {
       try {
         const parsed = JSON.parse(session);
-        if (parsed && (parsed.role === "Administrator" || parsed.email === "ravtron@admin.com")) {
+        if (parsed && (parsed.role === "Administrator" || (parsed.email && parsed.email.toLowerCase() === defaultAdminEmail.toLowerCase()))) {
           setIsAdmin(true);
         }
       } catch (e) {
@@ -325,7 +459,7 @@ export default function AdminPanelPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: "ravtron@admin.com",
+          email: defaultAdminEmail,
           password: adminPassword,
           loginMode: "admin"
         })
@@ -346,8 +480,8 @@ export default function AdminPanelPage() {
     // Direct password fallback
     if (adminPassword === "admin123" || adminPassword === "admin") {
       const adminSession = {
-        name: "Visha Rawat",
-        email: "ravtron@admin.com",
+        name: "Admin User",
+        email: defaultAdminEmail,
         role: "Administrator",
         isLoggedIn: true
       };
@@ -694,8 +828,12 @@ export default function AdminPanelPage() {
         discountBadge: productToEdit.discountBadge || "",
         category: productToEdit.category,
         subcategory: productToEdit.subcategory || "",
-        image: productToEdit.image,
-        gallery: productToEdit.gallery || [],
+        image: productToEdit.image || "/images/charger.png",
+        gallery: (Array.isArray(productToEdit.gallery) && productToEdit.gallery.length > 0)
+          ? productToEdit.gallery
+          : productToEdit.image
+          ? [productToEdit.image]
+          : ["/images/charger.png"],
         sizes: productToEdit.sizes || [],
         privacySizes: productToEdit.privacySizes || [],
         channels: productToEdit.channels || [],
@@ -798,19 +936,33 @@ export default function AdminPanelPage() {
     if (!product) return false;
     const nameStr = (product.name || "").toLowerCase();
     const specStr = (product.shortSpec || "").toLowerCase();
+    const descStr = (product.description || "").toLowerCase();
     const catStr = (product.category || "").toLowerCase();
+    const subCatStr = (product.subcategory || "").toLowerCase();
     const query = (searchQuery || "").toLowerCase();
 
-    const matchesSearch = nameStr.includes(query) || specStr.includes(query);
+    const matchesSearch = nameStr.includes(query) || specStr.includes(query) || descStr.includes(query);
     const matchesCategory = categoryFilter === "all" || catStr === categoryFilter.toLowerCase();
     const matchesSubTab = subTab === "all" || catStr === subTab.toLowerCase();
+
+    let matchesSubcategory = true;
+    if (subcategoryFilter !== "all") {
+      const subTerm = subcategoryFilter.toLowerCase().trim();
+      const fullText = `${nameStr} ${catStr} ${subCatStr} ${specStr} ${descStr}`;
+      const subWords = subTerm.split(/\s+/).filter(w => w.length > 1);
+
+      matchesSubcategory = 
+        subCatStr === subTerm || 
+        fullText.includes(subTerm) || 
+        (subWords.length > 0 && subWords.every(word => fullText.includes(word)));
+    }
 
     let matchesStatus = true;
     if (statusFilter === "new") matchesStatus = !!product.isNewArrival;
     else if (statusFilter === "featured") matchesStatus = !!product.featured;
     else if (statusFilter === "active") matchesStatus = true;
 
-    return matchesSearch && matchesCategory && matchesSubTab && matchesStatus;
+    return matchesSearch && matchesCategory && matchesSubTab && matchesSubcategory && matchesStatus;
   });
 
   return (
@@ -883,6 +1035,17 @@ export default function AdminPanelPage() {
               <Zap className="w-4 h-4 text-slate-400" />
               <span>Hero Manager</span>
             </button>
+
+            <button
+              onClick={() => setActiveTab("coupons")}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${activeTab === "coupons"
+                  ? "bg-[#3674B5]/10 text-[#3674B5] font-extrabold"
+                  : "text-slate-500 hover:bg-slate-50/50 hover:text-slate-900"
+                }`}
+            >
+              <Gift className="w-4 h-4 text-[#3674B5]" />
+              <span>Coupons &amp; Offers</span>
+            </button>
           </nav>
         </div>
 
@@ -897,7 +1060,16 @@ export default function AdminPanelPage() {
             <span>Go to Shop</span>
           </button>
           <button
-            onClick={() => setIsAdmin(false)}
+            onClick={async () => {
+              localStorage.removeItem("ravtron_session");
+              try {
+                await fetch("/api/auth/logout", { method: "POST" });
+              } catch (e) {
+                console.error("Logout API error:", e);
+              }
+              window.dispatchEvent(new Event("ravtron_auth_change"));
+              window.location.href = "/";
+            }}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-rose-500 hover:bg-rose-50 transition-all"
           >
             <LogOut className="w-4 h-4" />
@@ -929,27 +1101,69 @@ export default function AdminPanelPage() {
             </div>
 
             {/* Capsules Sub-Navigation tabs (inside gray bar) */}
-            <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl w-fit">
-              <button
-                onClick={() => setSubTab("all")}
-                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all ${subTab === "all" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-900"
-                  }`}
-              >
-                All Categories
-              </button>
-              {categoriesListToUse.map((cat) => (
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-slate-100 rounded-2xl w-full sm:w-fit border border-slate-200/50">
                 <button
-                  key={cat.name}
-                  onClick={() => setSubTab(cat.name)}
-                  className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all ${subTab === cat.name ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-900"
+                  onClick={() => {
+                    setSubTab("all");
+                    setCategoryFilter("all");
+                    setSubcategoryFilter("all");
+                  }}
+                  className={`px-4 py-2 rounded-xl text-xs font-extrabold uppercase transition-all ${subTab === "all" && categoryFilter === "all" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-900"
                     }`}
                 >
-                  {cat.name}
+                  All Categories
                 </button>
-              ))}
+                {categoriesListToUse.map((cat) => (
+                  <button
+                    key={cat.name}
+                    onClick={() => {
+                      setSubTab(cat.name);
+                      setCategoryFilter(cat.name);
+                      setSubcategoryFilter("all");
+                    }}
+                    className={`px-4 py-2 rounded-xl text-xs font-extrabold uppercase transition-all ${(subTab === cat.name || categoryFilter.toLowerCase() === cat.name.toLowerCase()) ? "bg-white text-[#3674B5] shadow-sm font-black" : "text-slate-500 hover:text-slate-900"
+                      }`}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
+              </div>
+
+              {/* Dynamic Subcategories Row (When a category is selected) */}
+              {(() => {
+                const activeCatName = subTab !== "all" ? subTab : categoryFilter;
+                if (!activeCatName || activeCatName === "all") return null;
+                const selectedCatObj = categoriesListToUse.find((c) => c.name.toLowerCase() === activeCatName.toLowerCase());
+                const subcats = Array.isArray(selectedCatObj?.subcategories) ? selectedCatObj.subcategories : [];
+                if (subcats.length === 0) return null;
+
+                return (
+                  <div className="flex flex-wrap items-center gap-1.5 p-2 bg-[#3674B5]/5 border border-[#3674B5]/20 rounded-2xl animate-fade-in">
+                    <span className="text-[10px] font-black text-[#3674B5] uppercase tracking-wider px-2">
+                      Subcategories:
+                    </span>
+                    <button
+                      onClick={() => setSubcategoryFilter("all")}
+                      className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold uppercase transition-all ${subcategoryFilter === "all" ? "bg-[#3674B5] text-white shadow-xs" : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"}`}
+                    >
+                      All {activeCatName} Subcategories
+                    </button>
+                    {subcats.map((sub) => (
+                      <button
+                        key={sub}
+                        onClick={() => setSubcategoryFilter(sub)}
+                        className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold uppercase transition-all ${subcategoryFilter.toLowerCase() === sub.toLowerCase() ? "bg-[#3674B5] text-white shadow-xs" : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"}`}
+                      >
+                        {sub}
+                      </button>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
 
-            {/* Search Input, Dropdown Status and Category Filter section */}
+            {/* Search Input, Dropdown Status, Category and Subcategory Filter section */}
             <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
               <div className="relative flex-grow max-w-xl">
                 <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
@@ -964,7 +1178,7 @@ export default function AdminPanelPage() {
                 />
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
@@ -978,7 +1192,12 @@ export default function AdminPanelPage() {
 
                 <select
                   value={categoryFilter}
-                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setCategoryFilter(val);
+                    setSubTab(val);
+                    setSubcategoryFilter("all");
+                  }}
                   className="bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-700 outline-none focus:bg-white"
                 >
                   <option value="all">All Categories</option>
@@ -986,6 +1205,27 @@ export default function AdminPanelPage() {
                     <option key={c.name} value={c.name}>{c.name}</option>
                   ))}
                 </select>
+
+                {(() => {
+                  const activeCatName = categoryFilter !== "all" ? categoryFilter : subTab;
+                  if (!activeCatName || activeCatName === "all") return null;
+                  const selectedCatObj = categoriesListToUse.find((c) => c.name.toLowerCase() === activeCatName.toLowerCase());
+                  const subcats = Array.isArray(selectedCatObj?.subcategories) ? selectedCatObj.subcategories : [];
+                  if (subcats.length === 0) return null;
+
+                  return (
+                    <select
+                      value={subcategoryFilter}
+                      onChange={(e) => setSubcategoryFilter(e.target.value)}
+                      className="bg-[#3674B5]/10 border border-[#3674B5]/30 rounded-xl px-3 py-2.5 text-xs font-extrabold text-[#3674B5] outline-none focus:bg-white"
+                    >
+                      <option value="all">All Subcategories</option>
+                      {subcats.map((sub) => (
+                        <option key={sub} value={sub}>{sub}</option>
+                      ))}
+                    </select>
+                  );
+                })()}
               </div>
             </div>
 
@@ -1036,9 +1276,17 @@ export default function AdminPanelPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="p-4 text-slate-500 uppercase text-[9px] font-bold tracking-wider">
-                          <span>{p.category}</span>
-                          {p.subcategory && <span className="block text-[8px] text-[#3674B5] font-extrabold">{p.subcategory}</span>}
+                        <td className="p-4 uppercase text-[9px] tracking-wider">
+                          <span className="font-extrabold text-slate-900 block">{p.category}</span>
+                          {p.subcategory ? (
+                            <span className="inline-block mt-1 text-[9px] text-[#3674B5] font-extrabold bg-[#3674B5]/10 px-2 py-0.5 rounded-md border border-[#3674B5]/20">
+                              {p.subcategory}
+                            </span>
+                          ) : (
+                            <span className="block text-[8px] text-slate-400 font-semibold italic mt-0.5">
+                              No Subcategory
+                            </span>
+                          )}
                         </td>
                         <td className="p-4 font-bold text-slate-900">₹{p.price.toLocaleString()}</td>
                         <td className="p-4 text-slate-400">₹{p.originalPrice.toLocaleString()}</td>
@@ -1566,6 +1814,117 @@ export default function AdminPanelPage() {
           </div>
         )}
 
+        {/* TAB: COUPONS & OFFERS */}
+        {activeTab === "coupons" && (
+          <div className="space-y-8 animate-fade-in text-left">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <h1 className="text-2xl font-bold font-display tracking-tight text-slate-900">Coupons &amp; Promotional Offers</h1>
+                <p className="text-xs text-slate-400 font-medium">Create festive deals, percentage discounts, flat ₹ offers, and category-specific promotional coupons.</p>
+              </div>
+              <button
+                onClick={() => openCouponModal()}
+                className="bg-black hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 w-fit"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Create New Coupon</span>
+              </button>
+            </div>
+
+            {couponsLoading ? (
+              <div className="py-12 text-center text-xs font-bold text-slate-400 animate-pulse">Loading available promotional coupons...</div>
+            ) : (
+              <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse text-xs font-semibold text-slate-800">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-100 uppercase text-[9px] tracking-wider text-slate-400 font-black">
+                        <th className="p-4 w-12 text-center">SNo</th>
+                        <th className="p-4">Coupon Code &amp; Title</th>
+                        <th className="p-4">Badge / Type</th>
+                        <th className="p-4">Discount</th>
+                        <th className="p-4">Min Purchase</th>
+                        <th className="p-4">Category</th>
+                        <th className="p-4 text-center">Status</th>
+                        <th className="p-4 text-center">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(globalCoupons || []).map((c, index) => (
+                        <tr key={c._id || c.code} className="border-b border-slate-50 hover:bg-slate-50/40 transition-colors">
+                          <td className="p-4 text-center font-bold text-slate-400">{index + 1}</td>
+                          <td className="p-4">
+                            <div className="space-y-0.5">
+                              <div className="flex items-center gap-2">
+                                <span className="font-black text-slate-900 text-xs tracking-wider bg-slate-100 border border-slate-200/80 px-2.5 py-1 rounded-lg">
+                                  {c.code}
+                                </span>
+                              </div>
+                              <p className="font-bold text-slate-800 text-xs mt-1">{c.title}</p>
+                              {c.description && <p className="text-[10px] text-slate-400 max-w-xs truncate">{c.description}</p>}
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <span className="inline-block px-2.5 py-1 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200">
+                              {c.badgeType || "🏷️ Promo"}
+                            </span>
+                          </td>
+                          <td className="p-4 font-black text-[#3674B5] text-sm">
+                            {c.type === "percentage" ? `${c.discountValue}% OFF` : `₹${c.discountValue} OFF`}
+                          </td>
+                          <td className="p-4 text-slate-600 font-bold">
+                            {c.minPurchase > 0 ? `₹${c.minPurchase.toLocaleString()}` : "No Min Order"}
+                          </td>
+                          <td className="p-4 font-bold text-slate-500 uppercase text-[10px]">
+                            {c.applicableCategory || "All"}
+                          </td>
+                          <td className="p-4 text-center">
+                            <button
+                              onClick={() => handleToggleCouponActive(c)}
+                              className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase transition-all shadow-2xs ${
+                                c.active 
+                                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100" 
+                                  : "bg-slate-100 text-slate-400 border border-slate-200 hover:bg-slate-200"
+                              }`}
+                            >
+                              {c.active ? "Active" : "Disabled"}
+                            </button>
+                          </td>
+                          <td className="p-4">
+                            <div className="flex items-center justify-center gap-1.5">
+                              <button
+                                onClick={() => openCouponModal(c)}
+                                className="p-1.5 rounded-lg border border-slate-150 bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-all"
+                                title="Edit Coupon"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteCoupon(c._id || c.id, c.code)}
+                                className="p-1.5 rounded-lg border border-rose-100 bg-rose-50/30 text-rose-500 hover:bg-rose-50 hover:text-rose-600 transition-all"
+                                title="Delete Coupon"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                      {(!globalCoupons || globalCoupons.length === 0) && (
+                        <tr>
+                          <td colSpan={8} className="p-8 text-center text-xs text-slate-400 font-semibold italic">
+                            No promotional coupons created yet. Click "+ Create New Coupon" above to add one.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
       </main>
 
       {/* Product Form Modal (Add / Edit) */}
@@ -1664,11 +2023,11 @@ export default function AdminPanelPage() {
                 <div className="space-y-1.5">
                   <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Category</label>
                   <select
-                    className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-semibold text-slate-700 outline-none focus:bg-white"
+                    className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none focus:bg-white focus:border-[#3674B5]"
                     value={productForm.category}
                     onChange={(e) => {
                       const newCat = e.target.value;
-                      setProductForm({ ...productForm, category: newCat, subcategory: "" });
+                      setProductForm({ ...productForm, category: newCat });
                     }}
                   >
                     {categoriesListToUse.map((c) => (
@@ -1680,24 +2039,56 @@ export default function AdminPanelPage() {
                 {(() => {
                   const selectedCatObj = categoriesListToUse.find((c) => c.name.toLowerCase() === (productForm.category || "").toLowerCase());
                   const availableSubs = Array.isArray(selectedCatObj?.subcategories) ? selectedCatObj.subcategories : [];
+                  
+                  const subOptions = [...availableSubs];
+                  if (productForm.subcategory && !subOptions.some((s) => s.toLowerCase() === productForm.subcategory.toLowerCase())) {
+                    subOptions.unshift(productForm.subcategory);
+                  }
+
+                  const activeSubcategoryDisplay = productForm.subcategory || editingProduct?.subcategory || "";
+
                   return (
                     <div className="space-y-1.5">
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                        Subcategory {availableSubs.length === 0 ? "(Optional)" : ""}
-                      </label>
+                      <div className="flex items-center justify-between">
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                          Subcategory
+                        </label>
+                        {activeSubcategoryDisplay && (
+                          <span className="text-[9px] font-extrabold text-[#3674B5] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200 uppercase tracking-wider">
+                            Active: {activeSubcategoryDisplay}
+                          </span>
+                        )}
+                      </div>
                       <select
-                        className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-semibold text-slate-700 outline-none focus:bg-white"
+                        className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none focus:bg-white focus:border-[#3674B5]"
                         value={productForm.subcategory}
                         onChange={(e) => setProductForm({ ...productForm, subcategory: e.target.value })}
                       >
                         <option value="">-- Select Subcategory (Optional) --</option>
-                        {availableSubs.map((sub) => (
+                        {subOptions.map((sub) => (
                           <option key={sub} value={sub}>{sub}</option>
                         ))}
                       </select>
                     </div>
                   );
                 })()}
+              </div>
+
+              {/* Direct Subcategory Name Editor */}
+              <div className="space-y-1.5 text-left">
+                <div className="flex items-center justify-between">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    Custom / Current Subcategory Name
+                  </label>
+                  <span className="text-[9px] text-slate-400 font-semibold italic">Edit or type custom subcategory directly</span>
+                </div>
+                <input
+                  type="text"
+                  placeholder="e.g. POWER SUPPLY / CCTV, CAT6 CABLE, HDMI CONVERTER..."
+                  className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 outline-none focus:bg-white focus:border-[#3674B5] transition-all"
+                  value={productForm.subcategory}
+                  onChange={(e) => setProductForm({ ...productForm, subcategory: e.target.value })}
+                />
               </div>
 
               {/* Dynamic Channel Configurations (Power Supply / CCTV / Multi-channel products) */}
@@ -2305,6 +2696,203 @@ export default function AdminPanelPage() {
                 </button>
               </div>
 
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Create / Edit Coupon Modal */}
+      {isCouponModalOpen && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center px-4 bg-black/40 backdrop-blur-xs">
+          <div className="w-full max-w-lg rounded-2xl bg-white border border-slate-100 p-6 md:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto animate-fade-in text-left">
+            <button
+              onClick={() => setIsCouponModalOpen(false)}
+              className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 text-slate-400"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <form onSubmit={handleSaveCoupon} className="space-y-4">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">
+                  {editingCoupon ? "Edit Promotional Coupon" : "Create New Coupon / Festive Offer"}
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">Configure coupon code, percentage/flat discounts, festive badges, and minimum order requirements.</p>
+              </div>
+
+              {/* Code */}
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Coupon Code (Uppercase)</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. FESTIVE20, WELCOME100, ACC15"
+                  className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-black uppercase text-slate-800 outline-none focus:bg-white focus:border-[#3674B5]"
+                  value={couponForm.code}
+                  onChange={(e) => setCouponForm({ ...couponForm, code: e.target.value.toUpperCase() })}
+                />
+              </div>
+
+              {/* Title */}
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Coupon Offer Title</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Festive Special 20% OFF"
+                  className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none focus:bg-white focus:border-[#3674B5]"
+                  value={couponForm.title}
+                  onChange={(e) => setCouponForm({ ...couponForm, title: e.target.value })}
+                />
+              </div>
+
+              {/* Description */}
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Description / Terms</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Valid on all GaN Chargers & Workstation Gear."
+                  className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-[#3674B5]"
+                  value={couponForm.description}
+                  onChange={(e) => setCouponForm({ ...couponForm, description: e.target.value })}
+                />
+              </div>
+
+              {/* Discount Type & Value */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Discount Type</label>
+                  <select
+                    className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none focus:bg-white"
+                    value={couponForm.type}
+                    onChange={(e) => setCouponForm({ ...couponForm, type: e.target.value })}
+                  >
+                    <option value="percentage">Percentage (%) OFF</option>
+                    <option value="fixed">Fixed Amount (₹) OFF</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    Discount Amount ({couponForm.type === "percentage" ? "%" : "₹"})
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    placeholder={couponForm.type === "percentage" ? "e.g. 20" : "e.g. 100"}
+                    className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-black text-slate-800 outline-none focus:bg-white focus:border-[#3674B5]"
+                    value={couponForm.discountValue}
+                    onChange={(e) => setCouponForm({ ...couponForm, discountValue: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              {/* Min Purchase & Applicable Category */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Min Order Amount (₹)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="e.g. 999 (0 for no min)"
+                    className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:bg-white"
+                    value={couponForm.minPurchase}
+                    onChange={(e) => setCouponForm({ ...couponForm, minPurchase: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Applicable Category</label>
+                  <select
+                    className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:bg-white"
+                    value={couponForm.applicableCategory}
+                    onChange={(e) => setCouponForm({ ...couponForm, applicableCategory: e.target.value })}
+                  >
+                    <option value="All">All Categories</option>
+                    {categoriesListToUse.map((cat) => (
+                      <option key={cat.name} value={cat.name}>{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Promo Badge Tag (Presets + Custom Brand Badge input) */}
+              <div className="space-y-2 text-left">
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Promo Badge Tag / Custom Brand Badge
+                </label>
+
+                {/* Quick Presets */}
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    "🎁 Festive Offer",
+                    "🏷️ Normal Coupon",
+                    "🎉 First Order",
+                    "⭐ Exclusive Offer",
+                    "⚡ Limited Time",
+                    "🔥 RAVTRON Special",
+                    "💥 Flash Sale"
+                  ].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setCouponForm({ ...couponForm, badgeType: preset })}
+                      className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all cursor-pointer ${
+                        couponForm.badgeType === preset
+                          ? "bg-[#3674B5] text-white border-[#3674B5] font-extrabold shadow-2xs scale-105"
+                          : "bg-[#F8F9FA] text-slate-600 border-slate-200 hover:bg-slate-100"
+                      }`}
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Custom Brand Badge Input */}
+                <div className="pt-1">
+                  <input
+                    type="text"
+                    required
+                    placeholder="or type custom badge e.g. 🔥 RAVTRON DEALS, 💥 DIWALI 2026"
+                    className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 outline-none focus:bg-white focus:border-[#3674B5] transition-all"
+                    value={couponForm.badgeType}
+                    onChange={(e) => setCouponForm({ ...couponForm, badgeType: e.target.value })}
+                  />
+                  <span className="text-[9px] text-slate-400 font-medium mt-1 block">
+                    Admins can select a quick preset or type any custom brand badge title (with emojis if desired).
+                  </span>
+                </div>
+              </div>
+
+              {/* Active Switch */}
+              <div className="pt-1">
+                <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 rounded border-slate-200 text-[#3674B5]"
+                    checked={couponForm.active}
+                    onChange={(e) => setCouponForm({ ...couponForm, active: e.target.checked })}
+                  />
+                  <span>Active &amp; Claimable by Customers</span>
+                </label>
+              </div>
+
+              {/* Submit Buttons */}
+              <div className="flex gap-3 pt-3 border-t border-slate-100">
+                <button
+                  type="submit"
+                  disabled={isSavingCoupon}
+                  className="bg-black hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm disabled:opacity-50"
+                >
+                  {isSavingCoupon ? "Saving..." : editingCoupon ? "Update Coupon" : "Save & Create Coupon"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsCouponModalOpen(false)}
+                  className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 px-5 py-2.5 rounded-xl text-xs font-bold transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
             </form>
           </div>
         </div>

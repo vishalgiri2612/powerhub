@@ -211,7 +211,7 @@ export default function Navbar() {
                           </div>
                           <div>
                             <h4 className="text-xs font-black text-[#1E293B] uppercase tracking-wider">RAVTRON Product Ecosystem</h4>
-                            <p className="text-[10px] font-semibold text-[#1E293B]/50">Explore structured hardware collections with official specs</p>
+                            <p className="text-[10px] font-semibold text-[#1E293B]/50">Explore structured product collections with official specs</p>
                           </div>
                         </div>
                         <Link 
@@ -228,34 +228,31 @@ export default function Navbar() {
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5" suppressHydrationWarning>
                         {categoriesToRender.map((cat) => {
                           const imgPath = cat.image || "/images/charger.png";
-                          const subs = cat.subcategories || [];
                           return (
                             <div
                               key={cat.name}
-                              className="group/item bg-[#F8F9FA] hover:bg-white border border-[#1E293B]/8 hover:border-[#3674B5]/30 rounded-2xl p-3 transition-all duration-300 hover:shadow-lg flex flex-col justify-between cursor-pointer"
+                              className="group/item bg-[#F8F9FA] hover:bg-white border border-[#1E293B]/10 hover:border-[#3674B5]/30 rounded-2xl p-3.5 sm:p-4 transition-all duration-300 hover:shadow-xl flex items-center gap-3.5 cursor-pointer"
                               onClick={() => {
                                 setIsCategoriesOpen(false);
                                 router.push(`/shop?category=${encodeURIComponent(cat.name)}`);
                               }}
                             >
-                              {/* Card Header: Thumbnail Image & Category Name */}
-                              <div className="flex items-center gap-3">
-                                <div className="w-11 h-11 rounded-xl bg-white border border-[#1E293B]/10 p-1 flex-shrink-0 flex items-center justify-center overflow-hidden group-hover/item:scale-105 transition-transform">
-                                  <img 
-                                    src={imgPath} 
-                                    alt={cat.name}
-                                    className="w-full h-full object-contain"
-                                  />
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                  <h5 className="font-display font-bold text-xs text-[#1E293B] group-hover/item:text-[#3674B5] transition-colors truncate">
-                                    {cat.name}
-                                  </h5>
-                                  <span className="text-[9px] font-extrabold text-[#3674B5] uppercase tracking-wider flex items-center gap-0.5 opacity-80 group-hover/item:opacity-100">
-                                    <span>Browse</span>
-                                    <span className="group-hover/item:translate-x-1 transition-transform">→</span>
-                                  </span>
-                                </div>
+                              {/* Card Thumbnail: Fit image perfectly into rounded frame */}
+                              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white border border-[#1E293B]/10 p-0.5 shrink-0 flex items-center justify-center overflow-hidden shadow-xs group-hover/item:scale-105 transition-transform duration-300">
+                                <img 
+                                  src={imgPath} 
+                                  alt={cat.name}
+                                  className="w-full h-full object-cover rounded-xl"
+                                />
+                              </div>
+                              <div className="min-w-0 flex-1 space-y-0.5">
+                                <h5 className="font-display font-extrabold text-xs sm:text-sm text-[#1E293B] group-hover/item:text-[#3674B5] transition-colors leading-tight truncate">
+                                  {cat.name}
+                                </h5>
+                                <span className="text-[10px] font-extrabold text-[#3674B5] uppercase tracking-wider flex items-center gap-1 opacity-90 group-hover/item:opacity-100">
+                                  <span>Browse</span>
+                                  <span className="group-hover/item:translate-x-1 transition-transform">→</span>
+                                </span>
                               </div>
                             </div>
                           );
@@ -264,7 +261,7 @@ export default function Navbar() {
 
                       {/* Footer Trust Ribbon */}
                       <div className="mt-5 pt-3.5 border-t border-[#1E293B]/10 flex items-center justify-between text-[10px] font-bold text-[#1E293B]/60 px-1">
-                        <span className="flex items-center gap-1.5"><span className="text-[#3674B5]">✓</span> 100% Genuine RAVTRON® Hardware</span>
+                        <span className="flex items-center gap-1.5"><span className="text-[#3674B5]">✓</span> 100% Genuine RAVTRON® Products</span>
                         <span className="flex items-center gap-1.5"><span className="text-[#3674B5]">⚡</span> Express Pan-India Delivery</span>
                         <span className="flex items-center gap-1.5"><span className="text-[#3674B5]">🛡️</span> Official Warranty Protection</span>
                       </div>

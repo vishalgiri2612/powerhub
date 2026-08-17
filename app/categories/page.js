@@ -79,6 +79,7 @@ const getCategoryIcon = (categoryName) => {
 export default function CategoriesPage() {
   const router = useRouter();
   const { categories: categoriesList } = useCart();
+  const [expandedCategories, setExpandedCategories] = useState({});
 
   const handleCategoryClick = (categoryName) => {
     router.push(`/shop?category=${encodeURIComponent(categoryName)}`);
@@ -154,27 +155,60 @@ export default function CategoriesPage() {
                 {/* Text Content Block */}
                 <div className="p-3 md:p-6 flex-grow flex flex-col justify-between space-y-2 md:space-y-5">
                   <div className="space-y-1.5 md:space-y-3">
-                    <h3 className="font-display font-black text-xs md:text-xl text-[#1E293B] group-hover:text-[#3674B5] transition-colors duration-300">
+                    <h3 className="font-display font-black text-xs md:text-xl text-[#1E293B] group-hover:text-[#3674B5] transition-colors duration-300 uppercase">
                       {category.name}
                     </h3>
-                    {/* Inline list of subcategories */}
-                    {Array.isArray(category.subcategories) && category.subcategories.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 pt-1 z-10">
-                        {category.subcategories.map((sub) => (
-                          <button
-                            key={sub}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              router.push(`/shop?category=${encodeURIComponent(category.name)}&search=${encodeURIComponent(sub)}`);
-                            }}
-                            className="text-[10px] font-bold text-[#1E293B]/70 bg-[#F8F9FA] px-2.5 py-1 rounded-md border border-[#1E293B]/10 hover:bg-[#3674B5] hover:text-white hover:border-[#3674B5] transition-all cursor-pointer shadow-2xs active:scale-95"
-                            title={`Browse ${sub} in ${category.name}`}
-                          >
-                            {sub}
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                    {/* Uniform 2x2 Grid of Subcategory Boxes with Inline +X MORE Expand / LESS Collapse */}
+                    {Array.isArray(category.subcategories) && category.subcategories.length > 0 && (() => {
+                      const isExpanded = !!expandedCategories[category.name];
+                      const hasMore = category.subcategories.length > 4;
+                      const visibleSubs = (hasMore && !isExpanded) ? category.subcategories.slice(0, 3) : category.subcategories;
+                      const remainingCount = category.subcategories.length - 3;
+
+                      return (
+                        <div className="grid grid-cols-2 gap-2 pt-2 z-10 w-full transition-all duration-300">
+                          {visibleSubs.map((sub) => (
+                            <button
+                              key={sub}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                router.push(`/shop?category=${encodeURIComponent(category.name)}&search=${encodeURIComponent(sub)}`);
+                              }}
+                              className="w-full py-2 px-2.5 rounded-xl border border-[#1E293B]/10 bg-[#F8F9FA] hover:bg-[#3674B5] hover:text-white hover:border-[#3674B5] transition-all text-center text-[10px] md:text-xs font-extrabold text-[#1E293B]/80 uppercase tracking-wider shadow-2xs active:scale-95 flex items-center justify-center truncate"
+                              title={`Browse ${sub} in ${category.name}`}
+                            >
+                              <span className="truncate">{sub}</span>
+                            </button>
+                          ))}
+
+                          {hasMore && !isExpanded && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setExpandedCategories((prev) => ({ ...prev, [category.name]: true }));
+                              }}
+                              className="w-full py-2 px-2.5 rounded-xl border border-[#3674B5]/40 bg-[#3674B5]/10 hover:bg-[#3674B5] text-[#3674B5] hover:text-white transition-all text-center text-[10px] md:text-xs font-black uppercase tracking-wider shadow-2xs active:scale-95 flex items-center justify-center cursor-pointer"
+                              title={`Expand to view all ${category.subcategories.length} subcategories`}
+                            >
+                              <span>+{remainingCount} MORE</span>
+                            </button>
+                          )}
+
+                          {hasMore && isExpanded && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setExpandedCategories((prev) => ({ ...prev, [category.name]: false }));
+                              }}
+                              className="w-full py-2 px-2.5 rounded-xl border border-[#1E293B]/20 bg-[#1E293B]/5 hover:bg-[#1E293B] text-[#1E293B]/70 hover:text-white transition-all text-center text-[10px] md:text-xs font-black uppercase tracking-wider shadow-2xs active:scale-95 flex items-center justify-center cursor-pointer"
+                              title="Collapse subcategories"
+                            >
+                              <span>LESS ▲</span>
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {/* Bottom Browse CTA Link */}

@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Lock, Mail, ArrowRight, ShieldCheck } from "lucide-react";
 import Navbar from "../../components/Navbar";
-import Footer from "../../components/Footer";
 import SearchModal from "../../components/SearchModal";
 import CartDrawer from "../../components/CartDrawer";
 import { useCart } from "../context/CartContext";
@@ -15,13 +14,13 @@ export default function LoginPage() {
   const { showToast } = useCart();
 
   // Login states
-  const [loginMode, setLoginMode] = useState("client"); // client or admin
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [userRole, setUserRole] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,7 +33,7 @@ export default function LoginPage() {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ email, password, loginMode })
+        body: JSON.stringify({ email, password })
       });
 
       if (!response.ok) {
@@ -47,20 +46,21 @@ export default function LoginPage() {
 
       setIsLoading(false);
       setSuccess(true);
+      setUserRole(sessionUser.role);
 
       localStorage.setItem("ravtron_session", JSON.stringify(sessionUser));
       window.dispatchEvent(new Event("ravtron_auth_change"));
 
-      if (loginMode === "admin") {
-        showToast("Administrator terminal access authorized.");
+      if (sessionUser.role === "Administrator") {
+        showToast("Administrator access authorized.");
         setTimeout(() => {
-          router.push("/admin");
-        }, 1500);
+          window.location.href = "/admin";
+        }, 1000);
       } else {
         showToast("Access granted. Welcome back.");
         setTimeout(() => {
-          router.push("/");
-        }, 1500);
+          window.location.href = "/";
+        }, 1000);
       }
     } catch (err) {
       setIsLoading(false);
@@ -81,51 +81,19 @@ export default function LoginPage() {
         <div className="w-full max-w-[460px] rounded-3xl bg-white border border-[#1E293B]/10 p-6 md:p-10 shadow-2xl relative z-10 hover-lift duration-500">
 
           {/* Header */}
-          <div className="text-center space-y-3 mb-6">
+          <div className="text-center space-y-3 mb-8">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/30">
               <span className="w-1.5 h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
               <span className="text-[10px] font-extrabold text-[#3674B5] uppercase tracking-wider">
-                {loginMode === "admin" ? "Console Terminal" : "Secure Access"}
+                Secure Access
               </span>
             </div>
             <h1 className="font-display font-black text-3xl text-[#1E293B] tracking-tight">
-              {loginMode === "admin" ? "Admin Auth" : "Welcome Back"}
+              Welcome Back
             </h1>
             <p className="text-xs font-semibold text-[#1E293B]/50">
-              {loginMode === "admin"
-                ? "Enter console credentials to access system directories."
-                : "Log in to manage your orders and workspace profile."}
+              Log in to manage your orders, workspace profile, or admin console.
             </p>
-          </div>
-
-          {/* Toggle Tab Selector */}
-          <div className="flex bg-[#F8F9FA] p-1 rounded-2xl border border-[#1E293B]/5 mb-6">
-            <button
-              type="button"
-              onClick={() => {
-                setLoginMode("client");
-                setError("");
-              }}
-              className={`flex-1 py-3 text-[10px] font-extrabold uppercase tracking-widest rounded-xl transition-all duration-300 ${loginMode === "client"
-                  ? "bg-white text-[#3674B5] shadow-xs"
-                  : "text-[#1E293B]/50 hover:text-[#1E293B]"
-                }`}
-            >
-              Client Login
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setLoginMode("admin");
-                setError("");
-              }}
-              className={`flex-1 py-3 text-[10px] font-extrabold uppercase tracking-widest rounded-xl transition-all duration-300 ${loginMode === "admin"
-                  ? "bg-white text-[#3674B5] shadow-xs"
-                  : "text-[#1E293B]/50 hover:text-[#1E293B]"
-                }`}
-            >
-              Admin Login
-            </button>
           </div>
 
           {/* Success / Error Messages */}
@@ -137,7 +105,7 @@ export default function LoginPage() {
               <div>
                 <h4 className="font-extrabold">Login Successful!</h4>
                 <p className="text-[10px] text-emerald-800/60 font-semibold mt-0.5">
-                  {loginMode === "admin" ? "Redirecting to Admin Panel..." : "Redirecting to homepage..."}
+                  {userRole === "Administrator" ? "Redirecting to Admin Panel..." : "Redirecting to homepage..."}
                 </p>
               </div>
             </div>
@@ -155,7 +123,7 @@ export default function LoginPage() {
             {/* Email Field */}
             <div className="space-y-1.5">
               <label className="block text-[10px] font-extrabold text-[#1E293B]/60 uppercase tracking-wider">
-                {loginMode === "admin" ? "Administrator Email" : "Email Address"}
+                Email Address
               </label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-[#1E293B]/40">
@@ -164,7 +132,7 @@ export default function LoginPage() {
                 <input
                   type="email"
                   required
-                  placeholder={loginMode === "admin" ? "Enter the mail id" : "Enter the mail id"}
+                  placeholder="Enter your email ID"
                   className="w-full bg-[#F8F9FA] border border-[#1E293B]/10 rounded-2xl pl-11 pr-4 py-3.5 text-xs font-semibold text-[#1E293B] placeholder-[#1E293B]/30 outline-none focus:bg-white focus:border-[#3674B5] focus:ring-1 focus:ring-[#3674B5] transition-all"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -177,18 +145,16 @@ export default function LoginPage() {
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <label className="block text-[10px] font-extrabold text-[#1E293B]/60 uppercase tracking-wider">
-                  {loginMode === "admin" ? "Access Key Password" : "Password"}
+                  Password
                 </label>
-                {loginMode === "client" && (
-                  <button
-                    type="button"
-                    onClick={() => alert("Password reset link sent to your registered email.")}
-                    className="text-[10px] font-extrabold text-[#3674B5] hover:text-[#578FCA] uppercase tracking-wider hover:underline"
-                    disabled={isLoading || success}
-                  >
-                    Forgot?
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={() => alert("Password reset link sent to your registered email.")}
+                  className="text-[10px] font-extrabold text-[#3674B5] hover:text-[#578FCA] uppercase tracking-wider hover:underline"
+                  disabled={isLoading || success}
+                >
+                  Forgot?
+                </button>
               </div>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-[#1E293B]/40">
@@ -197,7 +163,7 @@ export default function LoginPage() {
                 <input
                   type={showPassword ? "text" : "password"}
                   required
-                  placeholder={loginMode === "admin" ? "Enter admin password" : "••••••••"}
+                  placeholder="••••••••"
                   className="w-full bg-[#F8F9FA] border border-[#1E293B]/10 rounded-2xl pl-11 pr-11 py-3.5 text-xs font-semibold text-[#1E293B] placeholder-[#1E293B]/30 outline-none focus:bg-white focus:border-[#3674B5] focus:ring-1 focus:ring-[#3674B5] transition-all"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -243,7 +209,7 @@ export default function LoginPage() {
                 </>
               ) : (
                 <>
-                  <span>{loginMode === "admin" ? "Authorize Console" : "Sign In"}</span>
+                  <span>Sign In</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -280,7 +246,6 @@ export default function LoginPage() {
         </div>
       </main>
 
-      <Footer />
       <SearchModal />
       <CartDrawer />
     </div>

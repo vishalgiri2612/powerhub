@@ -6,7 +6,7 @@ import { cookies } from "next/headers";
 export async function POST(request) {
   try {
     await dbConnect();
-    const { email, password, loginMode } = await request.json();
+    const { email, password } = await request.json();
 
     if (!email || !password) {
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
@@ -17,28 +17,45 @@ export async function POST(request) {
     const isHttps = forwardedProto === "https" || request.url.startsWith("https://");
     const secure = isProduction && isHttps;
 
-    if (loginMode === "admin") {
-      if (password !== "admin123" && password !== "admin") {
+    const adminEnvEmail = (process.env.ADMIN_EMAIL || "ravtron@admin.com").trim().toLowerCase();
+    const adminEnvPassword = process.env.ADMIN_PASSWORD || "admin123";
+    const adminEnvName = process.env.ADMIN_NAME || "Visha Rawat";
+
+    const inputEmail = email.trim().toLowerCase();
+
+    // Check if the user attempting login is an Administrator
+    const existingUser = await User.findOne({ email: { $regex: new RegExp(`^${email.trim()}$`, "i") } });
+    const isAdminLogin = inputEmail === adminEnvEmail || (existingUser && existingUser.role === "Administrator");
+
+    if (isAdminLogin) {
+      // Validate Admin Security Password
+      if (password !== adminEnvPassword && password !== "admin123" && password !== "admin") {
         return NextResponse.json({ error: "Invalid administrative security credentials." }, { status: 401 });
       }
 
-      const adminUser = await User.findOne({ email: { $regex: new RegExp(`^${email.trim()}$`, "i") } });
-      if (!adminUser) {
-        return NextResponse.json({ error: "Email is not registered as an Administrator in database." }, { status: 404 });
+      let adminUser = existingUser;
+
+      // Auto-provision configured environment admin if missing in database
+      if (!adminUser && inputEmail === adminEnvEmail) {
+        adminUser = await User.create({
+          name: adminEnvName,
+          email: adminEnvEmail,
+          role: "Administrator",
+          joinDate: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+          active: true
+        });
       }
-      if (adminUser.role !== "Administrator") {
-        return NextResponse.json({ error: "Access denied. User does not possess Administrator rights." }, { status: 403 });
-      }
-      if (adminUser.active === false) {
+
+      if (adminUser && adminUser.active === false) {
         return NextResponse.json({ error: "Access denied. This administrative profile has been disabled." }, { status: 403 });
       }
 
       const sessionUser = {
-        name: adminUser.name,
-        email: adminUser.email,
+        name: adminUser?.name || adminEnvName,
+        email: adminUser?.email || inputEmail,
         phone: "",
         avatar: "",
-        joinDate: adminUser.joinDate,
+        joinDate: adminUser?.joinDate || "June 2026",
         role: "Administrator",
         isLoggedIn: true
       };
@@ -50,21 +67,20 @@ export async function POST(request) {
         httpOnly: true,
         secure,
         path: "/",
-        maxAge: 345600, // 4 days (4 * 24 * 60 * 60)
+        maxAge: 345600, // 4 days
         sameSite: "lax"
       });
 
       return NextResponse.json({ success: true, user: sessionUser });
 
     } else {
-      // Customer login
-      const clientUser = await User.findOne({ email: { $regex: new RegExp(`^${email.trim()}$`, "i") } });
-      let finalUser = clientUser;
+      // Customer Login
+      let clientUser = existingUser;
 
       if (!clientUser) {
-        // Auto-register
+        // Auto-register new customer account
         const defaultName = email.split("@")[0].split(".").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ") || "RAVTRON Client";
-        finalUser = await User.create({
+        clientUser = await User.create({
           name: defaultName,
           email: email,
           role: "Customer",
@@ -73,19 +89,16 @@ export async function POST(request) {
         });
       }
 
-      if (finalUser.role === "Administrator") {
-        return NextResponse.json({ error: "Please use the Administrator tab to log in with an admin account." }, { status: 400 });
-      }
-      if (finalUser.active === false) {
-        return NextResponse.json({ error: "Access denied. Your client profile has been deactivated. Please contact support." }, { status: 403 });
+      if (clientUser.active === false) {
+        return NextResponse.json({ error: "Access denied. Your profile has been deactivated. Please contact support." }, { status: 403 });
       }
 
       const sessionUser = {
-        name: finalUser.name,
-        email: finalUser.email,
+        name: clientUser.name,
+        email: clientUser.email,
         phone: "",
         avatar: "",
-        joinDate: finalUser.joinDate,
+        joinDate: clientUser.joinDate,
         role: "Customer",
         isLoggedIn: true
       };
@@ -97,7 +110,7 @@ export async function POST(request) {
         httpOnly: true,
         secure,
         path: "/",
-        maxAge: 345600, // 4 days (4 * 24 * 60 * 60)
+        maxAge: 345600, // 4 days
         sameSite: "lax"
       });
 

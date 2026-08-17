@@ -7,16 +7,17 @@ import User from "@/models/User";
 import HeroSlide from "@/models/HeroSlide";
 import { products, categories } from "@/app/data/products";
 
+const adminSeedEmail = process.env.ADMIN_EMAIL || "ravtron@admin.com";
+const adminSeedName = process.env.ADMIN_NAME || "Visha Rawat";
+
 const initialMockOrders = [
   {
     id: "RVT-98274-IN",
     date: "June 08, 2026",
     status: "In Transit",
     statusColor: "text-amber-500 bg-amber-50",
-    total: 3999,
-    savings: 1000,
-    customerName: "ravtron",
-    customerEmail: "ravtron@admin.com",
+    customerName: adminSeedName,
+    customerEmail: adminSeedEmail,
     items: [
       {
         name: "RAVTRON 11-in-1 Type-C Multiport Docking Station",
@@ -67,7 +68,7 @@ const initialMockOrders = [
 ];
 
 const initialMockUsers = [
-  { name: "Visha Rawat", email: "ravtron@admin.com", role: "Administrator", joinDate: "June 2026", active: true },
+  { name: adminSeedName, email: adminSeedEmail, role: "Administrator", joinDate: "June 2026", active: true },
   { name: "Rahul Sharma", email: "rahul@gmail.com", role: "Customer", joinDate: "May 2026", active: true },
   { name: "Ksg Automation", email: "support@ksgautomation.com", role: "Customer", joinDate: "April 2026", active: false }
 ];

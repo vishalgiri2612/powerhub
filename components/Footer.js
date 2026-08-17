@@ -30,7 +30,6 @@ export default function Footer() {
 
   const socialLinks = [
     { name: "Instagram", href: "https://www.instagram.com/ksgapl/" },
-    { name: "Twitter / X", href: "#" },
     { name: "LinkedIn", href: "https://www.linkedin.com/company/ravtron/posts/?feedView=all" }
   ];
 
@@ -76,8 +75,6 @@ export default function Footer() {
                   className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all duration-300 hover:scale-110 active:scale-95 ${
                     soc.name === "Instagram"
                       ? "bg-gradient-to-tr from-[#F9CE34] via-[#EE2A7B] to-[#6228D7] text-white hover:shadow-pink-500/30"
-                      : soc.name === "Twitter / X"
-                      ? "bg-[#0F1419] hover:bg-black text-white hover:shadow-slate-800/30"
                       : "bg-[#0A66C2] hover:bg-[#004182] text-white hover:shadow-blue-500/30"
                   }`}
                   aria-label={soc.name}
@@ -87,11 +84,6 @@ export default function Footer() {
                       <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
                       <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
                       <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-                    </svg>
-                  )}
-                  {soc.name === "Twitter / X" && (
-                    <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                     </svg>
                   )}
                   {soc.name === "LinkedIn" && (
