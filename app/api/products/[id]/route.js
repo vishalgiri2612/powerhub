@@ -8,11 +8,11 @@ export async function GET(request, { params }) {
   try {
     await dbConnect();
     const { id } = await params;
-    const product = await Product.findOne({ id });
+    const product = await Product.findOne({ id }).lean();
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
-    const obj = product.toObject ? product.toObject() : { ...product };
+    const obj = { ...product };
     if (obj.name) obj.name = obj.name.replace(/ravtron/gi, "RAVTRON");
     if (obj.description) obj.description = obj.description.replace(/ravtron/gi, "RAVTRON");
     return NextResponse.json(obj);

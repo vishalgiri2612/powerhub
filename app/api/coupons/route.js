@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Coupon from "@/models/Coupon";
-import { verifyAdmin } from "@/lib/auth";
+import { getCachedCoupons, setCachedCoupons, clearCouponsCache } from "@/lib/cache";
 
 export const dynamic = "force-dynamic";
 
@@ -43,13 +43,19 @@ const DEFAULT_COUPONS = [
 
 export async function GET() {
   try {
+    const cached = getCachedCoupons();
+    if (cached) {
+      return NextResponse.json(cached);
+    }
+
     await dbConnect();
-    let coupons = await Coupon.find({}).sort({ createdAt: -1 });
+    let coupons = await Coupon.find({}).sort({ createdAt: -1 }).lean();
 
     if (!coupons || coupons.length === 0) {
       coupons = await Coupon.insertMany(DEFAULT_COUPONS);
     }
 
+    setCachedCoupons(coupons);
     return NextResponse.json(coupons);
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -89,6 +95,7 @@ export async function POST(request) {
         },
         { new: true }
       );
+      clearCouponsCache();
       return NextResponse.json(updated);
     } else {
       // Create new coupon
@@ -109,6 +116,7 @@ export async function POST(request) {
         expiryDate: expiryDate || "",
         active: active !== undefined ? active : true
       });
+      clearCouponsCache();
       return NextResponse.json(created, { status: 201 });
     }
   } catch (error) {
@@ -141,6 +149,7 @@ export async function DELETE(request) {
       return NextResponse.json({ error: "Coupon not found" }, { status: 404 });
     }
 
+    clearCouponsCache();
     return NextResponse.json({ success: true, message: "Coupon deleted successfully" });
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

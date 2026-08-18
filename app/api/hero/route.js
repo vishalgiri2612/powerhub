@@ -16,7 +16,7 @@ export async function GET() {
 
     // First request: connect to real database and cache the result
     await dbConnect();
-    const slides = await HeroSlide.find({}).sort({ slideIndex: 1 });
+    const slides = await HeroSlide.find({}).sort({ slideIndex: 1 }).lean();
     setCachedHero(slides);
 
     return NextResponse.json(slides);

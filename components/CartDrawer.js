@@ -165,40 +165,6 @@ export default function CartDrawer() {
         {/* Drawer Footer Calculator */}
         {cart.length > 0 && (
           <div className="p-6 border-t border-[#1E293B]/15 bg-[#F8F9FA] space-y-4">
-            {/* Promo Code Input */}
-            {coupon ? (
-              <div className="flex items-center justify-between bg-[#3674B5]/10 border border-[#3674B5]/40 rounded-xl px-4 py-2.5">
-                <div className="flex items-center gap-2">
-                  <Tag className="w-3.5 h-3.5 text-[#3674B5]" />
-                  <span className="text-xs font-bold text-[#3674B5]">
-                    Promo Code "{coupon}" Active
-                  </span>
-                </div>
-                <button
-                  onClick={removeCoupon}
-                  className="text-xs text-[#3674B5] hover:underline font-bold"
-                >
-                  Remove
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={handleApplyPromo} className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Enter Promo Code (e.g. FIRST200)"
-                  className="flex-1 bg-white border border-[#1E293B]/15 rounded-xl px-4 py-2 text-xs font-medium text-[#1E293B] outline-none placeholder-[#334155]/40 focus:border-[#3674B5]"
-                  value={promoInput}
-                  onChange={(e) => setPromoInput(e.target.value)}
-                />
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-bold transition-all"
-                >
-                  Apply
-                </button>
-              </form>
-            )}
-
             {/* Calculations Breakdown */}
             <div className="space-y-2 text-sm text-[#1E293B]/80">
               <div className="flex justify-between">

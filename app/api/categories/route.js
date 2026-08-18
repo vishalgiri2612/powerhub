@@ -17,7 +17,7 @@ export async function GET() {
 
     // First request: connect to real database and cache the result
     await dbConnect();
-    const categories = await Category.find({}).sort({ name: 1 });
+    const categories = await Category.find({}).sort({ name: 1 }).lean();
     setCachedCategories(categories);
 
     return NextResponse.json(categories);

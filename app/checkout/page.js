@@ -20,7 +20,8 @@ import {
   Percent,
   Truck,
   Check,
-  Edit2
+  Edit2,
+  Tag
 } from "lucide-react";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
@@ -29,7 +30,8 @@ import CartDrawer from "../../components/CartDrawer";
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cart, coupon, discount, getSubtotal, clearCart, showToast } = useCart();
+  const { cart, coupon, discount, applyCouponCode, removeCoupon, getSubtotal, clearCart, showToast } = useCart();
+  const [checkoutPromoInput, setCheckoutPromoInput] = useState("");
 
   // Steps control
   const [currentStep, setCurrentStep] = useState(1); // Step 1: Contact, Step 2: Shipping, Step 3: Payment
@@ -875,6 +877,52 @@ export default function CheckoutPage() {
                     ))
                   ) : (
                     <p className="text-xs text-slate-500 font-semibold text-center py-4">No products in cart.</p>
+                  )}
+                </div>
+
+                {/* Promo / Coupon Code Input (Checkout & Payment Time) */}
+                <div className="border-t border-[#1E293B]/5 pt-4 text-left">
+                  {coupon ? (
+                    <div className="flex items-center justify-between bg-[#3674B5]/10 border border-[#3674B5]/40 rounded-xl px-3.5 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <Tag className="w-3.5 h-3.5 text-[#3674B5]" />
+                        <span className="text-xs font-bold text-[#3674B5]">
+                          Code "{coupon}" Active
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={removeCoupon}
+                        className="text-xs text-rose-600 hover:underline font-bold"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        if (checkoutPromoInput.trim()) {
+                          applyCouponCode(checkoutPromoInput);
+                          setCheckoutPromoInput("");
+                        }
+                      }}
+                      className="flex gap-2"
+                    >
+                      <input
+                        type="text"
+                        placeholder="Enter Promo Code (e.g. WELCOME100)"
+                        className="flex-1 bg-[#F8F9FA] border border-[#1E293B]/15 rounded-xl px-3.5 py-2 text-xs font-semibold text-[#1E293B] outline-none placeholder-slate-400 focus:bg-white focus:border-[#3674B5]"
+                        value={checkoutPromoInput}
+                        onChange={(e) => setCheckoutPromoInput(e.target.value)}
+                      />
+                      <button
+                        type="submit"
+                        className="px-4 py-2 rounded-xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-extrabold uppercase tracking-wider transition-all shadow-2xs cursor-pointer"
+                      >
+                        Apply
+                      </button>
+                    </form>
                   )}
                 </div>
 

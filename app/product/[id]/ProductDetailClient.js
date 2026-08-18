@@ -7,6 +7,8 @@ import { useCart } from "../../context/CartContext";
 import Navbar from "../../../components/Navbar";
 import Image from "next/image";
 import Footer from "../../../components/Footer";
+import SearchModal from "../../../components/SearchModal";
+import CartDrawer from "../../../components/CartDrawer";
 import { Star, Package, Zap, RotateCcw } from "lucide-react";
 
 const getDescription = (id) => {
@@ -32,7 +34,9 @@ export default function ProductDetailPage({ params }) {
   const { id } = use(params);
   const router = useRouter();
   const {
+    cart,
     addToCart,
+    updateQuantity,
     setIsCartOpen,
     wishlist,
     toggleWishlist,
@@ -58,6 +62,25 @@ export default function ProductDetailPage({ params }) {
   const [newRating, setNewRating] = useState(5);
   const [newComment, setNewComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
+
+  // Synchronize product page quantity with existing cart item quantity for the selected variant
+  const existingCartItem = Array.isArray(cart) && product
+    ? cart.find(
+        (item) =>
+          (String(item.id) === String(product.id) || String(item._id) === String(product.id)) &&
+          (item.selectedSize || null) === (selectedSize || null) &&
+          (item.selectedPrivacySize || null) === (selectedPrivacySize || null) &&
+          (item.selectedChannel || null) === (selectedChannel || null)
+      )
+    : null;
+
+  useEffect(() => {
+    if (existingCartItem) {
+      setQuantity(existingCartItem.quantity);
+    } else {
+      setQuantity(1);
+    }
+  }, [existingCartItem?.quantity, selectedSize, selectedPrivacySize, selectedChannel, product?.id]);
 
   useEffect(() => {
     const session = localStorage.getItem("ravtron_session");
@@ -235,27 +258,31 @@ export default function ProductDetailPage({ params }) {
   const brandText = isSage ? "text-[#3674B5]" : isSand ? "text-[#DEC89E]" : "text-[#3674B5]";
 
   const handleAdd = () => {
-    addToCart({ 
-      ...product, 
-      price: displayPrice, 
-      originalPrice: displayOriginalPrice, 
-      selectedSize, 
-      selectedPrivacySize,
-      selectedChannel
-    }, quantity);
+    if (!existingCartItem) {
+      addToCart({ 
+        ...product, 
+        price: displayPrice, 
+        originalPrice: displayOriginalPrice, 
+        selectedSize, 
+        selectedPrivacySize,
+        selectedChannel
+      }, quantity);
+    }
+    setIsCartOpen(true);
   };
 
   const handleBuyNow = () => {
-    addToCart({ 
-      ...product, 
-      price: displayPrice, 
-      originalPrice: displayOriginalPrice, 
-      selectedSize, 
-      selectedPrivacySize,
-      selectedChannel
-    }, quantity);
+    if (!existingCartItem) {
+      addToCart({ 
+        ...product, 
+        price: displayPrice, 
+        originalPrice: displayOriginalPrice, 
+        selectedSize, 
+        selectedPrivacySize,
+        selectedChannel
+      }, quantity);
+    }
     setIsCartOpen(true);
-    router.push("/");
   };
 
   const handleReviewSubmit = async (e) => {
@@ -501,40 +528,26 @@ export default function ProductDetailPage({ params }) {
               </div>
             )}
 
-            {/* Pricing section with custom controls */}
-            <div className="flex items-center justify-between bg-white border border-[#1E293B]/10 rounded-2xl md:rounded-[2rem] p-4.5 md:p-5 shadow-xs">
-              <div className="space-y-1">
-                <span className="text-[11px] font-extrabold text-[#3674B5] uppercase tracking-wider">
-                  Save ₹{(displayOriginalPrice - displayPrice).toLocaleString()} {product.discountBadge ? `(${product.discountBadge})` : discountPercent > 0 ? `(${discountPercent}% OFF)` : ''}
+            {/* Sleek Compact Pricing Section */}
+            <div className="w-fit bg-gradient-to-r from-white via-slate-50/50 to-white border border-[#1E293B]/10 rounded-2xl md:rounded-3xl py-2.5 px-4.5 sm:px-5 flex items-center gap-3.5 shadow-2xs">
+              {/* Main Price */}
+              <div className="flex items-baseline gap-2">
+                <span className="text-xl sm:text-2xl md:text-3xl font-black text-[#3674B5] tracking-tight">
+                  ₹{displayPrice.toLocaleString()}
                 </span>
-                <div className="flex items-baseline gap-2.5">
-                  <span className="text-2xl md:text-3xl font-black text-[#3674B5]">
-                    ₹{displayPrice.toLocaleString()}
+                {displayOriginalPrice > displayPrice && (
+                  <span className="text-base sm:text-lg md:text-xl text-[#1E293B]/50 line-through font-bold">
+                    ₹{displayOriginalPrice.toLocaleString()}
                   </span>
-                  {displayOriginalPrice > displayPrice && (
-                    <span className="text-xs md:text-sm text-[#1E293B]/30 line-through font-semibold">
-                      ₹{displayOriginalPrice.toLocaleString()}
-                    </span>
-                  )}
-                </div>
+                )}
               </div>
 
-              {/* Quantity selector */}
-              <div className="flex items-center bg-[#FFFFFF] border border-[#1E293B]/10 rounded-xl px-1.5 py-1 md:px-2.5 md:py-1.5 shadow-2xs">
-                <button
-                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="w-7 h-7 md:w-9 md:h-9 rounded-lg hover:bg-white text-[#1E293B] font-extrabold flex items-center justify-center transition-colors shadow-2xs"
-                >
-                  -
-                </button>
-                <span className="w-8 md:w-12 text-center font-black text-xs md:text-sm text-[#1E293B]">{quantity}</span>
-                <button
-                  onClick={() => setQuantity((q) => q + 1)}
-                  className="w-7 h-7 md:w-9 md:h-9 rounded-lg hover:bg-white text-[#1E293B] font-extrabold flex items-center justify-center transition-colors shadow-2xs"
-                >
-                  +
-                </button>
-              </div>
+              {/* Save Badge (Positioned on the Right Side) */}
+              {displayOriginalPrice > displayPrice && (
+                <span className="text-[10px] sm:text-xs font-extrabold text-[#3674B5] bg-[#3674B5]/10 border border-[#3674B5]/20 px-3 py-1 rounded-full uppercase tracking-wider">
+                  Save ₹{(displayOriginalPrice - displayPrice).toLocaleString()} {product.discountBadge ? `(${product.discountBadge})` : discountPercent > 0 ? `(${discountPercent}% OFF)` : ''}
+                </span>
+              )}
             </div>
 
             {/* APPLY COUPON & OFFERS Banner (Matching Screenshot Design) */}
@@ -583,7 +596,7 @@ export default function ProductDetailPage({ params }) {
             <div className="grid grid-cols-3 gap-2 py-3 px-4 bg-[#F8F9FA] rounded-2xl border border-slate-100 text-center">
               <div className="flex flex-col items-center gap-0.5">
                 <span className="text-[11px] font-black text-[#1E293B]">100% Genuine</span>
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">RAVTRON® Hardware</span>
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">RAVTRON® Product</span>
               </div>
               <div className="flex flex-col items-center gap-0.5 border-x border-slate-200/60">
                 <span className="text-[11px] font-black text-[#3674B5]">1 Year Warranty</span>
@@ -595,20 +608,54 @@ export default function ProductDetailPage({ params }) {
               </div>
             </div>
 
-            {/* Direct action rows */}
-            <div className="grid grid-cols-2 gap-3 md:gap-4 pt-1">
+            {/* Direct action rows (Quantity selector on left of Add to Bag button) */}
+            <div className="flex items-center gap-2.5 sm:gap-3 md:gap-4 pt-1">
+              {/* Quantity selector (Left side of Add to Bag) */}
+              <div className="flex items-center bg-white border border-[#1E293B]/15 rounded-2xl px-1.5 py-1.5 md:px-2.5 md:py-2 shadow-2xs shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (existingCartItem) {
+                      updateQuantity(existingCartItem, -1);
+                    } else {
+                      setQuantity((q) => Math.max(1, q - 1));
+                    }
+                  }}
+                  className="w-8 h-8 md:w-9 md:h-9 rounded-xl hover:bg-slate-100 text-[#1E293B] font-extrabold flex items-center justify-center transition-colors shadow-2xs cursor-pointer text-sm"
+                >
+                  -
+                </button>
+                <span className="w-7 md:w-9 text-center font-black text-xs md:text-sm text-[#1E293B]">{quantity}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (existingCartItem) {
+                      updateQuantity(existingCartItem, 1);
+                    } else {
+                      setQuantity((q) => q + 1);
+                    }
+                  }}
+                  className="w-8 h-8 md:w-9 md:h-9 rounded-xl hover:bg-slate-100 text-[#1E293B] font-extrabold flex items-center justify-center transition-colors shadow-2xs cursor-pointer text-sm"
+                >
+                  +
+                </button>
+              </div>
+
+              {/* Add to Bag Button */}
               <button
                 onClick={handleAdd}
-                className="py-3.5 md:py-4.5 rounded-2xl border-2 border-[#1E293B] hover:bg-[#F8F9FA] text-[#1E293B] text-xs font-extrabold uppercase tracking-widest transition-all duration-300 hover:scale-[1.02] active:scale-97 flex items-center justify-center gap-2.5"
+                className="flex-1 py-3.5 md:py-4.5 rounded-2xl border-2 border-[#1E293B] hover:bg-[#F8F9FA] text-[#1E293B] text-xs font-extrabold uppercase tracking-widest transition-all duration-300 hover:scale-[1.02] active:scale-97 flex items-center justify-center gap-2"
               >
                 <svg className="w-4 h-4 md:w-4.5 md:h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
                 <span>Add to Bag</span>
               </button>
+
+              {/* Buy Now Button */}
               <button
                 onClick={handleBuyNow}
-                className="py-3.5 md:py-4.5 rounded-2xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-extrabold uppercase tracking-widest transition-all duration-300 hover:scale-[1.02] active:scale-97 flex items-center justify-center gap-2.5 shadow-lg shadow-[#1A1917]/10"
+                className="flex-1 py-3.5 md:py-4.5 rounded-2xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-extrabold uppercase tracking-widest transition-all duration-300 hover:scale-[1.02] active:scale-97 flex items-center justify-center gap-2 shadow-lg shadow-[#1A1917]/10"
               >
                 <svg className="w-4 h-4 md:w-4.5 md:h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -844,7 +891,7 @@ export default function ProductDetailPage({ params }) {
                 <span>🎁 Promotional Savings</span>
               </div>
               <h3 className="font-display font-black text-lg text-[#1E293B]">Available Offers &amp; Coupons</h3>
-              <p className="text-xs text-[#1E293B]/50 font-semibold">Claim any offer below to automatically apply savings to your cart.</p>
+              <p className="text-xs text-[#1E293B]/50 font-semibold">Copy any code below and paste it during checkout at payment time.</p>
             </div>
 
             <div className="space-y-3.5 pt-1">
@@ -891,13 +938,15 @@ export default function ProductDetailPage({ params }) {
                         try {
                           navigator.clipboard.writeText(c.code);
                         } catch (e) {}
-                        handleAdd();
-                        applyCouponCode(c.code);
+                        showToast(`Coupon code "${c.code}" copied! Apply it at checkout during payment.`);
                         setIsOffersModalOpen(false);
                       }}
-                      className="px-4 py-1.5 rounded-xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-extrabold uppercase tracking-wider transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer"
+                      className="px-4 py-1.5 rounded-xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-extrabold uppercase tracking-wider transition-all hover:scale-105 active:scale-95 shadow-xs cursor-pointer flex items-center gap-1.5"
                     >
-                      Claim Offer
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                      <span>Copy Code</span>
                     </button>
                   </div>
                 </div>
@@ -914,6 +963,10 @@ export default function ProductDetailPage({ params }) {
           </div>
         </div>
       )}
+
+      {/* Search Modal & Cart Drawer */}
+      <SearchModal />
+      <CartDrawer />
 
       {/* Global Brand Footer */}
       <Footer />
