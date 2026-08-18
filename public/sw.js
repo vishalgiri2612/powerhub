@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ravtron-cache-v2';
+const CACHE_NAME = 'ravtron-cache-v3';
 const OFFLINE_URL = '/offline';
 
 const PRECACHE_ASSETS = [
@@ -46,16 +46,19 @@ self.addEventListener('activate', (event) => {
 
 // Fetch Event: Serve cached assets or fetch from network
 self.addEventListener('fetch', (event) => {
-  // Only handle GET requests
+  // Only handle GET requests with HTTP/HTTPS schemes
   if (event.request.method !== 'GET') return;
+  if (!event.request.url.startsWith('http://') && !event.request.url.startsWith('https://')) return;
 
   const url = new URL(event.request.url);
 
-  // Skip developer hot-module reloading and dynamic API routes
+  // Skip developer hot-module reloading, dynamic API routes, Google OAuth, and extensions
   if (
     url.pathname.startsWith('/_next/webpack-hmr') ||
     url.pathname.startsWith('/api/') ||
-    url.pathname.includes('/chrome-extension')
+    url.hostname.includes('googleapis.com') ||
+    url.hostname.includes('google.com') ||
+    url.hostname.includes('accounts.google.com')
   ) {
     return;
   }
@@ -68,11 +71,14 @@ self.addEventListener('fetch', (event) => {
           if (
             networkResponse &&
             networkResponse.status === 200 &&
-            (networkResponse.type === 'basic' || url.origin === self.location.origin)
+            (networkResponse.type === 'basic' || url.origin === self.location.origin) &&
+            (url.protocol === 'http:' || url.protocol === 'https:')
           ) {
             const responseToCache = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseToCache);
+              cache.put(event.request, responseToCache).catch((err) => {
+                console.warn('[Service Worker] Cache put ignored:', err);
+              });
             });
           }
           return networkResponse;
