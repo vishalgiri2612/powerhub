@@ -948,7 +948,17 @@ export default function AdminPanelPage() {
     let matchesSubcategory = true;
     if (subcategoryFilter !== "all") {
       const subTerm = subcategoryFilter.toLowerCase().trim();
-      matchesSubcategory = subCatStr.trim() === subTerm;
+      const subCatTrimmed = subCatStr.trim();
+      
+      if (subCatTrimmed) {
+        matchesSubcategory = subCatTrimmed === subTerm;
+      } else {
+        const fullText = `${nameStr} ${catStr} ${specStr} ${descStr}`;
+        const subWords = subTerm.split(/\s+/).filter(w => w.length > 1);
+        matchesSubcategory = 
+          fullText.includes(subTerm) || 
+          (subWords.length > 0 && subWords.every(word => fullText.includes(word)));
+      }
     }
 
     let matchesStatus = true;
