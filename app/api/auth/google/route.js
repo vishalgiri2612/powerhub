@@ -31,23 +31,39 @@ export async function POST(request) {
       name = payload.name || payload.given_name || "RAVTRON User";
       picture = payload.picture || "";
     } else if (access_token) {
-      // Fetch user profile from Google UserInfo API
-      const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-        headers: { Authorization: `Bearer ${access_token}` },
-      });
-      if (!res.ok) {
-        return NextResponse.json({ error: "Failed to fetch Google profile with access token." }, { status: 400 });
+      // Fetch user profile from Google UserInfo API (with fallbacks)
+      try {
+        let res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+          headers: { Authorization: `Bearer ${access_token}` },
+        });
+
+        if (!res.ok) {
+          res = await fetch(`https://www.googleapis.com/oauth2/v2/userinfo?access_token=${access_token}`);
+        }
+
+        if (res.ok) {
+          const profile = await res.json();
+          email = profile.email;
+          name = profile.name || profile.given_name || "RAVTRON User";
+          picture = profile.picture || "";
+        } else {
+          // Tokeninfo fallback
+          const tokenInfoRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?access_token=${access_token}`);
+          if (tokenInfoRes.ok) {
+            const tokenInfo = await tokenInfoRes.json();
+            email = tokenInfo.email;
+            name = tokenInfo.email ? tokenInfo.email.split("@")[0] : "RAVTRON User";
+          }
+        }
+      } catch (fetchErr) {
+        console.error("Failed to fetch profile from Google UserInfo endpoints:", fetchErr);
       }
-      const profile = await res.json();
-      email = profile.email;
-      name = profile.name || profile.given_name || "RAVTRON User";
-      picture = profile.picture || "";
     } else {
       return NextResponse.json({ error: "Google credential or access token is required." }, { status: 400 });
     }
 
     if (!email) {
-      return NextResponse.json({ error: "Could not retrieve email from Google account." }, { status: 400 });
+      return NextResponse.json({ error: "Could not retrieve email from Google account. Please try again." }, { status: 400 });
     }
 
     const inputEmail = email.trim().toLowerCase();
@@ -85,16 +101,13 @@ export async function POST(request) {
     };
 
     const isProduction = process.env.NODE_ENV === "production";
-    const forwardedProto = request.headers.get("x-forwarded-proto");
-    const isHttps = forwardedProto === "https" || request.url.startsWith("https://");
-    const secure = isProduction && isHttps;
 
     const cookieStore = await cookies();
     cookieStore.set({
       name: "ravtron_session",
       value: encodeURIComponent(JSON.stringify(sessionUser)),
       httpOnly: true,
-      secure,
+      secure: isProduction,
       path: "/",
       maxAge: 345600, // 4 days
       sameSite: "lax"
