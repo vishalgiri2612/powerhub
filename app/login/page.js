@@ -8,7 +8,7 @@ import Navbar from "../../components/Navbar";
 import SearchModal from "../../components/SearchModal";
 import CartDrawer from "../../components/CartDrawer";
 import { useCart } from "../context/CartContext";
-import { useGoogleLogin } from "@react-oauth/google";
+import { GoogleLogin, useGoogleLogin } from "@react-oauth/google";
 import GoogleAuthProvider from "../../components/GoogleAuthProvider";
 
 function LoginContent() {
@@ -24,49 +24,53 @@ function LoginContent() {
   const [success, setSuccess] = useState(false);
   const [userRole, setUserRole] = useState("");
 
-  const handleGoogleAuth = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      setIsLoading(true);
-      setError("");
-      try {
-        const response = await fetch("/api/auth/google", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ access_token: tokenResponse.access_token })
-        });
+  const handleGoogleSuccessResponse = async (payload) => {
+    setIsLoading(true);
+    setError("");
+    try {
+      const response = await fetch("/api/auth/google", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
 
-        if (!response.ok) {
-          const errData = await response.json();
-          throw new Error(errData.error || "Google authentication failed.");
-        }
-
-        const data = await response.json();
-        const sessionUser = data.user;
-
-        setIsLoading(false);
-        setSuccess(true);
-        setUserRole(sessionUser.role);
-
-        localStorage.setItem("ravtron_session", JSON.stringify(sessionUser));
-        window.dispatchEvent(new Event("ravtron_auth_change"));
-
-        if (sessionUser.role === "Administrator") {
-          showToast("Administrator access authorized with Google.");
-          setTimeout(() => {
-            window.location.href = "/admin";
-          }, 1000);
-        } else {
-          showToast(`Welcome ${sessionUser.name}! Access granted.`);
-          setTimeout(() => {
-            window.location.href = "/";
-          }, 1000);
-        }
-      } catch (err) {
-        setIsLoading(false);
-        setError(err.message || "Google login failed.");
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || "Google authentication failed.");
       }
+
+      const data = await response.json();
+      const sessionUser = data.user;
+
+      setIsLoading(false);
+      setSuccess(true);
+      setUserRole(sessionUser.role);
+
+      localStorage.setItem("ravtron_session", JSON.stringify(sessionUser));
+      window.dispatchEvent(new Event("ravtron_auth_change"));
+
+      if (sessionUser.role === "Administrator") {
+        showToast("Administrator access authorized with Google.");
+        setTimeout(() => {
+          window.location.href = "/admin";
+        }, 1000);
+      } else {
+        showToast(`Welcome ${sessionUser.name}! Access granted.`);
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 1000);
+      }
+    } catch (err) {
+      setIsLoading(false);
+      setError(err.message || "Google login failed.");
+    }
+  };
+
+  const handleGoogleAuth = useGoogleLogin({
+    onSuccess: (tokenResponse) => {
+      handleGoogleSuccessResponse({ access_token: tokenResponse.access_token });
     },
     onError: (err) => {
       console.error("Google Login Error:", err);
@@ -74,7 +78,7 @@ function LoginContent() {
       if (err?.error === "popup_closed_by_user") {
         setError("Sign-in popup was closed.");
       } else {
-        setError("Google Sign-In failed or popup was blocked by browser. Please allow popups for this site.");
+        setError("Google Sign-In failed or popup was blocked by browser. Please use the Google button below.");
       }
     }
   });
@@ -95,7 +99,7 @@ function LoginContent() {
 
       if (!response.ok) {
         const errData = await response.json();
-        throw new Error(errData.error || "Authentication failed.");
+        throw new Error(errData.error || "Invalid email or password.");
       }
 
       const data = await response.json();
@@ -109,24 +113,24 @@ function LoginContent() {
       window.dispatchEvent(new Event("ravtron_auth_change"));
 
       if (sessionUser.role === "Administrator") {
-        showToast("Administrator access authorized.");
+        showToast("Administrator session authenticated successfully!");
         setTimeout(() => {
           window.location.href = "/admin";
         }, 1000);
       } else {
-        showToast("Access granted. Welcome back.");
+        showToast(`Welcome back, ${sessionUser.name}!`);
         setTimeout(() => {
           window.location.href = "/";
         }, 1000);
       }
     } catch (err) {
       setIsLoading(false);
-      setError(err.message || "Authentication failed.");
+      setError(err.message || "Something went wrong. Please check your credentials.");
     }
   };
 
   return (
-    <div className="min-h-screen bg-bg-brand text-text-brand antialiased selection:bg-[#3674B5] selection:text-white flex flex-col justify-between">
+    <div className="min-h-screen flex flex-col bg-[#FDFBF7] text-[#1E293B] antialiased selection:bg-[#3674B5] selection:text-white">
       <Navbar />
 
       <main className="flex-grow flex items-center justify-center px-4 py-16 md:py-24 relative overflow-hidden">
@@ -179,21 +183,19 @@ function LoginContent() {
 
             {/* Email Field */}
             <div className="space-y-1.5">
-              <label className="block text-[10px] font-extrabold text-[#1E293B]/60 uppercase tracking-wider">
+              <label className="text-[11px] font-extrabold uppercase tracking-wider text-[#1E293B]/70">
                 Email Address
               </label>
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-[#1E293B]/40">
-                  <Mail className="w-4 h-4" />
-                </span>
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1E293B]/40" />
                 <input
                   type="email"
                   required
                   placeholder="Enter your email ID"
-                  className="w-full bg-[#F8F9FA] border border-[#1E293B]/10 rounded-2xl pl-11 pr-4 py-3.5 text-xs font-semibold text-[#1E293B] placeholder-[#1E293B]/30 outline-none focus:bg-white focus:border-[#3674B5] focus:ring-1 focus:ring-[#3674B5] transition-all"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading || success}
+                  className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-[#F8F9FA] border border-[#1E293B]/10 text-xs font-semibold text-[#1E293B] placeholder-[#1E293B]/30 outline-none focus:border-[#3674B5] focus:bg-white focus:ring-2 focus:ring-[#3674B5]/20 transition-all disabled:opacity-50"
                 />
               </div>
             </div>
@@ -201,60 +203,42 @@ function LoginContent() {
             {/* Password Field */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="block text-[10px] font-extrabold text-[#1E293B]/60 uppercase tracking-wider">
+                <label className="text-[11px] font-extrabold uppercase tracking-wider text-[#1E293B]/70">
                   Password
                 </label>
-                <button
-                  type="button"
-                  onClick={() => alert("Password reset link sent to your registered email.")}
-                  className="text-[10px] font-extrabold text-[#3674B5] hover:text-[#578FCA] uppercase tracking-wider hover:underline"
-                  disabled={isLoading || success}
+                <Link
+                  href="/support"
+                  className="text-[11px] font-bold text-[#3674B5] hover:underline"
                 >
                   Forgot?
-                </button>
+                </Link>
               </div>
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-[#1E293B]/40">
-                  <Lock className="w-4 h-4" />
-                </span>
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1E293B]/40" />
                 <input
                   type={showPassword ? "text" : "password"}
                   required
                   placeholder="••••••••"
-                  className="w-full bg-[#F8F9FA] border border-[#1E293B]/10 rounded-2xl pl-11 pr-11 py-3.5 text-xs font-semibold text-[#1E293B] placeholder-[#1E293B]/30 outline-none focus:bg-white focus:border-[#3674B5] focus:ring-1 focus:ring-[#3674B5] transition-all"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading || success}
+                  className="w-full pl-11 pr-11 py-3.5 rounded-2xl bg-[#F8F9FA] border border-[#1E293B]/10 text-xs font-semibold text-[#1E293B] placeholder-[#1E293B]/30 outline-none focus:border-[#3674B5] focus:bg-white focus:ring-2 focus:ring-[#3674B5]/20 transition-all disabled:opacity-50"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-[#1E293B]/40 hover:text-[#1E293B]"
-                  disabled={isLoading || success}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#1E293B]/40 hover:text-[#1E293B]/70 transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
-            {/* Remember Me Box */}
-            <div className="flex items-center gap-2 pt-1">
-              <input
-                type="checkbox"
-                id="remember"
-                className="w-4.5 h-4.5 rounded-lg border-[#1E293B]/10 text-[#3674B5] focus:ring-[#3674B5]"
-                disabled={isLoading || success}
-              />
-              <label htmlFor="remember" className="text-[11px] text-[#1E293B]/60 font-semibold cursor-pointer select-none">
-                Keep me signed in on this device
-              </label>
-            </div>
-
             {/* Action Submit Button */}
             <button
               type="submit"
               disabled={isLoading || success}
-              className="w-full py-4 rounded-2xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-extrabold uppercase tracking-wider transition-all duration-300 hover:scale-[1.02] active:scale-98 flex items-center justify-center gap-2 shadow-lg shadow-[#1A1917]/5 disabled:opacity-50 disabled:scale-100"
+              className="w-full py-4 mt-2 rounded-2xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-extrabold uppercase tracking-wider transition-all duration-300 hover:scale-[1.02] active:scale-98 flex items-center justify-center gap-2 shadow-lg shadow-[#1A1917]/5 disabled:opacity-50 disabled:scale-100"
             >
               {isLoading ? (
                 <>
@@ -280,27 +264,33 @@ function LoginContent() {
             <span className="h-[1px] bg-[#1E293B]/10 flex-grow" />
           </div>
 
-          <div className="flex flex-col gap-3">
-            <button
-              type="button"
-              onClick={() => handleGoogleAuth()}
-              disabled={isLoading || success}
-              className="w-full py-3 px-4 border border-[#1E293B]/10 bg-[#FFFFFF] hover:bg-[#F8F9FA] rounded-2xl text-xs font-bold text-[#1E293B]/70 hover:text-[#1E293B] transition-all hover:scale-[1.02] active:scale-98 flex items-center justify-center gap-2.5 shadow-3xs disabled:opacity-50"
-            >
-              <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
-                <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114A5.5 5.5 0 0 1 8.5 13a5.5 5.5 0 0 1 5.5-5.5c1.47 0 2.79.52 3.82 1.48l3.12-3.12C18.98 3.83 16.69 3 14 3 8.477 3 4 7.477 4 13s4.477 10 10 10c5.52 0 10-4.48 10-10 0-.69-.06-1.35-.18-2.015H12.24z" />
-              </svg>
-              <span>Continue with Google</span>
-            </button>
+          <div className="flex flex-col items-center justify-center gap-3 w-full">
+            <div className="w-full flex justify-center">
+              <GoogleLogin
+                onSuccess={(credentialResponse) => {
+                  handleGoogleSuccessResponse({ credential: credentialResponse.credential });
+                }}
+                onError={() => {
+                  setError("Google Sign-In failed or popup was blocked by browser.");
+                }}
+                size="large"
+                text="continue_with"
+                shape="pill"
+                width="100%"
+              />
+            </div>
           </div>
 
-          {/* Direct link to Signup */}
-          <div className="mt-8 text-center text-xs font-semibold text-[#1E293B]/50">
-            Don't have an account yet?{" "}
-            <Link href="/signup" className="text-[#3674B5] hover:text-[#578FCA] font-extrabold hover:underline">
-              Create one here
+          {/* Footer Navigation Link */}
+          <p className="mt-8 text-center text-xs font-semibold text-[#1E293B]/60">
+            Don&apos;t have an account yet?{" "}
+            <Link
+              href="/signup"
+              className="font-extrabold text-[#3674B5] hover:underline"
+            >
+              Create Account
             </Link>
-          </div>
+          </p>
 
         </div>
       </main>

@@ -9,7 +9,7 @@ import Footer from "../../components/Footer";
 import SearchModal from "../../components/SearchModal";
 import CartDrawer from "../../components/CartDrawer";
 import { useCart } from "../context/CartContext";
-import { useGoogleLogin } from "@react-oauth/google";
+import { GoogleLogin, useGoogleLogin } from "@react-oauth/google";
 import GoogleAuthProvider from "../../components/GoogleAuthProvider";
 
 function SignupContent() {
@@ -55,41 +55,52 @@ function SignupContent() {
     setStrength({ score, label, color });
   }, [password]);
 
-  const handleGoogleAuth = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      setIsLoading(true);
-      setError("");
-      try {
-        const response = await fetch("/api/auth/google", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ access_token: tokenResponse.access_token })
-        });
+  const handleGoogleSuccessResponse = async (payload) => {
+    setIsLoading(true);
+    setError("");
+    try {
+      const response = await fetch("/api/auth/google", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
 
-        if (!response.ok) {
-          const errData = await response.json();
-          throw new Error(errData.error || "Google registration failed.");
-        }
-
-        const data = await response.json();
-        const sessionUser = data.user;
-
-        setIsLoading(false);
-        setSuccess(true);
-
-        localStorage.setItem("ravtron_session", JSON.stringify(sessionUser));
-        window.dispatchEvent(new Event("ravtron_auth_change"));
-
-        showToast(`Welcome ${sessionUser.name}! Account authorized.`);
-        setTimeout(() => {
-          router.push("/");
-        }, 1200);
-      } catch (err) {
-        setIsLoading(false);
-        setError(err.message || "Google authentication failed.");
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || "Google registration failed.");
       }
+
+      const data = await response.json();
+      const sessionUser = data.user;
+
+      setIsLoading(false);
+      setSuccess(true);
+
+      localStorage.setItem("ravtron_session", JSON.stringify(sessionUser));
+      window.dispatchEvent(new Event("ravtron_auth_change"));
+
+      if (sessionUser.role === "Administrator") {
+        showToast("Administrator access authorized with Google.");
+        setTimeout(() => {
+          window.location.href = "/admin";
+        }, 1000);
+      } else {
+        showToast(`Welcome ${sessionUser.name}! Account created.`);
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 1000);
+      }
+    } catch (err) {
+      setIsLoading(false);
+      setError(err.message || "Google authentication failed.");
+    }
+  };
+
+  const handleGoogleAuth = useGoogleLogin({
+    onSuccess: (tokenResponse) => {
+      handleGoogleSuccessResponse({ access_token: tokenResponse.access_token });
     },
     onError: (err) => {
       console.error("Google Signup Error:", err);
@@ -97,7 +108,7 @@ function SignupContent() {
       if (err?.error === "popup_closed_by_user") {
         setError("Sign-in popup was closed.");
       } else {
-        setError("Google Sign-In failed or popup was blocked by browser. Please allow popups for this site.");
+        setError("Google Sign-In failed or popup was blocked by browser. Please use the Google button below.");
       }
     }
   });
@@ -363,18 +374,21 @@ function SignupContent() {
             <span className="h-[1px] bg-[#1E293B]/10 flex-grow" />
           </div>
 
-          <div className="flex flex-col gap-3">
-            <button
-              type="button"
-              onClick={() => handleGoogleAuth()}
-              disabled={isLoading || success}
-              className="w-full py-3 px-4 border border-[#1E293B]/10 bg-[#FFFFFF] hover:bg-[#F8F9FA] rounded-2xl text-xs font-bold text-[#1E293B]/70 hover:text-[#1E293B] transition-all hover:scale-[1.02] active:scale-98 flex items-center justify-center gap-2.5 shadow-3xs disabled:opacity-50"
-            >
-              <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
-                <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114A5.5 5.5 0 0 1 8.5 13a5.5 5.5 0 0 1 5.5-5.5c1.47 0 2.79.52 3.82 1.48l3.12-3.12C18.98 3.83 16.69 3 14 3 8.477 3 4 7.477 4 13s4.477 10 10 10c5.52 0 10-4.48 10-10 0-.69-.06-1.35-.18-2.015H12.24z" />
-              </svg>
-              <span>Sign up with Google</span>
-            </button>
+          <div className="flex flex-col items-center justify-center gap-3 w-full">
+            <div className="w-full flex justify-center">
+              <GoogleLogin
+                onSuccess={(credentialResponse) => {
+                  handleGoogleSuccessResponse({ credential: credentialResponse.credential });
+                }}
+                onError={() => {
+                  setError("Google Sign-In failed or popup was blocked by browser.");
+                }}
+                size="large"
+                text="signup_with"
+                shape="pill"
+                width="100%"
+              />
+            </div>
           </div>
 
           {/* Direct link to Login */}
