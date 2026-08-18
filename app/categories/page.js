@@ -89,24 +89,8 @@ export default function CategoriesPage() {
     <div className="min-h-screen bg-bg-brand text-text-brand antialiased selection:bg-[#3674B5] selection:text-white">
       <Navbar />
 
-      <main className="max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-16 pt-6 md:pt-12 pb-16 md:pb-24 space-y-6 md:space-y-12 relative z-10">
+      <main className="max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-16 pt-6 md:pt-8 pb-16 md:pb-24 space-y-6 md:space-y-12 relative z-10">
         
-        {/* Page Header */}
-        <div className="text-center space-y-2 md:space-y-4 max-w-2xl mx-auto border-b border-[#1E293B]/10 pb-4 md:pb-8">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 md:px-3.5 md:py-1 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/30">
-            <span className="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
-            <span className="text-[9px] md:text-[10px] font-extrabold text-[#3674B5] uppercase tracking-wider">
-              Product Categories
-            </span>
-          </div>
-          <h1 className="font-display font-black text-2xl sm:text-5xl lg:text-6xl text-[#1E293B] tracking-tight leading-tight">
-            Shop by <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#3674B5] to-[#578FCA]">Category</span>
-          </h1>
-          <p className="text-xs md:text-sm font-semibold text-[#1E293B]/50 leading-relaxed max-w-md mx-auto">
-            Select a category card below to browse products engineered specifically for that hardware setup.
-          </p>
-        </div>
-
         {/* Categories Grid (2 Columns on Mobile, 4 Columns on Large Screens) */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-8">
           {Array.isArray(categoriesList) && categoriesList.map((category) => {

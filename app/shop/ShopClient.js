@@ -27,39 +27,50 @@ function ShopContent() {
   const [activeCategory, setActiveCategory] = useState("All");
   const loading = productsLoading || categoriesLoading;
 
-  // Sync category state with query parameter
+  const [searchInput, setSearchInput] = useState(searchParam || "");
+
+  // Sync category & search state with query parameter
   useEffect(() => {
     if (categoryParam) {
       setActiveCategory(categoryParam);
     } else {
       setActiveCategory("All");
     }
-  }, [categoryParam]);
+    setSearchInput(searchParam || "");
+  }, [categoryParam, searchParam]);
 
   const handleFilterClick = (categoryName) => {
+    const params = new URLSearchParams(window.location.search);
     if (categoryName === "All") {
-      router.push("/shop");
+      params.delete("category");
     } else {
-      router.push(`/shop?category=${encodeURIComponent(categoryName)}`);
+      params.set("category", categoryName);
     }
+    const newUrl = params.toString() ? `/shop?${params.toString()}` : "/shop";
+    router.push(newUrl);
   };
 
   const handleClearSearch = () => {
-    if (categoryParam) {
-      router.push(`/shop?category=${encodeURIComponent(categoryParam)}`);
-    } else {
-      router.push("/shop");
-    }
+    setSearchInput("");
+    const params = new URLSearchParams(window.location.search);
+    params.delete("search");
+    params.delete("q");
+    params.delete("tag");
+    params.delete("sub");
+    const newUrl = params.toString() ? `/shop?${params.toString()}` : "/shop";
+    router.push(newUrl);
   };
+
+  const activeSearchTerm = searchInput.trim() || searchParam || "";
 
   const filteredProducts = !Array.isArray(productList)
     ? []
     : productList.filter((p) => {
         const matchesCategory = activeCategory === "All" || p.category.toLowerCase() === activeCategory.toLowerCase();
         
-        if (!searchParam) return matchesCategory;
+        if (!activeSearchTerm) return matchesCategory;
 
-        const term = searchParam.toLowerCase().trim();
+        const term = activeSearchTerm.toLowerCase().trim();
         const fullText = `${p.name} ${p.category} ${p.subcategory || ""} ${p.shortSpec || ""} ${p.description || ""} ${p.color || ""}`.toLowerCase();
 
         // 1. Direct exact substring match
@@ -82,44 +93,74 @@ function ShopContent() {
     <div className="min-h-screen bg-bg-brand text-text-brand antialiased selection:bg-[#3674B5] selection:text-white">
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 md:pt-12 pb-16 md:pb-24 relative z-10 space-y-6 md:space-y-12">
-        {/* Page Header */}
-        <div className="text-center space-y-2 md:space-y-4 max-w-2xl mx-auto border-b border-[#1E293B]/10 pb-4 md:pb-8">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 md:px-3.5 md:py-1 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/30">
-            <span className="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-[#3674B5] animate-pulse" />
-            <span className="text-[9px] md:text-[10px] font-extrabold text-[#3674B5] uppercase tracking-wider">
-              Browse RAVTRON
-            </span>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 md:pt-10 pb-16 md:pb-24 relative z-10 space-y-6 md:space-y-8">
+        
+        {/* Top Control Bar: Category Filter Pills on Left (High Visibility), Search Bar on Right */}
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 md:gap-3 py-2 border-b border-[#1E293B]/10">
+          
+          {/* LEFT SIDE: Category Filter Pills Bar (High-Contrast Bold Text) */}
+          <div className="flex items-center justify-start lg:justify-between gap-1 md:gap-1.5 p-1.5 bg-slate-100 border border-slate-300/80 rounded-full overflow-x-auto scrollbar-none scroll-smooth flex-grow min-w-0 shadow-inner">
+            {filterOptions.map((opt) => (
+              <button
+                key={opt}
+                onClick={() => handleFilterClick(opt)}
+                className={`px-3.5 py-1.5 md:px-4 rounded-full text-xs font-extrabold transition-all duration-300 hover:scale-[1.02] active:scale-97 whitespace-nowrap shrink-0 ${activeCategory === opt
+                    ? "bg-[#3674B5] text-white shadow-sm font-black"
+                    : "text-[#1E293B] hover:text-[#3674B5] hover:bg-white"
+                  }`}
+              >
+                {opt}
+              </button>
+            ))}
           </div>
-          <h1 className="font-display font-black text-2xl sm:text-5xl lg:text-6xl text-[#1E293B] tracking-tight leading-tight">
-            RAVTRON <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#3674B5] to-[#578FCA]">Shop</span>
-          </h1>
-          <p className="text-xs md:text-sm font-semibold text-[#1E293B]/50 leading-relaxed max-w-md mx-auto">
-            Our complete catalog of professional GaN power delivery adapters, display cabling, and workstation gear.
-          </p>
-        </div>
 
-        {/* Filter Pills (Horizontal Scroll on Mobile, Flex Wrap on Desktop) */}
-        <div className="flex overflow-x-auto justify-start md:justify-center gap-2 md:gap-3 py-2.5 border-y border-[#1E293B]/5 scrollbar-none -mx-4 px-4 md:mx-0 md:px-0 scroll-smooth">
-          {filterOptions.map((opt) => (
-            <button
-              key={opt}
-              onClick={() => handleFilterClick(opt)}
-              className={`px-4 py-2 md:px-5 md:py-2.5 rounded-full text-[11px] md:text-xs font-bold transition-all duration-300 hover:scale-[1.03] active:scale-97 border flex-shrink-0 ${activeCategory === opt
-                  ? "bg-[#3674B5] text-white border-[#3674B5] shadow-md shadow-[#3674B5]/15"
-                  : "bg-white text-[#1E293B]/60 border-[#1E293B]/10 hover:text-[#1E293B] hover:border-[#1E293B]/20"
-                }`}
-            >
-              {opt}
-            </button>
-          ))}
+          {/* RIGHT SIDE: Search Input Box Pill (High-Contrast Text & Placeholder) */}
+          <div className="relative w-full lg:w-64 xl:w-72 shrink-0">
+            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+              <svg className="w-4 h-4 text-[#1E293B]/70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </span>
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchInput}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSearchInput(val);
+                const params = new URLSearchParams(window.location.search);
+                if (val.trim()) {
+                  params.set("search", val.trim());
+                } else {
+                  params.delete("search");
+                  params.delete("q");
+                  params.delete("tag");
+                  params.delete("sub");
+                }
+                const newUrl = params.toString() ? `/shop?${params.toString()}` : "/shop";
+                router.replace(newUrl, { scroll: false });
+              }}
+              className="w-full bg-white border border-slate-300 rounded-full pl-10 pr-9 py-2 md:py-2.5 text-xs font-bold text-[#1E293B] placeholder-[#1E293B]/60 outline-none focus:border-[#3674B5] focus:ring-2 focus:ring-[#3674B5]/20 shadow-xs transition-all"
+            />
+            {searchInput && (
+              <button
+                type="button"
+                onClick={handleClearSearch}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-xs font-black text-[#1E293B]/60 hover:text-[#1E293B]"
+                title="Clear Search"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
         </div>
 
         {/* Active Subcategory / Search Filter Indicator Banner */}
-        {searchParam && (
+        {activeSearchTerm && (
           <div className="flex items-center justify-between bg-[#3674B5]/8 border border-[#3674B5]/20 rounded-2xl px-5 py-3 text-xs font-bold text-[#1E293B] max-w-xl mx-auto shadow-2xs">
             <span>
-              Showing results for <span className="text-[#3674B5] font-extrabold">&ldquo;{searchParam}&rdquo;</span>
+              Showing results for <span className="text-[#3674B5] font-extrabold">&ldquo;{activeSearchTerm}&rdquo;</span>
               {activeCategory !== "All" && <span> in <span className="text-[#1E293B] font-extrabold">{activeCategory}</span></span>}
             </span>
             <button

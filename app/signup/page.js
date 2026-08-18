@@ -8,9 +8,13 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import SearchModal from "../../components/SearchModal";
 import CartDrawer from "../../components/CartDrawer";
+import { useCart } from "../context/CartContext";
+import { useGoogleLogin } from "@react-oauth/google";
+import GoogleAuthProvider from "../../components/GoogleAuthProvider";
 
-export default function SignupPage() {
+function SignupContent() {
   const router = useRouter();
+  const { showToast } = useCart();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -50,6 +54,48 @@ export default function SignupPage() {
 
     setStrength({ score, label, color });
   }, [password]);
+
+  const handleGoogleAuth = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setIsLoading(true);
+      setError("");
+      try {
+        const response = await fetch("/api/auth/google", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ access_token: tokenResponse.access_token })
+        });
+
+        if (!response.ok) {
+          const errData = await response.json();
+          throw new Error(errData.error || "Google registration failed.");
+        }
+
+        const data = await response.json();
+        const sessionUser = data.user;
+
+        setIsLoading(false);
+        setSuccess(true);
+
+        localStorage.setItem("ravtron_session", JSON.stringify(sessionUser));
+        window.dispatchEvent(new Event("ravtron_auth_change"));
+
+        showToast(`Welcome ${sessionUser.name}! Account authorized.`);
+        setTimeout(() => {
+          router.push("/");
+        }, 1200);
+      } catch (err) {
+        setIsLoading(false);
+        setError(err.message || "Google authentication failed.");
+      }
+    },
+    onError: (err) => {
+      console.error("Google Signup Error:", err);
+      setError("Google Sign-In failed or was cancelled.");
+    }
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -143,7 +189,7 @@ export default function SignupPage() {
                 <ShieldCheck className="w-4 h-4" />
               </span>
               <div>
-                <h4 className="font-extrabold">Account Created!</h4>
+                <h4 className="font-extrabold">Account Authorized!</h4>
                 <p className="text-[10px] text-emerald-800/60 font-semibold mt-0.5">Welcome! Redirecting you to home...</p>
               </div>
             </div>
@@ -312,27 +358,17 @@ export default function SignupPage() {
             <span className="h-[1px] bg-[#1E293B]/10 flex-grow" />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col gap-3">
             <button
-              onClick={() => alert("Connecting to Google authentication...")}
-              className="py-3 px-4 border border-[#1E293B]/10 bg-[#FFFFFF] hover:bg-[#F8F9FA] rounded-2xl text-xs font-bold text-[#1E293B]/70 hover:text-[#1E293B] transition-all hover:scale-[1.02] active:scale-98 flex items-center justify-center gap-2 shadow-3xs"
+              type="button"
+              onClick={() => handleGoogleAuth()}
+              disabled={isLoading || success}
+              className="w-full py-3 px-4 border border-[#1E293B]/10 bg-[#FFFFFF] hover:bg-[#F8F9FA] rounded-2xl text-xs font-bold text-[#1E293B]/70 hover:text-[#1E293B] transition-all hover:scale-[1.02] active:scale-98 flex items-center justify-center gap-2.5 shadow-3xs disabled:opacity-50"
             >
-              <svg className="w-4 h-4" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
                 <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114A5.5 5.5 0 0 1 8.5 13a5.5 5.5 0 0 1 5.5-5.5c1.47 0 2.79.52 3.82 1.48l3.12-3.12C18.98 3.83 16.69 3 14 3 8.477 3 4 7.477 4 13s4.477 10 10 10c5.52 0 10-4.48 10-10 0-.69-.06-1.35-.18-2.015H12.24z" />
               </svg>
-              <span>Google</span>
-            </button>
-            <button
-              onClick={() => alert("Connecting to Microsoft authentication...")}
-              className="py-3 px-4 border border-[#1E293B]/10 bg-[#FFFFFF] hover:bg-[#F8F9FA] rounded-2xl text-xs font-bold text-[#1E293B]/70 hover:text-[#1E293B] transition-all hover:scale-[1.02] active:scale-98 flex items-center justify-center gap-2 shadow-3xs"
-            >
-              <svg className="w-4 h-4" viewBox="0 0 23 23">
-                <path fill="#F25022" d="M1 1h10v10H1z" />
-                <path fill="#7FBA00" d="M12 1h10v10H12z" />
-                <path fill="#00A4EF" d="M1 12h10v10H1z" />
-                <path fill="#FFB900" d="M12 12h10v10H12z" />
-              </svg>
-              <span>Microsoft</span>
+              <span>Sign up with Google</span>
             </button>
           </div>
 
@@ -351,5 +387,13 @@ export default function SignupPage() {
       <SearchModal />
       <CartDrawer />
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <GoogleAuthProvider>
+      <SignupContent />
+    </GoogleAuthProvider>
   );
 }
