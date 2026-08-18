@@ -26,7 +26,7 @@ export function CartProvider({ children }) {
 
   const fetchCoupons = async () => {
     try {
-      const res = await fetch("/api/coupons");
+      const res = await fetch("/api/coupons", { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) {
@@ -45,7 +45,7 @@ export function CartProvider({ children }) {
       setProductsLoading(true);
     }
     try {
-      const res = await fetch("/api/products?excludeGallery=true");
+      const res = await fetch("/api/products?excludeGallery=true", { cache: "no-store" });
       if (!res.ok) throw new Error("Failed to fetch products");
       const data = await res.json();
       if (Array.isArray(data)) {
@@ -93,7 +93,7 @@ export function CartProvider({ children }) {
       setCategoriesLoading(true);
     }
     try {
-      const res = await fetch("/api/categories");
+      const res = await fetch("/api/categories", { cache: "no-store" });
       if (!res.ok) throw new Error("Failed to fetch categories");
       const data = await res.json();
       if (Array.isArray(data)) {

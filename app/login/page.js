@@ -70,7 +70,12 @@ function LoginContent() {
     },
     onError: (err) => {
       console.error("Google Login Error:", err);
-      setError("Google Sign-In failed or was cancelled.");
+      setIsLoading(false);
+      if (err?.error === "popup_closed_by_user") {
+        setError("Sign-in popup was closed.");
+      } else {
+        setError("Google Sign-In failed or popup was blocked by browser. Please allow popups for this site.");
+      }
     }
   });
 
