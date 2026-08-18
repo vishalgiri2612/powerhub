@@ -941,20 +941,14 @@ export default function AdminPanelPage() {
     const subCatStr = (product.subcategory || "").toLowerCase();
     const query = (searchQuery || "").toLowerCase();
 
-    const matchesSearch = nameStr.includes(query) || specStr.includes(query) || descStr.includes(query);
+    const matchesSearch = nameStr.includes(query) || specStr.includes(query) || descStr.includes(query) || subCatStr.includes(query);
     const matchesCategory = categoryFilter === "all" || catStr === categoryFilter.toLowerCase();
     const matchesSubTab = subTab === "all" || catStr === subTab.toLowerCase();
 
     let matchesSubcategory = true;
     if (subcategoryFilter !== "all") {
       const subTerm = subcategoryFilter.toLowerCase().trim();
-      const fullText = `${nameStr} ${catStr} ${subCatStr} ${specStr} ${descStr}`;
-      const subWords = subTerm.split(/\s+/).filter(w => w.length > 1);
-
-      matchesSubcategory = 
-        subCatStr === subTerm || 
-        fullText.includes(subTerm) || 
-        (subWords.length > 0 && subWords.every(word => fullText.includes(word)));
+      matchesSubcategory = subCatStr.trim() === subTerm;
     }
 
     let matchesStatus = true;

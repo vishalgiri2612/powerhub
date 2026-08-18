@@ -60,7 +60,7 @@ function ShopContent() {
         if (!searchParam) return matchesCategory;
 
         const term = searchParam.toLowerCase().trim();
-        const fullText = `${p.name} ${p.category} ${p.shortSpec || ""} ${p.description || ""} ${p.color || ""}`.toLowerCase();
+        const fullText = `${p.name} ${p.category} ${p.subcategory || ""} ${p.shortSpec || ""} ${p.description || ""} ${p.color || ""}`.toLowerCase();
 
         // 1. Direct exact substring match
         if (fullText.includes(term)) return matchesCategory;
