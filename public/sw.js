@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ravtron-cache-v3';
+const CACHE_NAME = 'ravtron-cache-v4';
 const OFFLINE_URL = '/offline';
 
 const PRECACHE_ASSETS = [
@@ -11,12 +11,12 @@ const PRECACHE_ASSETS = [
   '/images/logo.png'
 ];
 
-// Install Event: Precache critical files
+// Install Event: Precache critical files & force skipWaiting
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log('[Service Worker] Pre-caching offline fallback and key assets');
-      // Using map to individually catch errors if any resource fails to load during development
       return Promise.all(
         PRECACHE_ASSETS.map((asset) => {
           return cache.add(asset).catch((err) => {
@@ -24,11 +24,11 @@ self.addEventListener('install', (event) => {
           });
         })
       );
-    }).then(() => self.skipWaiting())
+    })
   );
 });
 
-// Activate Event: Clear outdated caches
+// Activate Event: Clear outdated caches and claim clients immediately
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -44,7 +44,7 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch Event: Serve cached assets or fetch from network
+// Fetch Event: Serve network-first for HTML/Page navigations, stale-while-revalidate for static assets
 self.addEventListener('fetch', (event) => {
   // Only handle GET requests with HTTP/HTTPS schemes
   if (event.request.method !== 'GET') return;
@@ -63,16 +63,38 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // 1. Network-First strategy for HTML page navigations & Next data requests
+  if (event.request.mode === 'navigate' || url.pathname.startsWith('/_next/data/')) {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache).catch(() => {});
+            });
+          }
+          return networkResponse;
+        })
+        .catch(() => {
+          // Fall back to cache or offline page when network is unavailable
+          return caches.match(event.request).then((cachedResponse) => {
+            return cachedResponse || caches.match(OFFLINE_URL) || caches.match('/');
+          });
+        })
+    );
+    return;
+  }
+
+  // 2. Stale-While-Revalidate strategy for static assets
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       const fetchPromise = fetch(event.request)
         .then((networkResponse) => {
-          // Cache the response if it's successful and basic (same origin)
           if (
             networkResponse &&
             networkResponse.status === 200 &&
-            (networkResponse.type === 'basic' || url.origin === self.location.origin) &&
-            (url.protocol === 'http:' || url.protocol === 'https:')
+            (networkResponse.type === 'basic' || url.origin === self.location.origin)
           ) {
             const responseToCache = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => {
@@ -84,16 +106,9 @@ self.addEventListener('fetch', (event) => {
           return networkResponse;
         })
         .catch((err) => {
-          console.log('[Service Worker] Fetch failed (possibly offline); check for fallback');
-          // For page navigations, return the custom offline fallback page
-          if (event.request.mode === 'navigate') {
-            return caches.match(OFFLINE_URL) || caches.match('/');
-          }
           return cachedResponse;
         });
 
-      // Return cached response instantly if present (Stale-While-Revalidate), 
-      // falling back to network fetch otherwise.
       return cachedResponse || fetchPromise;
     })
   );
