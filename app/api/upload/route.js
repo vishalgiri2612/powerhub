@@ -3,6 +3,7 @@ import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import cloudinary from "cloudinary";
 import { verifyAdmin } from "@/lib/auth";
+import { validateFileUpload, logSecurityEvent } from "@/lib/security";
 
 // Configure Cloudinary v2 API
 const cloudinaryCloudName = process.env.CLOUDINARY_CLOUD_NAME;
@@ -26,13 +27,16 @@ if (isCloudinaryConfigured) {
 export async function POST(request) {
   try {
     if (!(await verifyAdmin())) {
+      logSecurityEvent("UNAUTHORIZED_UPLOAD_ATTEMPT");
       return NextResponse.json({ error: "Unauthorized access: Administrator role required" }, { status: 403 });
     }
     const formData = await request.formData();
     const file = formData.get("file");
 
-    if (!file) {
-      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+    const fileValidation = validateFileUpload(file);
+    if (!fileValidation.valid) {
+      logSecurityEvent("INVALID_FILE_UPLOAD", { error: fileValidation.error, fileName: file?.name });
+      return NextResponse.json({ error: fileValidation.error }, { status: 400 });
     }
 
     const bytes = await file.arrayBuffer();

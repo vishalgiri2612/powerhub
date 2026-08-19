@@ -4,10 +4,12 @@ import User from "@/models/User";
 import { verifyAdmin, verifyUser } from "@/lib/auth";
 import { cookies } from "next/headers";
 import { getCachedUsers, setCachedUsers, clearUsersCache } from "@/lib/cache";
+import { escapeRegex, sanitizeEmail, logSecurityEvent } from "@/lib/security";
 
 export async function GET() {
   try {
     if (!(await verifyAdmin())) {
+      logSecurityEvent("UNAUTHORIZED_GET_USERS_ATTEMPT");
       return NextResponse.json({ error: "Unauthorized access: Administrator role required" }, { status: 403 });
     }
     const cached = getCachedUsers();
@@ -32,11 +34,15 @@ export async function PUT(request) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
-    if (!(await verifyUser(email))) {
+    const cleanEmail = sanitizeEmail(email);
+
+    if (!(await verifyUser(cleanEmail))) {
+      logSecurityEvent("UNAUTHORIZED_PUT_USER_ATTEMPT", { targetEmail: cleanEmail });
       return NextResponse.json({ error: "Unauthorized access" }, { status: 403 });
     }
 
     if ((role !== undefined || active !== undefined) && !(await verifyAdmin())) {
+      logSecurityEvent("UNAUTHORIZED_ROLE_CHANGE_ATTEMPT", { targetEmail: cleanEmail });
       return NextResponse.json({ error: "Unauthorized: Administrator privileges required to change role or active status" }, { status: 403 });
     }
 
@@ -46,8 +52,10 @@ export async function PUT(request) {
     if (name !== undefined) updateFields.name = name;
     if (active !== undefined) updateFields.active = active;
 
+    const safeRegex = new RegExp(`^${escapeRegex(cleanEmail)}$`, "i");
+
     const updatedUser = await User.findOneAndUpdate(
-      { email: { $regex: new RegExp(`^${email.trim()}$`, "i") } },
+      { email: { $regex: safeRegex } },
       updateFields,
       { new: true, runValidators: true }
     );
@@ -67,7 +75,7 @@ export async function PUT(request) {
     if (sessionCookie) {
       try {
         const session = JSON.parse(decodeURIComponent(sessionCookie));
-        if (session.email.toLowerCase() === email.toLowerCase()) {
+        if (session.email.toLowerCase() === cleanEmail) {
           const sessionUser = {
             name: updatedUser.name,
             email: updatedUser.email,
@@ -109,10 +117,13 @@ export async function POST(request) {
       return NextResponse.json({ error: "Name and email are required" }, { status: 400 });
     }
 
-    const existing = await User.findOne({ email: { $regex: new RegExp(`^${email.trim()}$`, "i") } });
+    const cleanEmail = sanitizeEmail(email);
+    const safeRegex = new RegExp(`^${escapeRegex(cleanEmail)}$`, "i");
+
+    const existing = await User.findOne({ email: { $regex: safeRegex } });
     const userToSession = existing || await User.create({
       name,
-      email,
+      email: cleanEmail,
       role: role || "Customer",
       joinDate: joinDate || new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
       active: true

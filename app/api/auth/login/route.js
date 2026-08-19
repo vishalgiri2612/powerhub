@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
 import { cookies } from "next/headers";
+import { escapeRegex, sanitizeEmail, logSecurityEvent } from "@/lib/security";
 
 export async function POST(request) {
   try {
@@ -12,24 +13,26 @@ export async function POST(request) {
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
     }
 
+    const inputEmail = sanitizeEmail(email);
+    const safeRegex = new RegExp(`^${escapeRegex(inputEmail)}$`, "i");
+
     const isProduction = process.env.NODE_ENV === "production";
     const forwardedProto = request.headers.get("x-forwarded-proto");
     const isHttps = forwardedProto === "https" || request.url.startsWith("https://");
     const secure = isProduction && isHttps;
 
-    const adminEnvEmail = (process.env.ADMIN_EMAIL || "ravtron@admin.com").trim().toLowerCase();
+    const adminEnvEmail = sanitizeEmail(process.env.ADMIN_EMAIL || "ravtron@admin.com");
     const adminEnvPassword = process.env.ADMIN_PASSWORD || "admin123";
     const adminEnvName = process.env.ADMIN_NAME || "Visha Rawat";
 
-    const inputEmail = email.trim().toLowerCase();
-
     // Check if the user attempting login is an Administrator
-    const existingUser = await User.findOne({ email: { $regex: new RegExp(`^${email.trim()}$`, "i") } });
+    const existingUser = await User.findOne({ email: { $regex: safeRegex } });
     const isAdminLogin = inputEmail === adminEnvEmail || (existingUser && existingUser.role === "Administrator");
 
     if (isAdminLogin) {
-      // Validate Admin Security Password
-      if (password !== adminEnvPassword && password !== "admin123" && password !== "admin") {
+      // Validate Admin Security Password strictly against environment configuration
+      if (password !== adminEnvPassword) {
+        logSecurityEvent("ADMIN_LOGIN_FAILED", { email: inputEmail });
         return NextResponse.json({ error: "Invalid administrative security credentials." }, { status: 401 });
       }
 
@@ -47,6 +50,7 @@ export async function POST(request) {
       }
 
       if (adminUser && adminUser.active === false) {
+        logSecurityEvent("ADMIN_LOGIN_DISABLED_PROFILE", { email: inputEmail });
         return NextResponse.json({ error: "Access denied. This administrative profile has been disabled." }, { status: 403 });
       }
 
@@ -71,6 +75,7 @@ export async function POST(request) {
         sameSite: "lax"
       });
 
+      logSecurityEvent("ADMIN_LOGIN_SUCCESS", { email: inputEmail });
       return NextResponse.json({ success: true, user: sessionUser });
 
     } else {
@@ -79,10 +84,10 @@ export async function POST(request) {
 
       if (!clientUser) {
         // Auto-register new customer account
-        const defaultName = email.split("@")[0].split(".").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ") || "RAVTRON Client";
+        const defaultName = inputEmail.split("@")[0].split(".").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ") || "RAVTRON Client";
         clientUser = await User.create({
           name: defaultName,
-          email: email,
+          email: inputEmail,
           role: "Customer",
           joinDate: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
           active: true
@@ -90,6 +95,7 @@ export async function POST(request) {
       }
 
       if (clientUser.active === false) {
+        logSecurityEvent("CUSTOMER_LOGIN_DISABLED_PROFILE", { email: inputEmail });
         return NextResponse.json({ error: "Access denied. Your profile has been deactivated. Please contact support." }, { status: 403 });
       }
 
@@ -117,6 +123,7 @@ export async function POST(request) {
       return NextResponse.json({ success: true, user: sessionUser });
     }
   } catch (error) {
+    logSecurityEvent("LOGIN_SERVER_ERROR", { error: error.message });
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

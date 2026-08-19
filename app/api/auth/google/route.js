@@ -3,6 +3,7 @@ import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
 import { cookies } from "next/headers";
 import { OAuth2Client } from "google-auth-library";
+import { escapeRegex, sanitizeEmail, logSecurityEvent, isAllowedDomain } from "@/lib/security";
 
 const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "538059283255-qc41jgp3n3287bgmcs16efjgdt2fcb1s.apps.googleusercontent.com";
 const client = new OAuth2Client(googleClientId);
@@ -25,20 +26,29 @@ export async function POST(request) {
       });
       const payload = ticket.getPayload();
       if (!payload || !payload.email) {
+        logSecurityEvent("GOOGLE_AUTH_INVALID_PAYLOAD");
         return NextResponse.json({ error: "Invalid Google credential token." }, { status: 400 });
       }
       email = payload.email;
       name = payload.name || payload.given_name || "RAVTRON User";
       picture = payload.picture || "";
     } else if (access_token) {
-      // Fetch user profile from Google UserInfo API (with fallbacks)
+      // Fetch user profile from Google UserInfo API with domain safety checks (SSRF Prevention)
       try {
-        let res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+        const userInfoUrl = "https://www.googleapis.com/oauth2/v3/userinfo";
+        if (!isAllowedDomain(userInfoUrl)) {
+          throw new Error("Target domain is not permitted.");
+        }
+
+        let res = await fetch(userInfoUrl, {
           headers: { Authorization: `Bearer ${access_token}` },
         });
 
         if (!res.ok) {
-          res = await fetch(`https://www.googleapis.com/oauth2/v2/userinfo?access_token=${access_token}`);
+          const fallbackUrl = `https://www.googleapis.com/oauth2/v2/userinfo?access_token=${encodeURIComponent(access_token)}`;
+          if (isAllowedDomain(fallbackUrl)) {
+            res = await fetch(fallbackUrl);
+          }
         }
 
         if (res.ok) {
@@ -48,30 +58,36 @@ export async function POST(request) {
           picture = profile.picture || "";
         } else {
           // Tokeninfo fallback
-          const tokenInfoRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?access_token=${access_token}`);
-          if (tokenInfoRes.ok) {
-            const tokenInfo = await tokenInfoRes.json();
-            email = tokenInfo.email;
-            name = tokenInfo.email ? tokenInfo.email.split("@")[0] : "RAVTRON User";
+          const tokenInfoUrl = `https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(access_token)}`;
+          if (isAllowedDomain(tokenInfoUrl)) {
+            const tokenInfoRes = await fetch(tokenInfoUrl);
+            if (tokenInfoRes.ok) {
+              const tokenInfo = await tokenInfoRes.json();
+              email = tokenInfo.email;
+              name = tokenInfo.email ? tokenInfo.email.split("@")[0] : "RAVTRON User";
+            }
           }
         }
       } catch (fetchErr) {
-        console.error("Failed to fetch profile from Google UserInfo endpoints:", fetchErr);
+        logSecurityEvent("GOOGLE_USERINFO_FETCH_FAILED", { error: fetchErr.message });
       }
     } else {
       return NextResponse.json({ error: "Google credential or access token is required." }, { status: 400 });
     }
 
     if (!email) {
+      logSecurityEvent("GOOGLE_AUTH_MISSING_EMAIL");
       return NextResponse.json({ error: "Could not retrieve email from Google account. Please try again." }, { status: 400 });
     }
 
-    const inputEmail = email.trim().toLowerCase();
-    const adminEnvEmail = (process.env.ADMIN_EMAIL || "ravtron@admin.com").trim().toLowerCase();
+    const inputEmail = sanitizeEmail(email);
+    const safeRegex = new RegExp(`^${escapeRegex(inputEmail)}$`, "i");
+
+    const adminEnvEmail = sanitizeEmail(process.env.ADMIN_EMAIL || "ravtron@admin.com");
     const adminEnvName = process.env.ADMIN_NAME || "Visha Rawat";
 
     // Search for existing user in MongoDB
-    let existingUser = await User.findOne({ email: { $regex: new RegExp(`^${inputEmail}$`, "i") } });
+    let existingUser = await User.findOne({ email: { $regex: safeRegex } });
 
     const isAdmin = inputEmail === adminEnvEmail || (existingUser && existingUser.role === "Administrator");
     const roleToSet = isAdmin ? "Administrator" : "Customer";
@@ -87,6 +103,7 @@ export async function POST(request) {
     }
 
     if (existingUser.active === false) {
+      logSecurityEvent("GOOGLE_AUTH_DISABLED_PROFILE", { email: inputEmail });
       return NextResponse.json({ error: "Access denied. Your profile has been deactivated. Please contact support." }, { status: 403 });
     }
 
@@ -113,9 +130,10 @@ export async function POST(request) {
       sameSite: "lax"
     });
 
+    logSecurityEvent("GOOGLE_AUTH_SUCCESS", { email: inputEmail, role: existingUser.role });
     return NextResponse.json({ success: true, user: sessionUser });
   } catch (error) {
-    console.error("Google Auth Route Error:", error);
+    logSecurityEvent("GOOGLE_AUTH_SERVER_ERROR", { error: error.message });
     return NextResponse.json({ error: error.message || "Google authentication failed." }, { status: 500 });
   }
 }
