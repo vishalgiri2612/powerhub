@@ -137,8 +137,18 @@ export function CartProvider({ children }) {
     fetchCoupons();
   }, []);
 
-  const refreshProducts = () => fetchProducts();
-  const refreshCategories = () => fetchCategories();
+  const refreshProducts = () => {
+    try {
+      localStorage.removeItem("powerhub_products_cache");
+    } catch (e) {}
+    fetchProducts();
+  };
+  const refreshCategories = () => {
+    try {
+      localStorage.removeItem("powerhub_categories_cache");
+    } catch (e) {}
+    fetchCategories();
+  };
   const refreshCoupons = () => fetchCoupons();
 
   const isInitialized = React.useRef(false);
@@ -334,11 +344,67 @@ export function CartProvider({ children }) {
       return false;
     }
 
+    // Product-level restriction check
+    if (foundCoupon.applicableProductId) {
+      const targetItem = cart.find(
+        (item) =>
+          String(item.id) === String(foundCoupon.applicableProductId) ||
+          String(item._id) === String(foundCoupon.applicableProductId)
+      );
+
+      if (!targetItem) {
+        showToast(
+          `Coupon '${cleanCode}' is valid only for '${foundCoupon.applicableProductName || "a specific product"}'. Please add it to your bag!`,
+          "error"
+        );
+        return false;
+      }
+
+      const itemSubtotal = targetItem.price * targetItem.quantity;
+      let calculatedDiscount = 0;
+      if (foundCoupon.type === "percentage") {
+        calculatedDiscount = Math.round((itemSubtotal * foundCoupon.discountValue) / 100);
+      } else {
+        calculatedDiscount = Math.min(itemSubtotal, foundCoupon.discountValue);
+      }
+
+      setCoupon(cleanCode);
+      setDiscount(calculatedDiscount);
+      showToast(`Coupon '${cleanCode}' applied for ${targetItem.name}! Saved ₹${calculatedDiscount}`);
+      return true;
+    }
+
+    // Category-level restriction check
+    if (foundCoupon.applicableCategory && foundCoupon.applicableCategory !== "All") {
+      const categoryItems = cart.filter(
+        (item) => item.category && item.category.toLowerCase() === foundCoupon.applicableCategory.toLowerCase()
+      );
+
+      if (categoryItems.length === 0) {
+        showToast(`Coupon '${cleanCode}' is valid only for '${foundCoupon.applicableCategory}' products`, "error");
+        return false;
+      }
+
+      const categorySubtotal = categoryItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      let calculatedDiscount = 0;
+      if (foundCoupon.type === "percentage") {
+        calculatedDiscount = Math.round((categorySubtotal * foundCoupon.discountValue) / 100);
+      } else {
+        calculatedDiscount = Math.min(categorySubtotal, foundCoupon.discountValue);
+      }
+
+      setCoupon(cleanCode);
+      setDiscount(calculatedDiscount);
+      showToast(`Coupon '${cleanCode}' applied for ${foundCoupon.applicableCategory}! Saved ₹${calculatedDiscount}`);
+      return true;
+    }
+
+    // General store-wide discount
     let calculatedDiscount = 0;
     if (foundCoupon.type === "percentage") {
       calculatedDiscount = Math.round((subtotal * foundCoupon.discountValue) / 100);
     } else {
-      calculatedDiscount = foundCoupon.discountValue;
+      calculatedDiscount = Math.min(subtotal, foundCoupon.discountValue);
     }
 
     setCoupon(cleanCode);

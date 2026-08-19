@@ -13,31 +13,41 @@ function ShopContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get("category");
-  const searchParam = searchParams.get("search") || searchParams.get("q") || searchParams.get("tag") || searchParams.get("sub");
+  const subParam = searchParams.get("sub") || searchParams.get("subcategory");
+  const searchParam = searchParams.get("search") || searchParams.get("q") || searchParams.get("tag");
 
   const {
     addToCart,
     toggleWishlist,
     wishlist,
+    cart,
     products: productList,
     productsLoading,
     categories: categoriesList,
     categoriesLoading,
   } = useCart();
   const [activeCategory, setActiveCategory] = useState("All");
-  const loading = productsLoading || categoriesLoading;
-
+  const [activeSubcategory, setActiveSubcategory] = useState("All");
   const [searchInput, setSearchInput] = useState(searchParam || "");
 
-  // Sync category & search state with query parameter
+  const loading = productsLoading || categoriesLoading;
+
+  // Sync category, subcategory & search state with query parameter
   useEffect(() => {
     if (categoryParam) {
       setActiveCategory(categoryParam);
     } else {
       setActiveCategory("All");
     }
+
+    if (subParam) {
+      setActiveSubcategory(subParam);
+    } else {
+      setActiveSubcategory("All");
+    }
+
     setSearchInput(searchParam || "");
-  }, [categoryParam, searchParam]);
+  }, [categoryParam, subParam, searchParam]);
 
   const handleFilterClick = (categoryName) => {
     const params = new URLSearchParams(window.location.search);
@@ -46,45 +56,105 @@ function ShopContent() {
     } else {
       params.set("category", categoryName);
     }
+    params.delete("sub");
+    params.delete("subcategory");
+    setActiveSubcategory("All");
+    const newUrl = params.toString() ? `/shop?${params.toString()}` : "/shop";
+    router.push(newUrl);
+  };
+
+  const handleSubcategoryFilterClick = (subName) => {
+    const params = new URLSearchParams(window.location.search);
+    if (subName === "All") {
+      params.delete("sub");
+      params.delete("subcategory");
+    } else {
+      params.set("sub", subName);
+    }
+    params.delete("search");
+    params.delete("q");
+    params.delete("tag");
+    setSearchInput("");
     const newUrl = params.toString() ? `/shop?${params.toString()}` : "/shop";
     router.push(newUrl);
   };
 
   const handleClearSearch = () => {
     setSearchInput("");
+    setActiveSubcategory("All");
     const params = new URLSearchParams(window.location.search);
     params.delete("search");
     params.delete("q");
     params.delete("tag");
     params.delete("sub");
+    params.delete("subcategory");
     const newUrl = params.toString() ? `/shop?${params.toString()}` : "/shop";
     router.push(newUrl);
   };
 
-  const activeSearchTerm = searchInput.trim() || searchParam || "";
+  const activeSearchTerm = searchInput.trim();
+
+  // Compute available subcategories for the active category
+  const availableSubcategories = React.useMemo(() => {
+    if (!Array.isArray(categoriesList)) return [];
+    if (activeCategory !== "All") {
+      const foundCat = categoriesList.find(
+        (c) => c.name.toLowerCase().trim() === activeCategory.toLowerCase().trim()
+      );
+      return Array.isArray(foundCat?.subcategories) ? foundCat.subcategories : [];
+    }
+    const set = new Set();
+    categoriesList.forEach((c) => {
+      if (Array.isArray(c.subcategories)) {
+        c.subcategories.forEach((s) => set.add(s));
+      }
+    });
+    return Array.from(set);
+  }, [categoriesList, activeCategory]);
 
   const filteredProducts = !Array.isArray(productList)
     ? []
     : productList.filter((p) => {
-        const matchesCategory = activeCategory === "All" || p.category.toLowerCase() === activeCategory.toLowerCase();
-        
-        if (!activeSearchTerm) return matchesCategory;
+        // 1. Category match
+        const matchesCategory =
+          activeCategory === "All" ||
+          p.category.toLowerCase().trim() === activeCategory.toLowerCase().trim();
 
-        const term = activeSearchTerm.toLowerCase().trim();
+        if (!matchesCategory) return false;
+
+        // 2. Explicit Subcategory match (if activeSubcategory set via pill or ?sub=)
+        if (activeSubcategory && activeSubcategory !== "All") {
+          const pSub = (p.subcategory || "").toLowerCase().trim();
+          const targetSub = activeSubcategory.toLowerCase().trim();
+          if (pSub !== targetSub) return false;
+        }
+
+        // 3. Search query / query parameter match
+        if (!activeSearchTerm && !subParam) return true;
+
+        const term = (activeSearchTerm || subParam || "").toLowerCase().trim();
+        const pSub = (p.subcategory || "").toLowerCase().trim();
+
+        // Check if query is a known subcategory
+        const matchesKnownSubcat = availableSubcategories.some(
+          (s) => s.toLowerCase().trim() === term
+        );
+
+        if (matchesKnownSubcat) {
+          return pSub === term;
+        }
+
+        // General text search
         const fullText = `${p.name} ${p.category} ${p.subcategory || ""} ${p.shortSpec || ""} ${p.description || ""} ${p.color || ""}`.toLowerCase();
 
-        // 1. Direct exact substring match
-        if (fullText.includes(term)) return matchesCategory;
+        if (fullText.includes(term)) return true;
 
-        // 2. Tokenized & plural-insensitive match (e.g., "HDMI Cables" -> "hdmi", "cable")
         const tokens = term
           .split(/[\s,·\-\/]+/)
-          .map((w) => w.trim().replace(/s$/, "")) // stem trailing 's'
+          .map((w) => w.trim().replace(/s$/, ""))
           .filter((w) => w.length > 1);
 
-        const matchesTokens = tokens.length > 0 && tokens.every((tok) => fullText.includes(tok));
-
-        return matchesCategory && matchesTokens;
+        return tokens.length > 0 && tokens.every((tok) => fullText.includes(tok));
       });
 
   const filterOptions = ["All", ...(Array.isArray(categoriesList) ? categoriesList.map((c) => c.name) : [])];
@@ -95,10 +165,10 @@ function ShopContent() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 md:pt-10 pb-16 md:pb-24 relative z-10 space-y-6 md:space-y-8">
         
-        {/* Top Control Bar: Category Filter Pills on Left (High Visibility), Search Bar on Right */}
+        {/* Top Control Bar: Category Filter Pills on Left, Search Bar on Right */}
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 md:gap-3 py-2 border-b border-[#1E293B]/10">
           
-          {/* LEFT SIDE: Category Filter Pills Bar (High-Contrast Bold Text) */}
+          {/* LEFT SIDE: Category Filter Pills Bar */}
           <div className="flex items-center justify-start lg:justify-between gap-1 md:gap-1.5 p-1.5 bg-slate-100 border border-slate-300/80 rounded-full overflow-x-auto scrollbar-none scroll-smooth flex-grow min-w-0 shadow-inner">
             {filterOptions.map((opt) => (
               <button
@@ -114,7 +184,7 @@ function ShopContent() {
             ))}
           </div>
 
-          {/* RIGHT SIDE: Search Input Box Pill (High-Contrast Text & Placeholder) */}
+          {/* RIGHT SIDE: Search Input Box Pill */}
           <div className="relative w-full lg:w-64 xl:w-72 shrink-0">
             <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
               <svg className="w-4 h-4 text-[#1E293B]/70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -135,7 +205,6 @@ function ShopContent() {
                   params.delete("search");
                   params.delete("q");
                   params.delete("tag");
-                  params.delete("sub");
                 }
                 const newUrl = params.toString() ? `/shop?${params.toString()}` : "/shop";
                 router.replace(newUrl, { scroll: false });
@@ -156,11 +225,41 @@ function ShopContent() {
 
         </div>
 
+        {/* SUB-CATEGORIES FILTER PILLS BAR */}
+        {availableSubcategories.length > 0 && (
+          <div className="flex items-center justify-start gap-1.5 p-2 bg-blue-50/60 border border-[#3674B5]/20 rounded-2xl overflow-x-auto scrollbar-none scroll-smooth shadow-2xs">
+            <span className="text-[10px] font-black text-[#3674B5] uppercase tracking-wider px-2 shrink-0">Subcategories:</span>
+            <button
+              onClick={() => handleSubcategoryFilterClick("All")}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold uppercase transition-all whitespace-nowrap shrink-0 ${
+                activeSubcategory === "All"
+                  ? "bg-[#3674B5] text-white shadow-2xs font-black"
+                  : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
+              }`}
+            >
+              All {activeCategory !== "All" ? activeCategory : ""}
+            </button>
+            {availableSubcategories.map((sub) => (
+              <button
+                key={sub}
+                onClick={() => handleSubcategoryFilterClick(sub)}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold uppercase transition-all whitespace-nowrap shrink-0 ${
+                  activeSubcategory.toLowerCase() === sub.toLowerCase()
+                    ? "bg-[#3674B5] text-white shadow-2xs font-black"
+                    : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
+                }`}
+              >
+                {sub}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Active Subcategory / Search Filter Indicator Banner */}
-        {activeSearchTerm && (
+        {(activeSearchTerm || (activeSubcategory && activeSubcategory !== "All")) && (
           <div className="flex items-center justify-between bg-[#3674B5]/8 border border-[#3674B5]/20 rounded-2xl px-5 py-3 text-xs font-bold text-[#1E293B] max-w-xl mx-auto shadow-2xs">
             <span>
-              Showing results for <span className="text-[#3674B5] font-extrabold">&ldquo;{activeSearchTerm}&rdquo;</span>
+              Showing results for <span className="text-[#3674B5] font-extrabold">&ldquo;{activeSubcategory !== "All" ? activeSubcategory : activeSearchTerm}&rdquo;</span>
               {activeCategory !== "All" && <span> in <span className="text-[#1E293B] font-extrabold">{activeCategory}</span></span>}
             </span>
             <button
@@ -213,6 +312,11 @@ function ShopContent() {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {filteredProducts.map((product) => {
               const isWishlisted = wishlist.some((item) => item.id === product.id);
+              const cartItemQty = Array.isArray(cart)
+                ? cart
+                    .filter((item) => String(item.id) === String(product.id) || String(item._id) === String(product.id))
+                    .reduce((sum, item) => sum + item.quantity, 0)
+                : 0;
               const specItems = product.shortSpec.split(" · ").filter(spec => spec.length < 25 && spec.trim().length > 0);
 
               const glowColor =
@@ -368,12 +472,25 @@ function ShopContent() {
                         e.stopPropagation();
                         addToCart(product);
                       }}
-                      className="px-2.5 py-1.5 sm:px-4 sm:py-2.5 rounded-xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-[9px] sm:text-xs font-bold transition-all duration-300 hover:scale-[1.03] active:scale-97 flex items-center justify-center gap-1 shadow-md shadow-[#1A1917]/5"
+                      className={`px-2.5 py-1.5 sm:px-4 sm:py-2.5 rounded-xl text-[9px] sm:text-xs font-bold transition-all duration-300 hover:scale-[1.03] active:scale-97 flex items-center justify-center gap-1.5 shadow-md ${
+                        cartItemQty > 0
+                          ? "bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold"
+                          : "bg-[#3674B5] hover:bg-[#578FCA] text-white"
+                      }`}
                     >
-                      <span>Add</span>
-                      <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-                      </svg>
+                      {cartItemQty > 0 ? (
+                        <>
+                          <span>In Bag ({cartItemQty})</span>
+                          <span className="font-black text-white">+</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Add</span>
+                          <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                          </svg>
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>

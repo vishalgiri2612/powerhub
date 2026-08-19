@@ -9,6 +9,8 @@ const CouponSchema = new mongoose.Schema(
     discountValue: { type: Number, required: true },
     minPurchase: { type: Number, default: 0 },
     applicableCategory: { type: String, default: "All" },
+    applicableProductId: { type: String, default: "" },
+    applicableProductName: { type: String, default: "" },
     badgeType: { type: String, default: "Festive Offer" },
     expiryDate: { type: String, default: "" },
     active: { type: Boolean, default: true }

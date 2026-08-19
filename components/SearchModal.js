@@ -57,7 +57,7 @@ export default function SearchModal() {
   if (!isSearchOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[999] flex items-start justify-center pt-24 px-4 bg-[#3674B5]/40 backdrop-blur-md">
+    <div className="fixed inset-0 z-[999] flex items-start justify-center pt-24 px-4 bg-slate-900/50 backdrop-blur-md" onClick={() => setIsSearchOpen(false)}>
       <div 
         className="w-full max-w-2xl rounded-2xl glass-panel p-6 shadow-2xl animate-fade-in-up"
         onClick={(e) => e.stopPropagation()}

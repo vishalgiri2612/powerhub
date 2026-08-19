@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Coupon from "@/models/Coupon";
 import { getCachedCoupons, setCachedCoupons, clearCouponsCache } from "@/lib/cache";
+import { verifyAdmin } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -69,7 +70,7 @@ export async function POST(request) {
     }
     await dbConnect();
     const body = await request.json();
-    const { id, code, title, description, type, discountValue, minPurchase, applicableCategory, badgeType, expiryDate, active } = body;
+    const { id, code, title, description, type, discountValue, minPurchase, applicableCategory, applicableProductId, applicableProductName, badgeType, expiryDate, active } = body;
 
     if (!code || !title || discountValue === undefined) {
       return NextResponse.json({ error: "Coupon code, title, and discount value are required" }, { status: 400 });
@@ -89,6 +90,8 @@ export async function POST(request) {
           discountValue: Number(discountValue),
           minPurchase: Number(minPurchase || 0),
           applicableCategory: applicableCategory || "All",
+          applicableProductId: applicableProductId || "",
+          applicableProductName: applicableProductName || "",
           badgeType: badgeType || "Festive Offer",
           expiryDate: expiryDate || "",
           active: active !== undefined ? active : true
@@ -112,6 +115,8 @@ export async function POST(request) {
         discountValue: Number(discountValue),
         minPurchase: Number(minPurchase || 0),
         applicableCategory: applicableCategory || "All",
+        applicableProductId: applicableProductId || "",
+        applicableProductName: applicableProductName || "",
         badgeType: badgeType || "Festive Offer",
         expiryDate: expiryDate || "",
         active: active !== undefined ? active : true

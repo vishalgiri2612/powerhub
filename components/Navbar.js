@@ -316,9 +316,9 @@ export default function Navbar() {
             </Link>
 
             {/* Cart Button */}
-            <button 
-              onClick={() => setIsCartOpen(true)}
-              className="p-1.5 sm:p-2 rounded-full hover:bg-[#3674B5]/5 text-[#1E293B]/70 hover:text-[#1E293B] transition-all relative hover:scale-105 active:scale-95"
+            <Link 
+              href="/cart"
+              className="p-1.5 sm:p-2 rounded-full hover:bg-[#3674B5]/5 text-[#1E293B]/70 hover:text-[#1E293B] transition-all relative hover:scale-105 active:scale-95 inline-flex"
               aria-label="Cart"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -329,7 +329,7 @@ export default function Navbar() {
                   {getCartCount()}
                 </span>
               )}
-            </button>
+            </Link>
 
 
             {/* Login / Sign Up or Profile Dropdown */}

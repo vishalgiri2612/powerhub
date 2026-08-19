@@ -249,6 +249,14 @@ export default function ProductDetailPage({ params }) {
     ? products.filter((p) => p.id !== product.id).slice(0, 3)
     : [];
 
+  const cartItemQty = Array.isArray(cart)
+    ? cart
+        .filter((item) => String(item.id) === String(product.id) || String(item._id) === String(product.id))
+        .reduce((sum, item) => sum + item.quantity, 0)
+    : 0;
+
+  const currentDisplayQty = existingCartItem ? existingCartItem.quantity : quantity;
+
   // Styling accents based on product ID/theme
   const isSage = product.id === "p1" || product.id === "p5";
   const isSand = product.id === "p2" || product.id === "p6";
@@ -282,7 +290,8 @@ export default function ProductDetailPage({ params }) {
         selectedChannel
       }, quantity);
     }
-    setIsCartOpen(true);
+    setIsCartOpen(false);
+    router.push("/checkout");
   };
 
   const handleReviewSubmit = async (e) => {
@@ -625,7 +634,7 @@ export default function ProductDetailPage({ params }) {
                 >
                   -
                 </button>
-                <span className="w-7 md:w-9 text-center font-black text-xs md:text-sm text-[#1E293B]">{quantity}</span>
+                <span className="w-7 md:w-9 text-center font-black text-xs md:text-sm text-[#1E293B]">{currentDisplayQty}</span>
                 <button
                   type="button"
                   onClick={() => {
@@ -644,12 +653,16 @@ export default function ProductDetailPage({ params }) {
               {/* Add to Bag Button */}
               <button
                 onClick={handleAdd}
-                className="flex-1 py-3.5 md:py-4.5 rounded-2xl border-2 border-[#1E293B] hover:bg-[#F8F9FA] text-[#1E293B] text-xs font-extrabold uppercase tracking-widest transition-all duration-300 hover:scale-[1.02] active:scale-97 flex items-center justify-center gap-2"
+                className={`flex-1 py-3.5 md:py-4.5 rounded-2xl border-2 border-[#1E293B] text-xs font-extrabold uppercase tracking-widest transition-all duration-300 hover:scale-[1.02] active:scale-97 flex items-center justify-center gap-2 ${
+                  cartItemQty > 0
+                    ? "bg-emerald-50 text-emerald-800 border-emerald-600"
+                    : "hover:bg-[#F8F9FA] text-[#1E293B]"
+                }`}
               >
                 <svg className="w-4 h-4 md:w-4.5 md:h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
-                <span>Add to Bag</span>
+                <span>Add to Bag {cartItemQty > 0 ? `(${cartItemQty} in Bag)` : ''}</span>
               </button>
 
               {/* Buy Now Button */}

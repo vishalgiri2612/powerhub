@@ -19,7 +19,8 @@ export default function CartDrawer() {
     removeCoupon,
     getSubtotal,
     clearCart,
-    showToast
+    showToast,
+    coupons
   } = useCart();
 
   const [promoInput, setPromoInput] = useState("");
@@ -52,7 +53,7 @@ export default function CartDrawer() {
 
   return (
     <div
-      className="fixed inset-0 z-[999] bg-[#3674B5]/40 backdrop-blur-sm flex justify-end"
+      className="fixed inset-0 z-[999] bg-slate-900/50 backdrop-blur-xs flex justify-end"
       onClick={() => setIsCartOpen(false)}
     >
       <div
@@ -97,11 +98,13 @@ export default function CartDrawer() {
               </button>
             </div>
           ) : (
-            cart.map((item) => (
-              <div
-                key={item.id}
-                className="flex gap-4 p-3 rounded-2xl bg-[#F8F9FA] border border-[#1E293B]/10 transition-all hover:border-[#1E293B]/15"
-              >
+            cart.map((item, index) => {
+              const itemKey = `${item.id || item._id || "item"}-${item.selectedSize || ""}-${item.selectedPrivacySize || ""}-${item.selectedChannel || ""}-${index}`;
+              return (
+                <div
+                  key={itemKey}
+                  className="flex gap-4 p-3 rounded-2xl bg-[#F8F9FA] border border-[#1E293B]/10 transition-all hover:border-[#1E293B]/15"
+                >
                 <div className="w-20 h-20 rounded-xl bg-white flex-shrink-0 overflow-hidden flex items-center justify-center border border-[#1E293B]/5">
                   <img
                     src={item.image}
@@ -158,8 +161,9 @@ export default function CartDrawer() {
                   </div>
                 </div>
               </div>
-            ))
-          )}
+            );
+          })
+        )}
         </div>
 
         {/* Drawer Footer Calculator */}
@@ -193,28 +197,39 @@ export default function CartDrawer() {
               </div>
             </div>
 
-            {/* Checkout Button */}
-            <button
-              onClick={() => {
-                const session = localStorage.getItem("ravtron_session");
-                if (!session) {
-                  showToast("Please log in to complete your checkout", "error");
+            {/* Checkout & View Cart Buttons */}
+            <div className="grid grid-cols-2 gap-2.5">
+              <button
+                onClick={() => {
                   setIsCartOpen(false);
-                  router.push("/login");
-                  return;
-                }
+                  router.push("/cart");
+                }}
+                className="w-full py-3.5 rounded-xl border border-[#3674B5] text-[#3674B5] hover:bg-[#3674B5]/10 text-xs font-bold transition-all text-center cursor-pointer"
+              >
+                View Full Cart
+              </button>
+              <button
+                onClick={() => {
+                  const session = localStorage.getItem("ravtron_session");
+                  if (!session) {
+                    showToast("Please log in to complete your checkout", "error");
+                    setIsCartOpen(false);
+                    router.push("/login");
+                    return;
+                  }
 
-                // Close drawer and redirect to checkout page
-                setIsCartOpen(false);
-                router.push("/checkout");
-              }}
-              className="w-full py-4 rounded-xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-sm font-bold shadow-lg transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
-            >
-              <span>Proceed to Checkout</span>
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-            </button>
+                  // Close drawer and redirect to checkout page
+                  setIsCartOpen(false);
+                  router.push("/checkout");
+                }}
+                className="w-full py-3.5 rounded-xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-bold shadow-md transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <span>Checkout</span>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </button>
+            </div>
           </div>
         )}
       </div>

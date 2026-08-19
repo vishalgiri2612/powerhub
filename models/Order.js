@@ -15,6 +15,13 @@ const TrackingStepSchema = new mongoose.Schema({
   done: { type: Boolean, default: false }
 });
 
+const ReturnRequestSchema = new mongoose.Schema({
+  reason: { type: String, required: true },
+  comments: { type: String, default: "" },
+  requestedAt: { type: String, default: () => new Date().toLocaleString() },
+  status: { type: String, default: "Pending" }
+});
+
 const OrderSchema = new mongoose.Schema(
   {
     id: { type: String, required: true, unique: true },
@@ -30,7 +37,8 @@ const OrderSchema = new mongoose.Schema(
     customerPhone: { type: String, default: "" },
     paymentMethod: { type: String, default: "CARD" },
     items: { type: [OrderItemSchema], default: [] },
-    trackingSteps: { type: [TrackingStepSchema], default: [] }
+    trackingSteps: { type: [TrackingStepSchema], default: [] },
+    returnRequest: { type: ReturnRequestSchema, default: null }
   },
   { timestamps: true }
 );
