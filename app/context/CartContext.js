@@ -252,7 +252,6 @@ export function CartProvider({ children }) {
       showToast(`Added ${quantityToAdd}x ${product.name}${variantTag ? ` (${variantTag})` : ""} to cart`);
       return [...prevCart, { ...product, quantity: quantityToAdd }];
     });
-    setIsCartOpen(true);
   };
 
   const removeFromCart = (target, selectedSize = null, selectedChannel = null) => {
@@ -276,13 +275,22 @@ export function CartProvider({ children }) {
       }
 
       return prevCart.filter((i) => {
+        let isMatch = false;
         if (typeof target === "object" && target !== null) {
-          return i !== target;
+          const targetId = target.id || target._id;
+          const itemId = i.id || i._id;
+          const matchesId = i === target || (targetId && String(itemId) === String(targetId));
+          const matchesSize = !selectedSize || (i.selectedSize || null) === selectedSize;
+          const matchesChannel = !selectedChannel || (i.selectedChannel || null) === selectedChannel;
+          isMatch = matchesId && matchesSize && matchesChannel;
+        } else {
+          const targetIdStr = String(target);
+          const matchesId = String(i.id) === targetIdStr || String(i._id) === targetIdStr;
+          const matchesSize = !selectedSize || (i.selectedSize || null) === selectedSize;
+          const matchesChannel = !selectedChannel || (i.selectedChannel || null) === selectedChannel;
+          isMatch = matchesId && matchesSize && matchesChannel;
         }
-        const matchesId = String(i.id) === String(target) || String(i._id) === String(target);
-        const matchesSize = (i.selectedSize || null) === (selectedSize || null);
-        const matchesChannel = (i.selectedChannel || null) === (selectedChannel || null);
-        return !(matchesId && matchesSize && matchesChannel);
+        return !isMatch;
       });
     });
   };
@@ -293,11 +301,17 @@ export function CartProvider({ children }) {
         .map((item) => {
           let isMatch = false;
           if (typeof target === "object" && target !== null) {
-            isMatch = item === target;
+            const targetId = target.id || target._id;
+            const itemId = item.id || item._id;
+            const matchesId = item === target || (targetId && String(itemId) === String(targetId));
+            const matchesSize = !selectedSize || (item.selectedSize || null) === selectedSize;
+            const matchesChannel = !selectedChannel || (item.selectedChannel || null) === selectedChannel;
+            isMatch = matchesId && matchesSize && matchesChannel;
           } else {
-            const matchesId = String(item.id) === String(target) || String(item._id) === String(target);
-            const matchesSize = (item.selectedSize || null) === (selectedSize || null);
-            const matchesChannel = (item.selectedChannel || null) === (selectedChannel || null);
+            const targetIdStr = String(target);
+            const matchesId = String(item.id) === targetIdStr || String(item._id) === targetIdStr;
+            const matchesSize = !selectedSize || (item.selectedSize || null) === selectedSize;
+            const matchesChannel = !selectedChannel || (item.selectedChannel || null) === selectedChannel;
             isMatch = matchesId && matchesSize && matchesChannel;
           }
 

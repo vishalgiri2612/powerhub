@@ -15,7 +15,6 @@ import Testimonials from "../components/Testimonials";
 import BrandTrust from "../components/BrandTrust";
 import Footer from "../components/Footer";
 import SearchModal from "../components/SearchModal";
-import CartDrawer from "../components/CartDrawer";
 import { useCart } from "./context/CartContext";
 
 export default function Home() {
@@ -46,7 +45,6 @@ export default function Home() {
 
       {/* State-Driven Overlay Panels */}
       <SearchModal />
-      <CartDrawer />
     </div>
   );
 }

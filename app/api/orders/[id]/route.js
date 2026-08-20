@@ -3,6 +3,7 @@ import dbConnect from "@/lib/dbConnect";
 import Order from "@/models/Order";
 import { verifyAdmin, verifyUser } from "@/lib/auth";
 import { clearOrdersCache } from "@/lib/cache";
+import { sendReturnStatusEmail } from "@/lib/email";
 
 export async function PUT(request, { params }) {
   try {
@@ -22,6 +23,16 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
     clearOrdersCache();
+
+    // Check if return status was updated (e.g. Approved or Declined)
+    if (body.returnRequest && body.returnRequest.status) {
+      const status = body.returnRequest.status;
+      if (status === "Approved" || status === "Declined") {
+        sendReturnStatusEmail(updatedOrder, status, body.returnRequest.adminNote || "")
+          .catch((err) => console.error("Return notification email error:", err));
+      }
+    }
+
     return NextResponse.json(updatedOrder);
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

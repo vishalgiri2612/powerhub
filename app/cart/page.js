@@ -434,7 +434,6 @@ export default function CartPage() {
       </main>
 
       <SearchModal />
-      <CartDrawer />
     </div>
   );
 }

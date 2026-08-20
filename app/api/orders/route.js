@@ -4,6 +4,7 @@ import Order from "@/models/Order";
 import Product from "@/models/Product";
 import { verifyAdmin, verifyUser } from "@/lib/auth";
 import { getCachedOrders, setCachedOrders, clearOrdersCache } from "@/lib/cache";
+import { sendOrderConfirmationEmail, sendNewOrderAdminAlert } from "@/lib/email";
 
 export async function GET(request) {
   try {
@@ -113,6 +114,13 @@ export async function POST(request) {
     
     const newOrder = await Order.create(body);
     clearOrdersCache();
+
+    // Trigger emails in background (without blocking response)
+    Promise.all([
+      sendOrderConfirmationEmail(newOrder),
+      sendNewOrderAdminAlert(newOrder)
+    ]).catch((err) => console.error("Order notification email error:", err));
+
     return NextResponse.json(newOrder, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

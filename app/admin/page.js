@@ -3596,7 +3596,6 @@ export default function AdminPanelPage() {
       })()}
 
       <SearchModal />
-      <CartDrawer />
     </div>
   );
 }

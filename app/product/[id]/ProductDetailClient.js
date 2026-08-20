@@ -266,17 +266,14 @@ export default function ProductDetailPage({ params }) {
   const brandText = isSage ? "text-[#3674B5]" : isSand ? "text-[#DEC89E]" : "text-[#3674B5]";
 
   const handleAdd = () => {
-    if (!existingCartItem) {
-      addToCart({ 
-        ...product, 
-        price: displayPrice, 
-        originalPrice: displayOriginalPrice, 
-        selectedSize, 
-        selectedPrivacySize,
-        selectedChannel
-      }, quantity);
-    }
-    setIsCartOpen(true);
+    addToCart({ 
+      ...product, 
+      price: displayPrice, 
+      originalPrice: displayOriginalPrice, 
+      selectedSize, 
+      selectedPrivacySize,
+      selectedChannel
+    }, quantity);
   };
 
   const handleBuyNow = () => {
@@ -290,7 +287,6 @@ export default function ProductDetailPage({ params }) {
         selectedChannel
       }, quantity);
     }
-    setIsCartOpen(false);
     router.push("/checkout");
   };
 
@@ -619,51 +615,54 @@ export default function ProductDetailPage({ params }) {
 
             {/* Direct action rows (Quantity selector on left of Add to Bag button) */}
             <div className="flex items-center gap-2.5 sm:gap-3 md:gap-4 pt-1">
-              {/* Quantity selector (Left side of Add to Bag) */}
-              <div className="flex items-center bg-white border border-[#1E293B]/15 rounded-2xl px-1.5 py-1.5 md:px-2.5 md:py-2 shadow-2xs shrink-0">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (existingCartItem) {
-                      updateQuantity(existingCartItem, -1);
-                    } else {
-                      setQuantity((q) => Math.max(1, q - 1));
-                    }
-                  }}
-                  className="w-8 h-8 md:w-9 md:h-9 rounded-xl hover:bg-slate-100 text-[#1E293B] font-extrabold flex items-center justify-center transition-colors shadow-2xs cursor-pointer text-sm"
+              {/* Add to Bag Button with inline Minus/Plus when in cart */}
+              {cartItemQty > 0 ? (
+                <div 
+                  className="flex-1 py-2.5 md:py-3 px-3 rounded-2xl bg-[#3674B5] text-white font-extrabold shadow-md flex items-center justify-between border-2 border-[#3674B5]"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  -
-                </button>
-                <span className="w-7 md:w-9 text-center font-black text-xs md:text-sm text-[#1E293B]">{currentDisplayQty}</span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      updateQuantity(product.id, -1);
+                    }}
+                    className="w-8 h-8 rounded-xl hover:bg-[#578FCA] transition-colors flex items-center justify-center cursor-pointer text-base font-black shrink-0"
+                    aria-label="Decrease quantity"
+                    title="Decrease quantity"
+                  >
+                    −
+                  </button>
+                  <span className="text-xs md:text-sm font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 select-none">
+                    <svg className="w-4 h-4 md:w-4.5 md:h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                    In Bag ({cartItemQty})
+                  </span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      addToCart(product, 1);
+                    }}
+                    className="w-8 h-8 rounded-xl hover:bg-[#578FCA] transition-colors flex items-center justify-center cursor-pointer text-base font-black shrink-0"
+                    aria-label="Increase quantity"
+                    title="Increase quantity"
+                  >
+                    +
+                  </button>
+                </div>
+              ) : (
                 <button
-                  type="button"
-                  onClick={() => {
-                    if (existingCartItem) {
-                      updateQuantity(existingCartItem, 1);
-                    } else {
-                      setQuantity((q) => q + 1);
-                    }
-                  }}
-                  className="w-8 h-8 md:w-9 md:h-9 rounded-xl hover:bg-slate-100 text-[#1E293B] font-extrabold flex items-center justify-center transition-colors shadow-2xs cursor-pointer text-sm"
+                  onClick={handleAdd}
+                  className="flex-1 py-3.5 md:py-4.5 rounded-2xl border-2 border-[#1E293B] hover:bg-[#F8F9FA] text-[#1E293B] text-xs font-extrabold uppercase tracking-widest transition-all duration-300 hover:scale-[1.02] active:scale-97 flex items-center justify-center gap-2"
                 >
-                  +
+                  <svg className="w-4 h-4 md:w-4.5 md:h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                  </svg>
+                  <span>Add to Bag</span>
                 </button>
-              </div>
-
-              {/* Add to Bag Button */}
-              <button
-                onClick={handleAdd}
-                className={`flex-1 py-3.5 md:py-4.5 rounded-2xl border-2 border-[#1E293B] text-xs font-extrabold uppercase tracking-widest transition-all duration-300 hover:scale-[1.02] active:scale-97 flex items-center justify-center gap-2 ${
-                  cartItemQty > 0
-                    ? "bg-emerald-50 text-emerald-800 border-emerald-600"
-                    : "hover:bg-[#F8F9FA] text-[#1E293B]"
-                }`}
-              >
-                <svg className="w-4 h-4 md:w-4.5 md:h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                </svg>
-                <span>Add to Bag {cartItemQty > 0 ? `(${cartItemQty} in Bag)` : ''}</span>
-              </button>
+              )}
 
               {/* Buy Now Button */}
               <button
@@ -977,9 +976,8 @@ export default function ProductDetailPage({ params }) {
         </div>
       )}
 
-      {/* Search Modal & Cart Drawer */}
+      {/* Search Modal */}
       <SearchModal />
-      <CartDrawer />
 
       {/* Global Brand Footer */}
       <Footer />

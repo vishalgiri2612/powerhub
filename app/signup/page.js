@@ -404,7 +404,6 @@ function SignupContent() {
 
       <Footer />
       <SearchModal />
-      <CartDrawer />
     </div>
   );
 }

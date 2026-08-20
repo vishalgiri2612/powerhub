@@ -296,7 +296,6 @@ function LoginContent() {
       </main>
 
       <SearchModal />
-      <CartDrawer />
     </div>
   );
 }

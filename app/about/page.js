@@ -209,7 +209,6 @@ export default function AboutPage() {
 
       <Footer />
       <SearchModal />
-      <CartDrawer />
     </div>
   );
 }

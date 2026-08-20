@@ -1473,7 +1473,6 @@ export default function CheckoutPage() {
 
       <Footer />
       <SearchModal />
-      <CartDrawer />
     </div>
   );
 }

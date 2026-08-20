@@ -710,7 +710,6 @@ export default function SupportPage() {
  
       <Footer />
       <SearchModal />
-      <CartDrawer />
     </div>
   );
 }

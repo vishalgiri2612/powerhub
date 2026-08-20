@@ -223,7 +223,6 @@ export default function CategoriesPage() {
 
       <Footer />
       <SearchModal />
-      <CartDrawer />
     </div>
   );
 }

@@ -7,7 +7,6 @@ import Navbar from "../../components/Navbar";
 import Image from "next/image";
 import Footer from "../../components/Footer";
 import SearchModal from "../../components/SearchModal";
-import CartDrawer from "../../components/CartDrawer";
 
 function ShopContent() {
   const router = useRouter();
@@ -18,6 +17,7 @@ function ShopContent() {
 
   const {
     addToCart,
+    updateQuantity,
     toggleWishlist,
     wishlist,
     cart,
@@ -467,31 +467,51 @@ function ShopContent() {
                       </div>
                     </div>
 
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        addToCart(product);
-                      }}
-                      className={`px-2.5 py-1.5 sm:px-4 sm:py-2.5 rounded-xl text-[9px] sm:text-xs font-bold transition-all duration-300 hover:scale-[1.03] active:scale-97 flex items-center justify-center gap-1.5 shadow-md ${
-                        cartItemQty > 0
-                          ? "bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold"
-                          : "bg-[#3674B5] hover:bg-[#578FCA] text-white"
-                      }`}
-                    >
-                      {cartItemQty > 0 ? (
-                        <>
-                          <span>In Bag ({cartItemQty})</span>
-                          <span className="font-black text-white">+</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>Add</span>
-                          <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-                          </svg>
-                        </>
-                      )}
-                    </button>
+                    {cartItemQty > 0 ? (
+                      <div 
+                        className="inline-flex items-center rounded-xl bg-[#3674B5] text-white font-extrabold shadow-md overflow-hidden"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            updateQuantity(product.id, -1);
+                          }}
+                          className="px-2.5 py-1.5 sm:px-3 sm:py-2.5 hover:bg-[#578FCA] transition-colors flex items-center justify-center cursor-pointer text-xs font-black"
+                          aria-label="Decrease quantity"
+                          title="Decrease quantity"
+                        >
+                          −
+                        </button>
+                        <span className="px-1.5 py-1 text-[9px] sm:text-xs font-extrabold whitespace-nowrap">
+                          In Bag ({cartItemQty})
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            addToCart(product, 1);
+                          }}
+                          className="px-2.5 py-1.5 sm:px-3 sm:py-2.5 hover:bg-[#578FCA] transition-colors flex items-center justify-center cursor-pointer text-xs font-black"
+                          aria-label="Increase quantity"
+                          title="Increase quantity"
+                        >
+                          +
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          addToCart(product);
+                        }}
+                        className="px-2.5 py-1.5 sm:px-4 sm:py-2.5 rounded-xl text-[9px] sm:text-xs font-bold transition-all duration-300 hover:scale-[1.03] active:scale-97 flex items-center justify-center gap-1.5 shadow-md bg-[#3674B5] hover:bg-[#578FCA] text-white"
+                      >
+                        <span>Add</span>
+                        <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                        </svg>
+                      </button>
+                    )}
                   </div>
                 </div>
               );
@@ -507,7 +527,6 @@ function ShopContent() {
 
       <Footer />
       <SearchModal />
-      <CartDrawer />
     </div>
   );
 }

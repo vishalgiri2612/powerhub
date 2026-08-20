@@ -12,7 +12,7 @@ import Image from "next/image";
 
 export default function WishlistPage() {
   const router = useRouter();
-  const { wishlist, toggleWishlist, addToCart, showToast } = useCart();
+  const { wishlist, toggleWishlist, addToCart, updateQuantity, cart, showToast } = useCart();
 
   const handleClearWishlist = () => {
     if (confirm("Are you sure you want to clear your wishlist?")) {
@@ -56,6 +56,9 @@ export default function WishlistPage() {
         {wishlist.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {wishlist.map((product) => {
+              const cartItemQty = cart
+                .filter((i) => String(i.id) === String(product.id) || String(i._id) === String(product.id))
+                .reduce((total, i) => total + i.quantity, 0);
               const specItems = product.shortSpec.split(" · ").filter(spec => spec.length < 25 && spec.trim().length > 0);
 
               const glowColor =
@@ -201,18 +204,51 @@ export default function WishlistPage() {
                       </div>
                     </div>
 
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        addToCart(product);
-                      }}
-                      className="px-2.5 py-1.5 sm:px-4 sm:py-2.5 rounded-xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-[9px] sm:text-xs font-bold transition-all duration-300 hover:scale-[1.03] active:scale-97 flex items-center justify-center gap-1 shadow-md shadow-[#3674B5]/10 cursor-pointer"
-                    >
-                      <span>Add</span>
-                      <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-                      </svg>
-                    </button>
+                    {cartItemQty > 0 ? (
+                      <div 
+                        className="inline-flex items-center rounded-xl bg-[#3674B5] text-white font-extrabold shadow-md overflow-hidden"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            updateQuantity(product.id, -1);
+                          }}
+                          className="px-2.5 py-1.5 sm:px-3 sm:py-2.5 hover:bg-[#578FCA] transition-colors flex items-center justify-center cursor-pointer text-xs font-black"
+                          aria-label="Decrease quantity"
+                          title="Decrease quantity"
+                        >
+                          −
+                        </button>
+                        <span className="px-1.5 py-1 text-[9px] sm:text-xs font-extrabold whitespace-nowrap">
+                          In Bag ({cartItemQty})
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            addToCart(product, 1);
+                          }}
+                          className="px-2.5 py-1.5 sm:px-3 sm:py-2.5 hover:bg-[#578FCA] transition-colors flex items-center justify-center cursor-pointer text-xs font-black"
+                          aria-label="Increase quantity"
+                          title="Increase quantity"
+                        >
+                          +
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          addToCart(product);
+                        }}
+                        className="px-2.5 py-1.5 sm:px-4 sm:py-2.5 rounded-xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-[9px] sm:text-xs font-bold transition-all duration-300 hover:scale-[1.03] active:scale-97 flex items-center justify-center gap-1 shadow-md shadow-[#3674B5]/10 cursor-pointer"
+                      >
+                        <span>Add</span>
+                        <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                        </svg>
+                      </button>
+                    )}
                   </div>
                 </div>
               );
@@ -244,7 +280,6 @@ export default function WishlistPage() {
 
       <Footer />
       <SearchModal />
-      <CartDrawer />
     </div>
   );
 }

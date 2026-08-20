@@ -1073,7 +1073,6 @@ export default function ProfilePage() {
       )}
 
       <SearchModal />
-      <CartDrawer />
     </div>
   );
 }
