@@ -208,28 +208,50 @@ export default function CheckoutPage() {
 
   // Load user details and addresses
   useEffect(() => {
-    const session = localStorage.getItem("ravtron_session");
-    if (!session) {
-      showToast("Please log in to checkout", "error");
-      router.push("/login");
-      return;
-    }
+    const initCheckoutAuth = async () => {
+      let parsedUser = null;
+      try {
+        const res = await fetch("/api/auth/me");
+        const data = await res.json();
+        if (data.isLoggedIn && data.user) {
+          parsedUser = data.user;
+          localStorage.setItem("ravtron_session", JSON.stringify(data.user));
+        } else {
+          const session = localStorage.getItem("ravtron_session");
+          if (session) {
+            try { parsedUser = JSON.parse(session); } catch (e) {}
+          }
+        }
+      } catch (e) {
+        const session = localStorage.getItem("ravtron_session");
+        if (session) {
+          try { parsedUser = JSON.parse(session); } catch (err) {}
+        }
+      }
 
-    const parsedUser = JSON.parse(session);
-    setCurrentUser(parsedUser);
-    const initialName = parsedUser.name || "";
-    const initialPhone = parsedUser.phone || "";
-    setContactForm({
-      name: initialName,
-      email: parsedUser.email || "",
-      phone: initialPhone
-    });
+      if (!parsedUser) {
+        showToast("Please log in to checkout", "error");
+        router.push("/login");
+        return;
+      }
 
-    setNewAddressForm((prev) => ({
-      ...prev,
-      name: initialName,
-      phone: initialPhone
-    }));
+      setCurrentUser(parsedUser);
+      const initialName = parsedUser.name || "";
+      const initialPhone = parsedUser.phone || "";
+      setContactForm({
+        name: initialName,
+        email: parsedUser.email || "",
+        phone: initialPhone
+      });
+
+      setNewAddressForm((prev) => ({
+        ...prev,
+        name: initialName,
+        phone: initialPhone
+      }));
+    };
+
+    initCheckoutAuth();
 
     // 1. Load saved address list from localStorage
     let list = [];

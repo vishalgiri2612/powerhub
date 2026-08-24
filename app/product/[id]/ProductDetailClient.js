@@ -10,6 +10,7 @@ import Footer from "../../../components/Footer";
 import SearchModal from "../../../components/SearchModal";
 import CartDrawer from "../../../components/CartDrawer";
 import { Star, Package, Zap, RotateCcw } from "lucide-react";
+import { ProductJsonLd, BreadcrumbJsonLd } from "../../../components/JsonLd";
 
 const getDescription = (id) => {
   switch (id) {
@@ -62,6 +63,13 @@ export default function ProductDetailPage({ params }) {
   const [newRating, setNewRating] = useState(5);
   const [newComment, setNewComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
+
+  const breadcrumbItems = product ? [
+    { name: "Home", url: "/" },
+    { name: "Shop", url: "/shop" },
+    { name: product.category || "Products", url: `/shop?category=${encodeURIComponent(product.category || "")}` },
+    { name: product.name, url: `/product/${product.id || id}` }
+  ] : [];
 
   // Synchronize product page quantity with existing cart item quantity for the selected variant
   const existingCartItem = Array.isArray(cart) && product
@@ -330,6 +338,8 @@ export default function ProductDetailPage({ params }) {
 
   return (
     <div className="min-h-screen bg-bg-brand text-text-brand antialiased selection:bg-[#3674B5] selection:text-white">
+      <ProductJsonLd product={product} />
+      <BreadcrumbJsonLd items={breadcrumbItems} />
       {/* Dynamic Header Navbar */}
       <Navbar />
 

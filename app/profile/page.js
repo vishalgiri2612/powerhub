@@ -94,39 +94,64 @@ export default function ProfilePage() {
   const [trackingOrder, setTrackingOrder] = useState(null);
 
   useEffect(() => {
-    const session = localStorage.getItem("ravtron_session");
-    if (!session) {
-      router.push("/login");
-    } else {
-      const parsed = JSON.parse(session);
-      setUser(parsed);
-      setProfileName(parsed.name || "");
-      setProfileEmail(parsed.email || "");
-      setProfilePhone(parsed.phone || "");
-      setProfileDob(parsed.dob || "");
-      setProfileGender(parsed.gender || "");
-
-      // Load shipping address from localStorage
-      const savedAddress = localStorage.getItem("ravtron_address");
-      if (savedAddress) {
-        try {
-          const parsedAddress = JSON.parse(savedAddress);
-          setShippingAddress(parsedAddress);
-          setTempAddress(parsedAddress);
-        } catch (e) {
-          console.error("Failed to parse address data", e);
+    const fetchUserProfile = async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        const data = await res.json();
+        if (!data.isLoggedIn || !data.user) {
+          const session = localStorage.getItem("ravtron_session");
+          if (session) {
+            const parsed = JSON.parse(session);
+            setUser(parsed);
+            setProfileName(parsed.name || "");
+            setProfileEmail(parsed.email || "");
+            setProfilePhone(parsed.phone || "");
+            setProfileDob(parsed.dob || "");
+            setProfileGender(parsed.gender || "");
+            fetchOrders(parsed.email);
+          } else {
+            router.push("/login");
+          }
+        } else {
+          const parsed = data.user;
+          setUser(parsed);
+          setProfileName(parsed.name || "");
+          setProfileEmail(parsed.email || "");
+          setProfilePhone(parsed.phone || "");
+          setProfileDob(parsed.dob || "");
+          setProfileGender(parsed.gender || "");
+          localStorage.setItem("ravtron_session", JSON.stringify(parsed));
+          fetchOrders(parsed.email);
         }
+      } catch (e) {
+        console.error("Failed to fetch session:", e);
       }
+    };
 
-      // Fetch orders from MongoDB API
-      fetch(`/api/orders?email=${encodeURIComponent(parsed.email)}`)
+    const fetchOrders = (userEmail) => {
+      if (!userEmail) return;
+      fetch(`/api/orders?email=${encodeURIComponent(userEmail)}`)
         .then((res) => res.json())
         .then((data) => setOrders(Array.isArray(data) ? data : []))
         .catch((e) => {
           console.error("Failed to fetch orders from database", e);
           setOrders([]);
         });
+    };
+
+    // Load shipping address from localStorage
+    const savedAddress = localStorage.getItem("ravtron_address");
+    if (savedAddress) {
+      try {
+        const parsedAddress = JSON.parse(savedAddress);
+        setShippingAddress(parsedAddress);
+        setTempAddress(parsedAddress);
+      } catch (e) {
+        console.error("Failed to parse address data", e);
+      }
     }
+
+    fetchUserProfile();
   }, []);
 
   const handleSaveProfile = async (e) => {

@@ -167,26 +167,62 @@ export default function SupportPage() {
   };
  
   // Handle Contact Support Submission
-  const handleContactSubmit = (e) => {
+  const handleContactSubmit = async (e) => {
     e.preventDefault();
     setIsSubmittingContact(true);
     
-    // Simulate API request
-    setTimeout(() => {
+    try {
+      const response = await fetch("/api/support", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: contactForm.name,
+          email: contactForm.email,
+          subject: contactForm.subject,
+          message: contactForm.message,
+          category: "Customer Support Inquiry"
+        })
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || "Failed to register support ticket");
+      }
+
       setIsSubmittingContact(false);
       setContactSubmitted(true);
-      showToast("Support ticket created! We will email you shortly.");
+      showToast("Support ticket created! Check your email for reference.");
       setContactForm({ name: "", email: "", subject: "Order Issue", message: "" });
-    }, 1200);
+    } catch (err) {
+      console.error(err);
+      showToast(err.message || "Failed to submit support ticket.", "error");
+      setIsSubmittingContact(false);
+    }
   };
  
   // Handle Warranty Claim Submission
-  const handleWarrantySubmit = (e) => {
+  const handleWarrantySubmit = async (e) => {
     e.preventDefault();
     setIsSubmittingWarranty(true);
  
-    // Simulate API request
-    setTimeout(() => {
+    try {
+      const response = await fetch("/api/support", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: warrantyForm.name,
+          email: warrantyForm.email,
+          subject: `1-Year Warranty Claim: ${warrantyForm.productName}`,
+          message: `Serial Number: ${warrantyForm.serialNumber || "N/A"}\nPurchase Date: ${warrantyForm.purchaseDate || "N/A"}\nIssue: ${warrantyForm.issueDescription}`,
+          category: "1-Year Product Warranty Claim"
+        })
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || "Failed to register warranty claim");
+      }
+
       setIsSubmittingWarranty(false);
       setWarrantySubmitted(true);
       showToast("Warranty replacement ticket registered.");
@@ -199,7 +235,11 @@ export default function SupportPage() {
         invoiceFile: "",
         issueDescription: ""
       });
-    }, 1500);
+    } catch (err) {
+      console.error(err);
+      showToast(err.message || "Failed to submit warranty claim.", "error");
+      setIsSubmittingWarranty(false);
+    }
   };
  
   return (

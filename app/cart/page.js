@@ -118,12 +118,12 @@ export default function CartPage() {
         {/* Content Layout */}
         {cart.length === 0 ? (
           /* Empty Cart State */
-          <div className="py-20 text-center space-y-6 max-w-md mx-auto">
-            <div className="w-24 h-24 rounded-full bg-white border border-[#1E293B]/10 flex items-center justify-center mx-auto text-[#1E293B]/20 shadow-md">
-              <ShoppingBag className="w-12 h-12" />
+          <div className="py-16 sm:py-20 text-center space-y-6 max-w-md mx-auto px-4">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white border border-[#1E293B]/10 flex items-center justify-center mx-auto text-[#1E293B]/20 shadow-md">
+              <ShoppingBag className="w-10 h-10 sm:w-12 sm:h-12" />
             </div>
             <div className="space-y-2">
-              <h2 className="font-display font-black text-2xl text-[#1E293B]">
+              <h2 className="font-display font-black text-xl sm:text-2xl text-[#1E293B]">
                 Your Shopping Bag is Empty
               </h2>
               <p className="text-xs font-semibold text-slate-500 leading-relaxed">
@@ -132,7 +132,7 @@ export default function CartPage() {
             </div>
             <button
               onClick={() => router.push("/shop")}
-              className="px-8 py-4 rounded-2xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-extrabold uppercase tracking-widest transition-all duration-300 hover:scale-105 shadow-lg shadow-[#3674B5]/20 inline-flex items-center gap-2"
+              className="px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-extrabold uppercase tracking-widest transition-all duration-300 hover:scale-105 shadow-lg shadow-[#3674B5]/20 inline-flex items-center gap-2"
             >
               <span>Explore Products</span>
               <ArrowRight className="w-4 h-4" />
@@ -140,7 +140,7 @@ export default function CartPage() {
           </div>
         ) : (
           /* Cart Items & Summary Grid */
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pt-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start pt-4 sm:pt-8">
             {/* Left Items Column */}
             <div className="lg:col-span-8 space-y-4">
               {cart.map((item, index) => {
@@ -153,11 +153,11 @@ export default function CartPage() {
                 return (
                   <div
                     key={itemKey}
-                    className="bg-white border border-[#1E293B]/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                    className="bg-white border border-[#1E293B]/10 rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 sm:gap-4"
                   >
                     {/* Item Image & Description */}
-                    <div className="flex items-center gap-4 flex-1 min-w-0">
-                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-[#F8F9FA] border border-[#1E293B]/5 p-2 flex-shrink-0 flex items-center justify-center overflow-hidden">
+                    <div className="flex items-start sm:items-center gap-3 sm:gap-4 flex-1 min-w-0 w-full">
+                      <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-xl sm:rounded-2xl bg-[#F8F9FA] border border-[#1E293B]/5 p-1.5 sm:p-2 flex-shrink-0 flex items-center justify-center overflow-hidden">
                         <img
                           src={item.image}
                           alt={item.name}
@@ -165,55 +165,57 @@ export default function CartPage() {
                         />
                       </div>
 
-                      <div className="space-y-1 min-w-0 flex-1">
-                        <span className="text-[9px] font-extrabold text-[#3674B5] uppercase tracking-widest bg-[#3674B5]/10 px-2.5 py-0.5 rounded-full inline-block">
+                      <div className="space-y-1 min-w-0 flex-1 text-left">
+                        <span className="text-[8px] sm:text-[9px] font-extrabold text-[#3674B5] uppercase tracking-widest bg-[#3674B5]/10 px-2 py-0.5 rounded-full inline-block">
                           {item.category || "Accessory"}
                         </span>
-                        <h3 className="font-display font-bold text-sm sm:text-base text-[#1E293B] truncate">
+                        <h3 className="font-display font-bold text-xs sm:text-base text-[#1E293B] line-clamp-2 leading-snug">
                           {item.name}
                         </h3>
-                        <p className="text-xs font-semibold text-slate-400 truncate">
+                        <p className="text-[11px] sm:text-xs font-semibold text-slate-400 truncate">
                           {item.color || item.shortSpec || "Premium finish"}
-                          {variantTag ? ` · Option: ${variantTag}` : ""}
+                          {variantTag ? ` · ${variantTag}` : ""}
                         </p>
-                        <div className="text-sm font-extrabold text-[#3674B5] pt-0.5">
+                        <div className="text-xs sm:text-sm font-extrabold text-[#3674B5] pt-0.5">
                           ₹{item.price.toLocaleString()}{" "}
-                          <span className="text-[10px] font-medium text-slate-400">
+                          <span className="text-[9px] sm:text-[10px] font-medium text-slate-400">
                             / each
                           </span>
                         </div>
                       </div>
                     </div>
 
-                    {/* Quantity & Total Actions */}
-                    <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                    {/* Quantity & Subtotal Actions */}
+                    <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-6 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                       {/* Quantity Selector */}
-                      <div className="flex items-center bg-[#F8F9FA] border border-[#1E293B]/10 rounded-xl px-2 py-1 shadow-2xs">
+                      <div className="flex items-center bg-[#F8F9FA] border border-[#1E293B]/10 rounded-xl px-1.5 py-1 shadow-2xs">
                         <button
                           type="button"
                           onClick={() => updateQuantity(item, -1)}
-                          className="w-7 h-7 rounded-lg hover:bg-white text-[#1E293B] font-bold flex items-center justify-center transition-colors text-xs"
+                          className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg hover:bg-white text-[#1E293B] font-bold flex items-center justify-center transition-colors text-xs cursor-pointer"
+                          aria-label="Decrease quantity"
                         >
-                          <Minus className="w-3.5 h-3.5" />
+                          <Minus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                         </button>
-                        <span className="w-8 text-center font-black text-xs text-[#1E293B]">
+                        <span className="w-7 sm:w-8 text-center font-black text-xs text-[#1E293B]">
                           {item.quantity}
                         </span>
                         <button
                           type="button"
                           onClick={() => updateQuantity(item, 1)}
-                          className="w-7 h-7 rounded-lg hover:bg-white text-[#1E293B] font-bold flex items-center justify-center transition-colors text-xs"
+                          className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg hover:bg-white text-[#1E293B] font-bold flex items-center justify-center transition-colors text-xs cursor-pointer"
+                          aria-label="Increase quantity"
                         >
-                          <Plus className="w-3.5 h-3.5" />
+                          <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                         </button>
                       </div>
 
                       {/* Line Subtotal */}
-                      <div className="text-right min-w-[90px]">
-                        <span className="text-xs font-semibold text-slate-400 block text-[10px] uppercase tracking-wider">
-                          Subtotal
+                      <div className="text-right">
+                        <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 block uppercase tracking-wider">
+                          SUBTOTAL
                         </span>
-                        <span className="font-black text-base text-[#1E293B]">
+                        <span className="font-black text-sm sm:text-base text-[#1E293B]">
                           ₹{(item.price * item.quantity).toLocaleString()}
                         </span>
                       </div>
@@ -222,7 +224,7 @@ export default function CartPage() {
                       <button
                         type="button"
                         onClick={() => removeFromCart(item)}
-                        className="p-2 text-slate-400 hover:text-rose-600 transition-colors hover:bg-rose-50 rounded-xl cursor-pointer"
+                        className="p-1.5 sm:p-2 text-slate-400 hover:text-rose-600 transition-colors hover:bg-rose-50 rounded-xl cursor-pointer ml-1"
                         title="Remove Item"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -233,18 +235,18 @@ export default function CartPage() {
               })}
 
               {/* Free Delivery Incentive Ribbon */}
-              <div className="bg-[#F8F9FA] border border-[#1E293B]/10 rounded-2xl p-4 flex items-center justify-between text-xs font-semibold text-slate-600">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-[#3674B5]/10 text-[#3674B5] flex items-center justify-center font-bold">
-                    <Truck className="w-5 h-5" />
+              <div className="bg-[#F8F9FA] border border-[#1E293B]/10 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs font-semibold text-slate-600">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#3674B5]/10 text-[#3674B5] flex items-center justify-center font-bold shrink-0">
+                    <Truck className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
-                  <div>
+                  <div className="min-w-0 text-left">
                     {subtotal >= 999 ? (
-                      <p className="font-bold text-[#1E293B]">
+                      <p className="font-bold text-[#1E293B] text-xs leading-snug">
                         🎉 You qualify for <span className="text-[#3674B5]">FREE Standard Delivery!</span>
                       </p>
                     ) : (
-                      <p>
+                      <p className="text-xs leading-snug">
                         Add <span className="font-bold text-[#3674B5]">₹{(999 - subtotal).toLocaleString()}</span> more to unlock <span className="font-bold text-[#1E293B]">Free Shipping</span>.
                       </p>
                     )}
@@ -253,7 +255,7 @@ export default function CartPage() {
 
                 <Link
                   href="/shop"
-                  className="text-xs font-bold text-[#3674B5] hover:underline flex items-center gap-1 shrink-0"
+                  className="text-xs font-bold text-[#3674B5] hover:underline flex items-center gap-1 shrink-0 self-end sm:self-auto"
                 >
                   <span>Add More</span>
                   <ArrowRight className="w-3 h-3" />
@@ -261,21 +263,21 @@ export default function CartPage() {
               </div>
 
               {/* Trust Badges */}
-              <div className="grid grid-cols-3 gap-3 pt-4 text-center">
-                <div className="bg-white border border-[#1E293B]/10 rounded-2xl p-3.5 space-y-1">
-                  <ShieldCheck className="w-5 h-5 text-[#3674B5] mx-auto" />
-                  <h4 className="text-xs font-bold text-[#1E293B]">100% Authentic</h4>
-                  <p className="text-[10px] font-semibold text-slate-400">Genuine RAVTRON® Products</p>
+              <div className="grid grid-cols-3 gap-2 sm:gap-3 pt-2 sm:pt-4 text-center">
+                <div className="bg-white border border-[#1E293B]/10 rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 space-y-0.5 sm:space-y-1">
+                  <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-[#3674B5] mx-auto" />
+                  <h4 className="text-[10px] sm:text-xs font-bold text-[#1E293B]">100% Authentic</h4>
+                  <p className="text-[8px] sm:text-[10px] font-semibold text-slate-400">Genuine RAVTRON®</p>
                 </div>
-                <div className="bg-white border border-[#1E293B]/10 rounded-2xl p-3.5 space-y-1">
-                  <Truck className="w-5 h-5 text-[#3674B5] mx-auto" />
-                  <h4 className="text-xs font-bold text-[#1E293B]">Fast Dispatch</h4>
-                  <p className="text-[10px] font-semibold text-slate-400">Ships within 24 Hours</p>
+                <div className="bg-white border border-[#1E293B]/10 rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 space-y-0.5 sm:space-y-1">
+                  <Truck className="w-4 h-4 sm:w-5 sm:h-5 text-[#3674B5] mx-auto" />
+                  <h4 className="text-[10px] sm:text-xs font-bold text-[#1E293B]">Fast Dispatch</h4>
+                  <p className="text-[8px] sm:text-[10px] font-semibold text-slate-400">Ships in 24 Hours</p>
                 </div>
-                <div className="bg-white border border-[#1E293B]/10 rounded-2xl p-3.5 space-y-1">
-                  <RotateCcw className="w-5 h-5 text-[#3674B5] mx-auto" />
-                  <h4 className="text-xs font-bold text-[#1E293B]">7-Day Return</h4>
-                  <p className="text-[10px] font-semibold text-slate-400">Easy Replacement Policy</p>
+                <div className="bg-white border border-[#1E293B]/10 rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 space-y-0.5 sm:space-y-1">
+                  <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5 text-[#3674B5] mx-auto" />
+                  <h4 className="text-[10px] sm:text-xs font-bold text-[#1E293B]">7-Day Return</h4>
+                  <p className="text-[8px] sm:text-[10px] font-semibold text-slate-400">Easy Replacement</p>
                 </div>
               </div>
             </div>

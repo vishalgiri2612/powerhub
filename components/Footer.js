@@ -15,17 +15,17 @@ export default function Footer() {
 
   const supportLinks = [
     { name: "Track Order", href: "/support?tab=track" },
-    { name: "Returns & Exchanges", href: "/support?tab=faq" },
+    { name: "Returns & Exchanges", href: "/refund-policy" },
     { name: "Warranty Claim", href: "/support?tab=warranty" },
     { name: "Frequently Asked Questions", href: "/support?tab=faq" },
     { name: "Contact Support Team", href: "/support?tab=contact" }
   ];
 
-  const companyLinks = [
-    { name: "About Our Brand", href: "#about" },
-    { name: "Career Opportunities", href: "#" },
-    { name: "Press & Media Kit", href: "#" },
-    { name: "Privacy & Terms", href: "#" }
+  const legalLinks = [
+    { name: "Privacy Policy", href: "/privacy-policy" },
+    { name: "Terms & Conditions", href: "/terms-and-conditions" },
+    { name: "Shipping & Delivery Policy", href: "/shipping-policy" },
+    { name: "Refund & Return Policy", href: "/refund-policy" }
   ];
 
   const socialLinks = [
@@ -36,6 +36,7 @@ export default function Footer() {
   const [openSections, setOpenSections] = useState({
     shop: false,
     support: false,
+    legal: false,
     contact: false,
   });
 
@@ -51,10 +52,10 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto space-y-8 md:space-y-12">
 
         {/* Main Footer Links Block */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-6 md:gap-8 lg:gap-6">
 
           {/* Brand Info Column */}
-          <div className="space-y-4 md:col-span-2 border-b border-[#1E293B]/10 md:border-0 pb-6 md:pb-0">
+          <div className="space-y-4 sm:col-span-2 lg:col-span-2 border-b border-[#1E293B]/10 lg:border-0 pb-6 lg:pb-0">
             <Link href="/" className="flex items-center group">
               <img 
                 src="/images/logo.png" 
@@ -63,7 +64,7 @@ export default function Footer() {
               />
             </Link>
             <p className="text-sm font-semibold text-[#1E293B]/60 leading-relaxed max-w-sm">
-              RAVTRON® is a trusted leader in IT, networking, display cabling, high-speed GaN chargers, surveillance solutions, and smart workspace hardware—exploring ways to connectivity.
+              RAVTRON® is a trusted leader in IT, networking, display cabling, high-speed power adapters, surveillance solutions, and smart workspace products—exploring ways to connectivity.
             </p>
             <div className="flex items-center gap-3.5 pt-2">
               {socialLinks.map((soc) => (
@@ -97,13 +98,13 @@ export default function Footer() {
           </div>
 
           {/* Shop Column */}
-          <div className="space-y-0 md:space-y-4 border-b border-[#1E293B]/10 md:border-0 pb-2 md:pb-0">
+          <div className="space-y-0 lg:space-y-4 border-b border-[#1E293B]/10 lg:border-0 pb-2 lg:pb-0">
             <button
               onClick={() => toggleSection("shop")}
-              className="w-full flex items-center justify-between py-3 text-left md:pointer-events-none md:py-0 focus:outline-none"
+              className="w-full flex items-center justify-between py-3 text-left lg:pointer-events-none lg:py-0 focus:outline-none"
             >
               <h4 className="text-xs font-black text-[#1E293B] uppercase tracking-widest">Shop Gear</h4>
-              <span className="md:hidden text-[#1E293B]/50">
+              <span className="lg:hidden text-[#1E293B]/50">
                 {openSections.shop ? (
                   <ChevronUp className="w-4 h-4" />
                 ) : (
@@ -111,7 +112,7 @@ export default function Footer() {
                 )}
               </span>
             </button>
-            <ul className={`${openSections.shop ? "block" : "hidden"} md:block space-y-2.5 mt-1 md:mt-4 pb-4 md:pb-0`}>
+            <ul className={`${openSections.shop ? "block" : "hidden"} lg:block space-y-2.5 mt-1 lg:mt-4 pb-4 lg:pb-0`}>
               {shopLinks.map((link) => (
                 <li key={link.name}>
                   <Link
@@ -126,13 +127,13 @@ export default function Footer() {
           </div>
 
           {/* Support Column */}
-          <div className="space-y-0 md:space-y-4 border-b border-[#1E293B]/10 md:border-0 pb-2 md:pb-0">
+          <div className="space-y-0 lg:space-y-4 border-b border-[#1E293B]/10 lg:border-0 pb-2 lg:pb-0">
             <button
               onClick={() => toggleSection("support")}
-              className="w-full flex items-center justify-between py-3 text-left md:pointer-events-none md:py-0 focus:outline-none"
+              className="w-full flex items-center justify-between py-3 text-left lg:pointer-events-none lg:py-0 focus:outline-none"
             >
               <h4 className="text-xs font-black text-[#1E293B] uppercase tracking-widest">Customer Care</h4>
-              <span className="md:hidden text-[#1E293B]/50">
+              <span className="lg:hidden text-[#1E293B]/50">
                 {openSections.support ? (
                   <ChevronUp className="w-4 h-4" />
                 ) : (
@@ -140,7 +141,7 @@ export default function Footer() {
                 )}
               </span>
             </button>
-            <ul className={`${openSections.support ? "block" : "hidden"} md:block space-y-2.5 mt-1 md:mt-4 pb-4 md:pb-0`}>
+            <ul className={`${openSections.support ? "block" : "hidden"} lg:block space-y-2.5 mt-1 lg:mt-4 pb-4 lg:pb-0`}>
               {supportLinks.map((link) => (
                 <li key={link.name}>
                   <Link
@@ -154,14 +155,43 @@ export default function Footer() {
             </ul>
           </div>
 
+          {/* Legal Policies Column */}
+          <div className="space-y-0 lg:space-y-4 border-b border-[#1E293B]/10 lg:border-0 pb-2 lg:pb-0">
+            <button
+              onClick={() => toggleSection("legal")}
+              className="w-full flex items-center justify-between py-3 text-left lg:pointer-events-none lg:py-0 focus:outline-none"
+            >
+              <h4 className="text-xs font-black text-[#1E293B] uppercase tracking-widest">Legal Policies</h4>
+              <span className="lg:hidden text-[#1E293B]/50">
+                {openSections.legal ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
+              </span>
+            </button>
+            <ul className={`${openSections.legal ? "block" : "hidden"} lg:block space-y-2.5 mt-1 lg:mt-4 pb-4 lg:pb-0`}>
+              {legalLinks.map((link) => (
+                <li key={link.name}>
+                  <Link
+                    href={link.href}
+                    className="text-sm font-semibold text-[#1E293B]/60 hover:text-[#3674B5] transition-colors"
+                  >
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
           {/* Company & Contact Column */}
-          <div className="space-y-0 md:space-y-4 pb-2 md:pb-0">
+          <div className="space-y-0 lg:space-y-4 pb-2 lg:pb-0">
             <button
               onClick={() => toggleSection("contact")}
-              className="w-full flex items-center justify-between py-3 text-left md:pointer-events-none md:py-0 focus:outline-none"
+              className="w-full flex items-center justify-between py-3 text-left lg:pointer-events-none lg:py-0 focus:outline-none"
             >
               <h4 className="text-xs font-black text-[#1E293B] uppercase tracking-widest">Contact Details</h4>
-              <span className="md:hidden text-[#1E293B]/50">
+              <span className="lg:hidden text-[#1E293B]/50">
                 {openSections.contact ? (
                   <ChevronUp className="w-4 h-4" />
                 ) : (
@@ -169,7 +199,7 @@ export default function Footer() {
                 )}
               </span>
             </button>
-            <ul className={`${openSections.contact ? "block" : "hidden"} md:block space-y-3.5 mt-2 md:mt-4 pb-4 md:pb-0 text-sm font-semibold text-[#1E293B]/70`}>
+            <ul className={`${openSections.contact ? "block" : "hidden"} lg:block space-y-3.5 mt-2 lg:mt-4 pb-4 lg:pb-0 text-sm font-semibold text-[#1E293B]/70`}>
               <li className="flex flex-col">
                 <span className="text-[10px] font-bold text-[#1E293B]/40 uppercase tracking-wide">Write to Us</span>
                 <a href="mailto:support@ksgautomation.com" className="hover:text-[#3674B5] transition-colors mt-0.5">

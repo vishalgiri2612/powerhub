@@ -93,6 +93,7 @@ export default function Navbar() {
     } catch (e) {
       console.error("Failed to sign out on server", e);
     }
+    setUser(null);
     window.dispatchEvent(new Event("ravtron_auth_change"));
     window.location.href = "/";
   };
@@ -105,12 +106,24 @@ export default function Navbar() {
   };
 
   useEffect(() => {
-    const checkUser = () => {
-      const session = localStorage.getItem("ravtron_session");
-      if (session) {
-        setUser(JSON.parse(session));
-      } else {
-        setUser(null);
+    const checkUser = async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        const data = await res.json();
+        if (data.isLoggedIn && data.user) {
+          setUser(data.user);
+          localStorage.setItem("ravtron_session", JSON.stringify(data.user));
+        } else {
+          setUser(null);
+          localStorage.removeItem("ravtron_session");
+        }
+      } catch (e) {
+        const session = localStorage.getItem("ravtron_session");
+        if (session) {
+          try { setUser(JSON.parse(session)); } catch (err) { setUser(null); }
+        } else {
+          setUser(null);
+        }
       }
     };
 
@@ -162,11 +175,11 @@ export default function Navbar() {
         }`}>
           
           {/* Logo Brand */}
-          <Link href="/" className="flex items-center group">
+          <Link href="/" className="flex items-center group shrink-0">
             <img 
               src="/images/logo.png" 
               alt="RAVTRON®" 
-              className="h-8 sm:h-9 w-auto object-contain mix-blend-multiply transition-all duration-300 group-hover:scale-105"
+              className="h-6 sm:h-9 w-auto max-w-[130px] sm:max-w-none object-contain mix-blend-multiply transition-all duration-300 group-hover:scale-105"
             />
           </Link>
 
@@ -337,16 +350,16 @@ export default function Navbar() {
               <div className="relative">
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center gap-2 p-1 rounded-full hover:bg-[#3674B5]/5 border border-[#1E293B]/5 transition-all text-[#1E293B] hover:scale-102"
+                  className="flex items-center gap-1 sm:gap-2 p-0.5 sm:p-1 rounded-full hover:bg-[#3674B5]/5 border border-[#1E293B]/5 transition-all text-[#1E293B] hover:scale-102"
                 >
                   {user.avatar ? (
                     <img
                       src={user.avatar}
                       alt={user.name}
-                      className="w-8 h-8 rounded-full object-cover border border-[#3674B5]/20"
+                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border border-[#3674B5]/20"
                     />
                   ) : (
-                    <div className="w-8 h-8 rounded-full border border-[#3674B5]/20 bg-[#3674B5]/10 text-[#3674B5] flex items-center justify-center font-display font-extrabold text-xs uppercase">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-[#3674B5]/20 bg-[#3674B5]/10 text-[#3674B5] flex items-center justify-center font-display font-extrabold text-[11px] sm:text-xs uppercase">
                       {user.name ? user.name.charAt(0) : "U"}
                     </div>
                   )}

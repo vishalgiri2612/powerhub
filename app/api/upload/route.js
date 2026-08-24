@@ -1,28 +1,9 @@
 import { NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
-import cloudinary from "cloudinary";
 import { verifyAdmin } from "@/lib/auth";
 import { validateFileUpload, logSecurityEvent } from "@/lib/security";
-
-// Configure Cloudinary v2 API
-const cloudinaryCloudName = process.env.CLOUDINARY_CLOUD_NAME;
-const cloudinaryApiKey = process.env.CLOUDINARY_API_KEY;
-const cloudinaryApiSecret = process.env.CLOUDINARY_API_SECRET;
-
-const isCloudinaryConfigured = !!(
-  cloudinaryCloudName && 
-  cloudinaryApiKey && 
-  cloudinaryApiSecret
-);
-
-if (isCloudinaryConfigured) {
-  cloudinary.v2.config({
-    cloud_name: cloudinaryCloudName,
-    api_key: cloudinaryApiKey,
-    api_secret: cloudinaryApiSecret,
-  });
-}
+import { uploadToCloudinary, isCloudinaryConfigured } from "@/lib/cloudinary";
 
 export async function POST(request) {
   try {
@@ -30,6 +11,7 @@ export async function POST(request) {
       logSecurityEvent("UNAUTHORIZED_UPLOAD_ATTEMPT");
       return NextResponse.json({ error: "Unauthorized access: Administrator role required" }, { status: 403 });
     }
+
     const formData = await request.formData();
     const file = formData.get("file");
 
@@ -44,6 +26,7 @@ export async function POST(request) {
 
     const isProd = process.env.NODE_ENV === "production";
 
+    // 1. Production Mode Check: Cloud storage mandatory in production
     if (isProd && !isCloudinaryConfigured) {
       return NextResponse.json(
         { error: "Cloud storage is mandatory in production, but Cloudinary is not configured." },
@@ -51,61 +34,34 @@ export async function POST(request) {
       );
     }
 
+    // 2. Cloudinary CDN Upload Path
     if (isCloudinaryConfigured) {
       try {
-        // Cloudinary upload path using stream helper
-        const uploadPromise = new Promise((resolve, reject) => {
-          const uploadStream = cloudinary.v2.uploader.upload_stream(
-            { folder: "powerhub" },
-            (error, result) => {
-              if (error) {
-                console.error("Cloudinary stream upload failed:", error);
-                reject(error);
-              } else {
-                resolve(result);
-              }
-            }
-          );
-          uploadStream.end(buffer);
-        });
-
-        const result = await uploadPromise;
-        return NextResponse.json({ url: result.secure_url });
+        const result = await uploadToCloudinary(buffer, "ravtron_products");
+        return NextResponse.json({ url: result.secure_url, format: result.format, public_id: result.public_id });
       } catch (cloudinaryError) {
-        console.error("Cloudinary upload failed:", cloudinaryError);
+        console.error("Cloudinary CDN upload error:", cloudinaryError);
         if (isProd) {
           return NextResponse.json(
             { error: `Cloud storage upload failed: ${cloudinaryError.message || cloudinaryError}` },
             { status: 500 }
           );
         }
-        console.warn("Falling back to local storage in development mode.");
+        console.warn("Falling back to local disk storage in development mode.");
       }
     }
 
-    if (isProd) {
-      return NextResponse.json(
-        { error: "Cloud storage upload failed and local fallback is disabled in production." },
-        { status: 500 }
-      );
-    }
-
-    // Fallback local upload path
+    // 3. Fallback Local Storage Path (Development / Staging)
     const uploadDir = path.join(process.cwd(), "public", "uploads");
-    
-    // Ensure the directory exists
     await mkdir(uploadDir, { recursive: true });
-    
-    // Create a unique filename
+
     const fileExt = path.extname(file.name) || ".png";
     const baseName = path.basename(file.name, fileExt).replace(/[^a-zA-Z0-9]/g, "_");
     const uniqueFilename = `${baseName}_${Date.now()}${fileExt}`;
     const filePath = path.join(uploadDir, uniqueFilename);
-    
-    // Save file to public/uploads
+
     await writeFile(filePath, buffer);
-    
-    // Return the public URL path
+
     return NextResponse.json({ url: `/uploads/${uniqueFilename}` });
   } catch (error) {
     console.error("Upload handler error:", error);

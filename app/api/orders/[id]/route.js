@@ -3,7 +3,7 @@ import dbConnect from "@/lib/dbConnect";
 import Order from "@/models/Order";
 import { verifyAdmin, verifyUser } from "@/lib/auth";
 import { clearOrdersCache } from "@/lib/cache";
-import { sendReturnStatusEmail } from "@/lib/email";
+import { sendReturnStatusEmail, sendShipmentNotificationEmail } from "@/lib/email";
 
 export async function PUT(request, { params }) {
   try {
@@ -23,6 +23,12 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
     clearOrdersCache();
+
+    // Trigger shipment notification email if order status was set to Shipped
+    if (body.status === "Shipped") {
+      sendShipmentNotificationEmail(updatedOrder)
+        .catch((err) => console.error("Shipment notification email error:", err));
+    }
 
     // Check if return status was updated (e.g. Approved or Declined)
     if (body.returnRequest && body.returnRequest.status) {

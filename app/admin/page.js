@@ -455,20 +455,33 @@ export default function AdminPanelPage() {
   const defaultAdminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "ravtron@admin.com";
 
   useEffect(() => {
-    // Check if user session indicates administrator status
-    const session = localStorage.getItem("ravtron_session");
-    if (session) {
+    const checkAdminAuth = async () => {
       try {
-        const parsed = JSON.parse(session);
-        if (parsed && (parsed.role === "Administrator" || (parsed.email && parsed.email.toLowerCase() === defaultAdminEmail.toLowerCase()))) {
+        const res = await fetch("/api/auth/me");
+        const data = await res.json();
+        if (data.isLoggedIn && data.user && (data.user.role === "Administrator" || data.user.email?.toLowerCase() === defaultAdminEmail.toLowerCase())) {
           setIsAdmin(true);
+          localStorage.setItem("ravtron_session", JSON.stringify(data.user));
+        } else {
+          const session = localStorage.getItem("ravtron_session");
+          if (session) {
+            try {
+              const parsed = JSON.parse(session);
+              if (parsed && (parsed.role === "Administrator" || (parsed.email && parsed.email.toLowerCase() === defaultAdminEmail.toLowerCase()))) {
+                setIsAdmin(true);
+              }
+            } catch (e) {}
+          }
         }
       } catch (e) {
-        console.error(e);
+        console.error("Admin auth check error:", e);
+      } finally {
+        setIsAuthChecking(false);
+        fetchAdminData();
       }
-    }
-    setIsAuthChecking(false);
-    fetchAdminData();
+    };
+
+    checkAdminAuth();
   }, []);
 
   const fetchHeroSlides = async () => {

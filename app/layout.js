@@ -1,6 +1,7 @@
 import "./globals.css";
 import { CartProvider } from "./context/CartContext";
 import PWARegister from "../components/PWARegister";
+import { OrganizationJsonLd } from "../components/JsonLd";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 
 const inter = Inter({
@@ -16,9 +17,9 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
-  title: "RAVTRON — Premium GaN Fast Charging & Accessories",
-  description: "State-of-the-art Gallium Nitride engineering packed into a premium minimalist sand aesthetic.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://ravtron.in"),
+  title: "RAVTRON — Exploring Ways to Connectivity | Official Store",
+  description: "Explore high-performance display cables, docking stations, USB hubs, converters, networking gear & connectivity accessories by RAVTRON®.",
   manifest: "/manifest.json?v=2",
   appleWebApp: {
     capable: true,
@@ -39,6 +40,7 @@ export default function RootLayout({ children }) {
     <html lang="en" className={`scroll-smooth light-mode ${inter.variable} ${plusJakartaSans.variable}`} suppressHydrationWarning>
       <body>
         <CartProvider>
+          <OrganizationJsonLd />
           <PWARegister />
           {children}
         </CartProvider>
