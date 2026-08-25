@@ -37,7 +37,12 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`scroll-smooth light-mode ${inter.variable} ${plusJakartaSans.variable}`} suppressHydrationWarning>
+    <html 
+      lang="en" 
+      className={`scroll-smooth light-mode ${inter.variable} ${plusJakartaSans.variable}`} 
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
+    >
       <body>
         <CartProvider>
           <OrganizationJsonLd />

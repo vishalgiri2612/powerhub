@@ -78,7 +78,7 @@ export default function Categories() {
               className={`group relative rounded-2xl md:rounded-[2rem] bg-white border border-[#1E293B]/10 overflow-hidden cursor-pointer shadow-xs flex items-center justify-center hover-lift transition-all duration-500 w-full ${getColClass(index)} ${getHeightClass(index)}`}
             >
               <Image
-                src={cat.image || "/images/charger.png"}
+                src={cat.image || "/logo.png"}
                 alt={cat.name}
                 fill
                 sizes="(max-width: 768px) 50vw, (max-width: 1024px) 250px, 350px"

@@ -153,6 +153,20 @@ export function CartProvider({ children }) {
 
   const isInitialized = React.useRef(false);
 
+  const getUserCartKey = (prefix = "ravtron_cart") => {
+    try {
+      const session = localStorage.getItem("ravtron_session");
+      if (session) {
+        const parsed = JSON.parse(session);
+        const identifier = parsed.email || parsed.id || parsed._id;
+        if (identifier) {
+          return `${prefix}_${identifier.toString().toLowerCase()}`;
+        }
+      }
+    } catch (e) {}
+    return prefix;
+  };
+
   // Load initial cart and wishlist from localStorage on client mount
   useEffect(() => {
     // Load products and categories cache safely on client mount
@@ -184,38 +198,86 @@ export function CartProvider({ children }) {
       localStorage.removeItem("ravtron_theme");
     } catch (e) {}
 
-    const savedCart = localStorage.getItem("ravtron_cart");
-    const savedWishlist = localStorage.getItem("ravtron_wishlist");
-    if (savedCart) {
-      try {
-        setCart(JSON.parse(savedCart));
-      } catch (e) {
-        console.error("Failed to parse cart from localStorage", e);
+    const session = localStorage.getItem("ravtron_session");
+    if (session) {
+      const userCartKey = getUserCartKey("ravtron_cart");
+      const userWishlistKey = getUserCartKey("ravtron_wishlist");
+      const savedCart = localStorage.getItem(userCartKey) || localStorage.getItem("ravtron_cart");
+      const savedWishlist = localStorage.getItem(userWishlistKey) || localStorage.getItem("ravtron_wishlist");
+      if (savedCart) {
+        try {
+          setCart(JSON.parse(savedCart));
+        } catch (e) {
+          console.error("Failed to parse cart from localStorage", e);
+        }
       }
-    }
-    if (savedWishlist) {
-      try {
-        setWishlist(JSON.parse(savedWishlist));
-      } catch (e) {
-        console.error("Failed to parse wishlist from localStorage", e);
+      if (savedWishlist) {
+        try {
+          setWishlist(JSON.parse(savedWishlist));
+        } catch (e) {
+          console.error("Failed to parse wishlist from localStorage", e);
+        }
       }
+    } else {
+      setCart([]);
+      setWishlist([]);
     }
     isInitialized.current = true;
 
+    // Listen for auth change (login / logout) to restore or clear cart & wishlist
+    const handleAuthChange = () => {
+      const currentSession = localStorage.getItem("ravtron_session");
+      if (currentSession) {
+        try {
+          const currentCartKey = getUserCartKey("ravtron_cart");
+          const currentWishlistKey = getUserCartKey("ravtron_wishlist");
+          const userCartData = localStorage.getItem(currentCartKey) || localStorage.getItem("ravtron_cart");
+          const userWishlistData = localStorage.getItem(currentWishlistKey) || localStorage.getItem("ravtron_wishlist");
 
+          if (userCartData) {
+            setCart(JSON.parse(userCartData));
+          }
+          if (userWishlistData) {
+            setWishlist(JSON.parse(userWishlistData));
+          }
+        } catch (e) {
+          console.error("Failed to restore user cart on login", e);
+        }
+      } else {
+        setCart([]);
+        setWishlist([]);
+        setDiscount(0);
+        setCoupon("");
+      }
+    };
+
+    window.addEventListener("ravtron_auth_change", handleAuthChange);
+    return () => {
+      window.removeEventListener("ravtron_auth_change", handleAuthChange);
+    };
   }, []);
 
   // Save cart to localStorage on changes
   useEffect(() => {
     if (isInitialized.current) {
-      localStorage.setItem("ravtron_cart", JSON.stringify(cart));
+      const currentSession = localStorage.getItem("ravtron_session");
+      if (currentSession) {
+        const key = getUserCartKey("ravtron_cart");
+        localStorage.setItem(key, JSON.stringify(cart));
+        localStorage.setItem("ravtron_cart", JSON.stringify(cart));
+      }
     }
   }, [cart]);
 
   // Save wishlist to localStorage on changes
   useEffect(() => {
     if (isInitialized.current) {
-      localStorage.setItem("ravtron_wishlist", JSON.stringify(wishlist));
+      const currentSession = localStorage.getItem("ravtron_session");
+      if (currentSession) {
+        const key = getUserCartKey("ravtron_wishlist");
+        localStorage.setItem(key, JSON.stringify(wishlist));
+        localStorage.setItem("ravtron_wishlist", JSON.stringify(wishlist));
+      }
     }
   }, [wishlist]);
 
@@ -228,7 +290,29 @@ export function CartProvider({ children }) {
     }, 3000);
   };
 
+  // Auth validation helper
+  const checkIsLoggedIn = () => {
+    try {
+      const session = localStorage.getItem("ravtron_session");
+      if (session) {
+        const parsed = JSON.parse(session);
+        if (parsed && (parsed.email || parsed.id || parsed._id)) {
+          return true;
+        }
+      }
+    } catch (e) {}
+    return false;
+  };
+
   const addToCart = (product, quantityToAdd = 1) => {
+    if (!checkIsLoggedIn()) {
+      showToast("Please log in to add items to your cart", "error");
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 1200);
+      return;
+    }
+
     const variantTag = product.selectedSize || product.selectedPrivacySize || product.selectedChannel;
     setCart((prevCart) => {
       const existing = prevCart.find(
@@ -296,6 +380,14 @@ export function CartProvider({ children }) {
   };
 
   const updateQuantity = (target, amount, selectedSize = null, selectedChannel = null) => {
+    if (!checkIsLoggedIn()) {
+      showToast("Please log in to manage your cart", "error");
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 1200);
+      return;
+    }
+
     setCart((prevCart) =>
       prevCart
         .map((item) => {
@@ -326,6 +418,14 @@ export function CartProvider({ children }) {
   };
 
   const toggleWishlist = (product) => {
+    if (!checkIsLoggedIn()) {
+      showToast("Please log in to save items to your wishlist", "error");
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 1200);
+      return;
+    }
+
     setWishlist((prevWishlist) => {
       const exists = prevWishlist.find((item) => item.id === product.id);
       if (exists) {
@@ -437,6 +537,21 @@ export function CartProvider({ children }) {
     setCart([]);
     setDiscount(0);
     setCoupon("");
+    try {
+      localStorage.removeItem("ravtron_cart");
+    } catch (e) {}
+  };
+
+  const clearWishlist = () => {
+    setWishlist([]);
+    try {
+      localStorage.removeItem("ravtron_wishlist");
+    } catch (e) {}
+  };
+
+  const clearCartAndWishlist = () => {
+    clearCart();
+    clearWishlist();
   };
 
   const getSubtotal = () => {
@@ -470,6 +585,8 @@ export function CartProvider({ children }) {
         applyCouponCode,
         removeCoupon,
         clearCart,
+        clearWishlist,
+        clearCartAndWishlist,
         getSubtotal,
         getCartCount,
         showToast,

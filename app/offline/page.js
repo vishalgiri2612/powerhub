@@ -30,7 +30,7 @@ export default function OfflinePage() {
         {/* Brand Identity */}
         <div className="flex items-center justify-center mt-2">
           <img 
-            src="/images/logo.png" 
+            src="/logo.png" 
             alt="RAVTRON®" 
             className="h-[24px] w-auto object-contain mix-blend-multiply"
           />

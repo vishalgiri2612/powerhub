@@ -40,6 +40,7 @@ export default function CartPage() {
   } = useCart();
 
   const [promoInput, setPromoInput] = useState("");
+  const [isCouponDropdownOpen, setIsCouponDropdownOpen] = useState(false);
 
   const subtotal = getSubtotal();
   const shipping = subtotal > 999 ? 0 : subtotal === 0 ? 0 : 99;
@@ -312,52 +313,73 @@ export default function CartPage() {
                     </div>
                   ) : (
                     <div className="space-y-2.5">
-                      <form onSubmit={handleApplyPromo} className="flex gap-2">
+                      <form onSubmit={handleApplyPromo} className="flex gap-2 min-w-0 w-full">
                         <input
                           type="text"
                           placeholder="e.g. WELCOME100"
-                          className="flex-1 bg-[#F8F9FA] border border-[#1E293B]/15 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#1E293B] outline-none placeholder-slate-400 focus:bg-white focus:border-[#3674B5]"
+                          className="flex-1 min-w-0 w-full bg-[#F8F9FA] border border-[#1E293B]/15 rounded-xl px-3 sm:px-3.5 py-2.5 text-xs font-semibold text-[#1E293B] outline-none placeholder-slate-400 focus:bg-white focus:border-[#3674B5]"
                           value={promoInput}
                           onChange={(e) => setPromoInput(e.target.value)}
                         />
                         <button
                           type="submit"
-                          className="px-4 py-2.5 rounded-xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-extrabold uppercase tracking-wider transition-all shadow-2xs cursor-pointer"
+                          className="px-3.5 sm:px-4 py-2.5 rounded-xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-extrabold uppercase tracking-wider transition-all shadow-2xs cursor-pointer shrink-0"
                         >
                           Apply
                         </button>
                       </form>
 
-                      {/* Dropdown for existing active coupon offers */}
+                      {/* Custom Dropdown for existing active coupon offers */}
                       {Array.isArray(coupons) && coupons.filter((c) => c.active).length > 0 && (
-                        <div className="relative">
-                          <select
-                            onChange={(e) => {
-                              if (e.target.value) {
-                                applyCouponCode(e.target.value);
-                              }
-                            }}
-                            defaultValue=""
-                            className="w-full bg-[#FFFDF7] border border-[#EAE3D2] hover:border-[#3674B5]/40 rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#1E293B] outline-none focus:border-[#3674B5] transition-all cursor-pointer appearance-none pr-8 shadow-2xs"
+                        <div className="relative w-full min-w-0">
+                          <button
+                            type="button"
+                            onClick={() => setIsCouponDropdownOpen(!isCouponDropdownOpen)}
+                            className="w-full bg-[#FFFDF7] border border-[#EAE3D2] hover:border-[#3674B5]/40 rounded-xl px-3 py-2.5 text-xs font-bold text-[#1E293B] flex items-center justify-between shadow-2xs transition-all cursor-pointer"
                           >
-                            <option value="" disabled>
-                              🏷️ Select an existing coupon offer ({coupons.filter((c) => c.active).length} available)
-                            </option>
-                            {coupons
-                              .filter((c) => c.active)
-                              .map((c) => {
-                                const discountText = c.type === "percentage" ? `${c.discountValue}% OFF` : `₹${c.discountValue} OFF`;
-                                const minText = c.minPurchase > 0 ? ` (Min ₹${c.minPurchase})` : "";
-                                return (
-                                  <option key={c._id || c.code} value={c.code} className="text-slate-900 font-medium py-1">
-                                    [{c.code}] - {discountText}{minText} ({c.title || "Special Offer"})
-                                  </option>
-                                );
-                              })}
-                          </select>
-                          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 text-xs">
-                            ▼
-                          </div>
+                            <span className="truncate flex items-center gap-1.5 min-w-0 pr-2">
+                              <span>🏷️</span>
+                              <span className="truncate">Select coupon ({coupons.filter((c) => c.active).length} available)</span>
+                            </span>
+                            <span className={`text-[10px] text-slate-400 transition-transform duration-200 shrink-0 ${isCouponDropdownOpen ? "rotate-180" : ""}`}>
+                              ▼
+                            </span>
+                          </button>
+
+                          {isCouponDropdownOpen && (
+                            <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-[#1E293B]/10 rounded-2xl shadow-xl z-50 p-1.5 space-y-1 max-h-60 overflow-y-auto animate-fade-in-up">
+                              {coupons
+                                .filter((c) => c.active)
+                                .map((c) => {
+                                  const discountText = c.type === "percentage" ? `${c.discountValue}% OFF` : `₹${c.discountValue} OFF`;
+                                  const minText = c.minPurchase > 0 ? `Min ₹${c.minPurchase}` : null;
+                                  return (
+                                    <button
+                                      key={c._id || c.code}
+                                      type="button"
+                                      onClick={() => {
+                                        applyCouponCode(c.code);
+                                        setIsCouponDropdownOpen(false);
+                                      }}
+                                      className="w-full text-left p-2 rounded-xl hover:bg-[#3674B5]/5 border border-transparent hover:border-[#3674B5]/20 transition-all flex flex-col gap-0.5 group cursor-pointer"
+                                    >
+                                      <div className="flex items-center justify-between gap-2">
+                                        <span className="text-xs font-extrabold text-[#3674B5] group-hover:text-[#578FCA]">
+                                          [{c.code}]
+                                        </span>
+                                        <span className="text-[9px] font-black bg-[#3674B5] text-white px-2 py-0.5 rounded-full shrink-0">
+                                          {discountText}
+                                        </span>
+                                      </div>
+                                      <div className="text-[10px] font-semibold text-slate-500 truncate flex items-center gap-1">
+                                        <span>{c.title || "Special Deal"}</span>
+                                        {minText && <span>· {minText}</span>}
+                                      </div>
+                                    </button>
+                                  );
+                                })}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

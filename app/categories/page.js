@@ -14,43 +14,43 @@ const themeMap = {
     bg: "bg-[#3674B5]/10",
     border: "border-[#3674B5]/40",
     glow: "rgba(54, 116, 181, 0.15)",
-    image: "/images/cable.png"
+    image: "/logo.png"
   },
   "Converters": {
     bg: "bg-[#DEC89E]/10",
     border: "border-[#DEC89E]/30",
     glow: "rgba(222, 200, 158, 0.2)",
-    image: "/images/charger.png"
+    image: "/logo.png"
   },
   "Accessories": {
     bg: "bg-[#3674B5]/10",
     border: "border-[#3674B5]/40",
     glow: "rgba(54, 116, 181, 0.15)",
-    image: "/images/webcam.png"
+    image: "/logo.png"
   },
   "Surveillance": {
     bg: "bg-[#DEC89E]/10",
     border: "border-[#DEC89E]/30",
     glow: "rgba(222, 200, 158, 0.2)",
-    image: "/images/ravtron_utility_dev.png"
+    image: "/logo.png"
   },
   "Docking Stations": {
     bg: "bg-[#3674B5]/10",
     border: "border-[#3674B5]/40",
     glow: "rgba(54, 116, 181, 0.15)",
-    image: "/images/magsafe.png"
+    image: "/logo.png"
   },
   "Audio Video": {
     bg: "bg-[#DEC89E]/10",
     border: "border-[#DEC89E]/30",
     glow: "rgba(222, 200, 158, 0.2)",
-    image: "/images/hero.png"
+    image: "/logo.png"
   },
   "Networking": {
     bg: "bg-[#3674B5]/10",
     border: "border-[#3674B5]/40",
     glow: "rgba(54, 116, 181, 0.15)",
-    image: "/images/ravtron_networking.png"
+    image: "/logo.png"
   }
 };
 
@@ -98,7 +98,7 @@ export default function CategoriesPage() {
               bg: "bg-[#3674B5]/5",
               border: "border-[#1E293B]/15",
               glow: "rgba(26, 25, 23, 0.05)",
-              image: "/images/charger.png"
+              image: "/logo.png"
             };
 
             const categoryImage = category.image || theme.image;

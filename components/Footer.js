@@ -58,7 +58,7 @@ export default function Footer() {
           <div className="space-y-4 sm:col-span-2 lg:col-span-2 border-b border-[#1E293B]/10 lg:border-0 pb-6 lg:pb-0">
             <Link href="/" className="flex items-center group">
               <img 
-                src="/images/logo.png" 
+                src="/logo.png" 
                 alt="RAVTRON®" 
                 className="h-8 sm:h-9 w-auto object-contain mix-blend-multiply transition-all duration-300 group-hover:scale-105"
               />

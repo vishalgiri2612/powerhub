@@ -8,8 +8,7 @@ const PRECACHE_ASSETS = [
   '/logo-192.png',
   '/logo-512.png',
   '/favicon.ico',
-  '/images/logo.png',
-  '/images/charger.png'
+  '/logo.png'
 ];
 
 // Install Event: Precache critical files & force skipWaiting
@@ -84,7 +83,7 @@ self.addEventListener('fetch', (event) => {
           }
           return networkResponse;
         }).catch(() => {
-          return caches.match('/images/logo.png');
+          return caches.match('/logo.png');
         });
       })
     );

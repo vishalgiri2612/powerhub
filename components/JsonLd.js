@@ -9,7 +9,7 @@ export function OrganizationJsonLd() {
     "name": "RAVTRON®",
     "legalName": "KSG Automation Pvt. Ltd.",
     "url": baseUrl,
-    "logo": `${baseUrl}/images/logo.png`,
+    "logo": `${baseUrl}/logo.png`,
     "description": "Trusted leader in IT, networking, display cabling, high-speed power adapters, surveillance solutions, and smart workspace products.",
     "contactPoint": {
       "@type": "ContactPoint",

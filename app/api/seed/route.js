@@ -21,7 +21,7 @@ const initialMockOrders = [
     items: [
       {
         name: "RAVTRON 11-in-1 Type-C Multiport Docking Station",
-        image: "/images/powerbank.png",
+        image: "/logo.png",
         price: 3999,
         qty: 1
       }
@@ -46,13 +46,13 @@ const initialMockOrders = [
     items: [
       {
         name: "Pro HDMI 2.1 Display Cable",
-        image: "/images/cable.png",
+        image: "/logo.png",
         price: 1499,
         qty: 1
       },
       {
         name: "GaN Pro 65W Triple Charger",
-        image: "/images/charger.png",
+        image: "/logo.png",
         price: 3999,
         qty: 1
       }

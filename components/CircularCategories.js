@@ -58,7 +58,7 @@ export default function CircularCategories() {
                     {/* Circular Image Container */}
                     <div className="relative w-20 h-20 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-full overflow-hidden border border-[#1E293B]/10 bg-white flex items-center justify-center transition-all duration-500 group-hover:scale-105 group-hover:border-[#3674B5] group-hover:ring-4 group-hover:ring-[#3674B5]/15 shadow-xs">
                       <Image
-                        src={cat.image || "/images/charger.png"}
+                        src={cat.image || "/logo.png"}
                         alt={cat.name}
                         fill
                         sizes="(max-width: 640px) 80px, (max-width: 768px) 112px, 128px"

@@ -293,7 +293,7 @@ export default function AdminPanelPage() {
                 id: key,
                 name: item.name,
                 price: item.price || 0,
-                image: item.image || "/images/charger.png",
+                image: item.image || "/logo.png",
                 unitsSold: 0,
                 totalRevenue: 0
               };
@@ -580,7 +580,7 @@ export default function AdminPanelPage() {
       discountBadge: productForm.discountBadge || "",
       category: productForm.category,
       subcategory: productForm.subcategory || "",
-      image: productForm.image || (productForm.gallery?.[0] || "/images/charger.png"),
+      image: productForm.image || (productForm.gallery?.[0] || "/logo.png"),
       gallery: productForm.gallery || [],
       sizes: productForm.sizes || [],
       privacySizes: productForm.privacySizes || [],
@@ -742,7 +742,7 @@ export default function AdminPanelPage() {
           body: JSON.stringify({
             name: editingCategory.name,
             newName: newCategoryName.trim(),
-            image: newCategoryImage.trim() || "/images/charger.png",
+            image: newCategoryImage.trim() || "/logo.png",
             subcategories: newCategorySubcategories
           })
         });
@@ -779,7 +779,7 @@ export default function AdminPanelPage() {
           body: JSON.stringify({
             name: newCategoryName.trim(),
             icon: "📦",
-            image: newCategoryImage.trim() || "/images/charger.png",
+            image: newCategoryImage.trim() || "/logo.png",
             showOnHome: true,
             subcategories: newCategorySubcategories
           })
@@ -902,12 +902,12 @@ export default function AdminPanelPage() {
         discountBadge: productToEdit.discountBadge || "",
         category: productToEdit.category,
         subcategory: productToEdit.subcategory || "",
-        image: productToEdit.image || "/images/charger.png",
+        image: productToEdit.image || "/logo.png",
         gallery: (Array.isArray(productToEdit.gallery) && productToEdit.gallery.length > 0)
           ? productToEdit.gallery
           : productToEdit.image
           ? [productToEdit.image]
-          : ["/images/charger.png"],
+          : ["/logo.png"],
         sizes: productToEdit.sizes || [],
         privacySizes: productToEdit.privacySizes || [],
         channels: productToEdit.channels || [],
@@ -929,8 +929,8 @@ export default function AdminPanelPage() {
         discountBadge: "",
         category: categoriesListToUse[0]?.name || "Accessories",
         subcategory: "",
-        image: "/images/charger.png",
-        gallery: ["/images/charger.png"],
+        image: "/logo.png",
+        gallery: ["/logo.png"],
         sizes: [],
         privacySizes: [],
         channels: [],
@@ -1150,7 +1150,11 @@ export default function AdminPanelPage() {
           </button>
           <button
             onClick={async () => {
-              localStorage.removeItem("ravtron_session");
+              try {
+                localStorage.removeItem("ravtron_session");
+                localStorage.removeItem("ravtron_cart");
+                localStorage.removeItem("ravtron_wishlist");
+              } catch (e) {}
               try {
                 await fetch("/api/auth/logout", { method: "POST" });
               } catch (e) {
@@ -1330,7 +1334,7 @@ export default function AdminPanelPage() {
                                   <td className="p-3">
                                     <div className="flex items-center gap-3">
                                       <div className="w-9 h-9 rounded-xl bg-slate-100 overflow-hidden shrink-0 border border-slate-200/60">
-                                        <img src={p.image || "/images/charger.png"} alt={p.name} className="w-full h-full object-cover" />
+                                        <img src={p.image || "/logo.png"} alt={p.name} className="w-full h-full object-cover" />
                                       </div>
                                       <div>
                                         <h4 className="font-bold text-xs text-slate-900 truncate max-w-[180px]">{p.name}</h4>
@@ -3077,7 +3081,7 @@ export default function AdminPanelPage() {
                                   setProductForm({
                                     ...productForm,
                                     gallery: newGallery,
-                                    image: newGallery[0] || "/images/charger.png"
+                                    image: newGallery[0] || "/logo.png"
                                   });
                                 }}
                                 className="p-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white transition-colors"
@@ -3623,24 +3627,24 @@ function HeroSlideEditor({
 }) {
   const defaultSlides = [
     {
-      disconnected: "/images/hero.png",
-      connected: "/images/cable.png",
+      disconnected: "/logo.png",
+      connected: "/logo.png",
       productId: "p3",
       tag1: "Pro HDMI 2.1", tag1Desc: "8K Resolution",
       tag2: "Docking Hub", tag2Desc: "10-in-1 output",
       tag3: "CAT6 SFTP", tag3Desc: "10Gbps Speed"
     },
     {
-      disconnected: "/images/charger.png",
-      connected: "/images/webcam.png",
+      disconnected: "/logo.png",
+      connected: "/logo.png",
       productId: "p4",
       tag1: "GaN Pro 65W", tag1Desc: "Fast Charging",
       tag2: "Ring Webcam", tag2Desc: "4K Video Stream",
       tag3: "Power Cord", tag3Desc: "Heavy Duty"
     },
     {
-      disconnected: "/images/powerbank.png",
-      connected: "/images/earbuds.png",
+      disconnected: "/logo.png",
+      connected: "/logo.png",
       productId: "p5",
       tag1: "Smart Bank", tag1Desc: "OLED Diagnostics",
       tag2: "Hi-Fi Buds", tag2Desc: "ANC Workspace",

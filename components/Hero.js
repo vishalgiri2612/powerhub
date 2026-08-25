@@ -12,24 +12,24 @@ export default function Hero() {
 
   const defaultSlides = [
     {
-      disconnected: "/images/hero.png",
-      connected: "/images/cable.png",
+      disconnected: "/logo.png",
+      connected: "/logo.png",
       productId: "p3",
       tag1: "Pro HDMI 2.1", tag1Desc: "8K Resolution",
       tag2: "Docking Hub", tag2Desc: "10-in-1 output",
       tag3: "CAT6 SFTP", tag3Desc: "10Gbps Speed"
     },
     {
-      disconnected: "/images/charger.png",
-      connected: "/images/webcam.png",
+      disconnected: "/logo.png",
+      connected: "/logo.png",
       productId: "p4",
       tag1: "GaN Pro 65W", tag1Desc: "Fast Charging",
       tag2: "Ring Webcam", tag2Desc: "4K Video Stream",
       tag3: "Power Cord", tag3Desc: "Heavy Duty"
     },
     {
-      disconnected: "/images/webcam.png",
-      connected: "/images/cable.png",
+      disconnected: "/logo.png",
+      connected: "/logo.png",
       productId: "p5",
       tag1: "Privacy Filter", tag1Desc: "Anti-Glare 60°",
       tag2: "Cat6 Patch", tag2Desc: "10Gbps Speed",
@@ -527,7 +527,7 @@ export default function Hero() {
               <div className="relative z-10 rounded-[2rem] bg-[#F8F9FA] p-3 shadow-xl border border-white/40 overflow-hidden cursor-pointer group hover:scale-[1.02] hover:shadow-2xl transition-all duration-700 h-[280px] sm:h-[320px] lg:h-[400px]">
                 {/* Disconnected Image */}
                 <Image
-                  src={products[disconnectedIndex]?.disconnected || "/images/hero.png"}
+                  src={products[disconnectedIndex]?.disconnected || "/logo.png"}
                   alt="RAVTRON B2B Solutions"
                   fill
                   priority
@@ -541,7 +541,7 @@ export default function Hero() {
                 />
                 {/* Connected Image */}
                 <Image
-                  src={products[connectedIndex]?.connected || "/images/cable.png"}
+                  src={products[connectedIndex]?.connected || "/logo.png"}
                   alt="RAVTRON Connected Active State"
                   fill
                   priority

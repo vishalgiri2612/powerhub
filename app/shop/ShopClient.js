@@ -169,12 +169,12 @@ function ShopContent() {
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 md:gap-3 py-2 border-b border-[#1E293B]/10">
           
           {/* LEFT SIDE: Category Filter Pills Bar */}
-          <div className="flex items-center justify-start lg:justify-between gap-1 md:gap-1.5 p-1.5 bg-slate-100 border border-slate-300/80 rounded-full overflow-x-auto scrollbar-none scroll-smooth flex-grow min-w-0 shadow-inner">
+          <div className="flex items-center justify-start lg:justify-between gap-1 md:gap-1.5 p-1.5 px-2 sm:px-3 bg-slate-100 border border-slate-300/80 rounded-2xl sm:rounded-full overflow-x-auto scrollbar-none scroll-smooth flex-grow min-w-0 shadow-inner">
             {filterOptions.map((opt) => (
               <button
                 key={opt}
                 onClick={() => handleFilterClick(opt)}
-                className={`px-3.5 py-1.5 md:px-4 rounded-full text-xs font-extrabold transition-all duration-300 hover:scale-[1.02] active:scale-97 whitespace-nowrap shrink-0 ${activeCategory === opt
+                className={`px-3 py-1.5 sm:px-4 rounded-xl sm:rounded-full text-xs font-extrabold transition-all duration-300 hover:scale-[1.02] active:scale-97 whitespace-nowrap shrink-0 ${activeCategory === opt
                     ? "bg-[#3674B5] text-white shadow-sm font-black"
                     : "text-[#1E293B] hover:text-[#3674B5] hover:bg-white"
                   }`}
@@ -227,11 +227,14 @@ function ShopContent() {
 
         {/* SUB-CATEGORIES FILTER PILLS BAR */}
         {availableSubcategories.length > 0 && (
-          <div className="flex items-center justify-start gap-1.5 p-2 bg-blue-50/60 border border-[#3674B5]/20 rounded-2xl overflow-x-auto scrollbar-none scroll-smooth shadow-2xs">
-            <span className="text-[10px] font-black text-[#3674B5] uppercase tracking-wider px-2 shrink-0">Subcategories:</span>
+          <div className="flex items-center justify-start gap-1.5 p-1.5 sm:p-2 px-2 sm:px-3 bg-blue-50/60 border border-[#3674B5]/20 rounded-2xl overflow-x-auto scrollbar-none scroll-smooth shadow-2xs w-full min-w-0">
+            <span className="text-[9px] sm:text-[10px] font-black text-[#3674B5] uppercase tracking-wider pl-1 pr-0.5 shrink-0">
+              <span className="hidden sm:inline">Subcategories:</span>
+              <span className="sm:hidden">Sub:</span>
+            </span>
             <button
               onClick={() => handleSubcategoryFilterClick("All")}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold uppercase transition-all whitespace-nowrap shrink-0 ${
+              className={`px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-extrabold uppercase transition-all whitespace-nowrap shrink-0 ${
                 activeSubcategory === "All"
                   ? "bg-[#3674B5] text-white shadow-2xs font-black"
                   : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
@@ -243,7 +246,7 @@ function ShopContent() {
               <button
                 key={sub}
                 onClick={() => handleSubcategoryFilterClick(sub)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold uppercase transition-all whitespace-nowrap shrink-0 ${
+                className={`px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-extrabold uppercase transition-all whitespace-nowrap shrink-0 ${
                   activeSubcategory.toLowerCase() === sub.toLowerCase()
                     ? "bg-[#3674B5] text-white shadow-2xs font-black"
                     : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
@@ -452,12 +455,12 @@ function ShopContent() {
                   </div>
 
                   {/* Price & Add to Cart */}
-                  <div className="flex items-center justify-between pt-2 border-t border-[#1E293B]/10 mt-2 relative z-10">
-                    <div className="space-y-0.5">
-                      <span className="text-[8px] sm:text-[9px] font-extrabold text-[#3674B5] uppercase tracking-wider">
+                  <div className="flex items-center justify-between gap-1.5 pt-2 border-t border-[#1E293B]/10 mt-2 relative z-10 min-w-0">
+                    <div className="space-y-0.5 min-w-0 flex-1">
+                      <span className="text-[8px] sm:text-[9px] font-extrabold text-[#3674B5] uppercase tracking-wider block truncate">
                         Save ₹{(product.originalPrice - product.price).toLocaleString()}
                       </span>
-                      <div className="flex items-baseline gap-1">
+                      <div className="flex items-baseline gap-1 truncate">
                         <span className="text-xs sm:text-sm md:text-base font-black text-[#3674B5]">
                           ₹{product.price.toLocaleString()}
                         </span>
@@ -469,29 +472,31 @@ function ShopContent() {
 
                     {cartItemQty > 0 ? (
                       <div 
-                        className="inline-flex items-center rounded-xl bg-[#3674B5] text-white font-extrabold shadow-md overflow-hidden"
+                        className="inline-flex items-center rounded-lg sm:rounded-xl bg-[#3674B5] text-white font-extrabold shadow-md overflow-hidden shrink-0"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <button
+                          type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             updateQuantity(product.id, -1);
                           }}
-                          className="px-2.5 py-1.5 sm:px-3 sm:py-2.5 hover:bg-[#578FCA] transition-colors flex items-center justify-center cursor-pointer text-xs font-black"
+                          className="px-1.5 py-1 sm:px-2.5 sm:py-2 hover:bg-[#578FCA] transition-colors flex items-center justify-center cursor-pointer text-xs font-black shrink-0"
                           aria-label="Decrease quantity"
                           title="Decrease quantity"
                         >
                           −
                         </button>
-                        <span className="px-1.5 py-1 text-[9px] sm:text-xs font-extrabold whitespace-nowrap">
-                          In Bag ({cartItemQty})
+                        <span className="px-1 py-0.5 text-[9px] sm:text-xs font-extrabold whitespace-nowrap">
+                          <span className="hidden sm:inline">In Bag </span>({cartItemQty})
                         </span>
                         <button
+                          type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             addToCart(product, 1);
                           }}
-                          className="px-2.5 py-1.5 sm:px-3 sm:py-2.5 hover:bg-[#578FCA] transition-colors flex items-center justify-center cursor-pointer text-xs font-black"
+                          className="px-1.5 py-1 sm:px-2.5 sm:py-2 hover:bg-[#578FCA] transition-colors flex items-center justify-center cursor-pointer text-xs font-black shrink-0"
                           aria-label="Increase quantity"
                           title="Increase quantity"
                         >
@@ -500,14 +505,15 @@ function ShopContent() {
                       </div>
                     ) : (
                       <button
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           addToCart(product);
                         }}
-                        className="px-2.5 py-1.5 sm:px-4 sm:py-2.5 rounded-xl text-[9px] sm:text-xs font-bold transition-all duration-300 hover:scale-[1.03] active:scale-97 flex items-center justify-center gap-1.5 shadow-md bg-[#3674B5] hover:bg-[#578FCA] text-white"
+                        className="px-2 py-1 sm:px-3.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-extrabold transition-all duration-300 hover:scale-[1.03] active:scale-97 flex items-center justify-center gap-1 shadow-md bg-[#3674B5] hover:bg-[#578FCA] text-white shrink-0"
                       >
                         <span>Add</span>
-                        <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
                         </svg>
                       </button>

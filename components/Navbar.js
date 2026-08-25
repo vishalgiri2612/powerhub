@@ -2,20 +2,20 @@ import React, { useState, useEffect, useRef } from "react";
 import { useCart } from "../app/context/CartContext";
 import { Zap, ChevronDown, Grid, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 
 export default function Navbar() {
   const router = useRouter();
-  const { 
-    cart, 
-    wishlist, 
-    setIsCartOpen, 
-    setIsSearchOpen, 
+  const {
+    cart,
+    wishlist,
+    setIsCartOpen,
+    setIsSearchOpen,
     getCartCount,
+    clearCartAndWishlist,
     categories: categoriesListFromContext
   } = useCart();
-  
+
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
@@ -42,42 +42,42 @@ export default function Navbar() {
   const defaultCategoriesData = [
     {
       name: "Cables",
-      image: "/images/cable.png",
+      image: "/logo.png",
       subcategories: ["HDMI Cables", "VGA Cables", "Power Cords", "Converter Cables"]
     },
     {
       name: "Converters",
-      image: "/images/charger.png",
+      image: "/logo.png",
       subcategories: ["HDMI", "VGA", "Display Port", "Mini DP", "Type C"]
     },
     {
       name: "Docking Stations",
-      image: "/images/magsafe.png",
+      image: "/logo.png",
       subcategories: ["TYPE C", "USB", "Dual Type C"]
     },
     {
       name: "Accessories",
-      image: "/images/webcam.png",
+      image: "/logo.png",
       subcategories: ["Privacy Filter", "Webcam", "Power Adapter", "Laptop Stand"]
     },
     {
       name: "Audio Video",
-      image: "/images/hero.png",
+      image: "/logo.png",
       subcategories: ["HDMI Extender", "HDMI Splitter", "HDMI Switcher", "Matrix"]
     },
     {
       name: "Networking",
-      image: "/images/ravtron_networking.png",
+      image: "/logo.png",
       subcategories: ["PATCH CORD", "CAT6 CABLE"]
     },
     {
       name: "Surveillance",
-      image: "/images/ravtron_utility_dev.png",
+      image: "/logo.png",
       subcategories: ["CCTV Cables", "Power Supply", "PoE Switch", "BNC Connector"]
     },
     {
       name: "USB HUBS",
-      image: "/images/magsafe.png",
+      image: "/logo.png",
       subcategories: ["TYPE C", "USB"]
     }
   ];
@@ -87,7 +87,12 @@ export default function Navbar() {
     : defaultCategoriesData;
 
   const handleSignOut = async () => {
-    localStorage.removeItem("ravtron_session");
+    if (clearCartAndWishlist) clearCartAndWishlist();
+    try {
+      localStorage.removeItem("ravtron_session");
+      localStorage.removeItem("ravtron_cart");
+      localStorage.removeItem("ravtron_wishlist");
+    } catch (e) {}
     try {
       await fetch("/api/auth/logout", { method: "POST" });
     } catch (e) {
@@ -163,23 +168,21 @@ export default function Navbar() {
 
   return (
     <>
-      <header className={`sticky z-[90] w-full overflow-visible transition-all duration-500 ease-in-out ${
-        isScrolled
-          ? "top-3 px-4 sm:px-6 lg:px-8"
+      <header className={`sticky z-[90] w-full overflow-visible transition-all duration-500 ease-in-out ${isScrolled
+          ? "top-2 sm:top-3 px-2.5 sm:px-6 lg:px-8"
           : "top-0 px-0"
-      }`}>
-        <nav className={`mx-auto flex items-center justify-between overflow-visible transition-all duration-500 ease-in-out relative ${
-          isScrolled
-            ? "max-w-5xl bg-white/95 backdrop-blur-md border border-[#1E293B]/10 rounded-full px-4 sm:px-6 py-2 shadow-lg hover:shadow-xl"
-            : "max-w-full bg-white border-b border-[#1E293B]/10 rounded-none px-4 sm:px-12 py-3.5 sm:py-5 shadow-none"
         }`}>
-          
+        <nav className={`mx-auto flex items-center justify-between overflow-visible transition-all duration-500 ease-in-out relative ${isScrolled
+            ? "max-w-5xl bg-white/95 backdrop-blur-md border border-[#1E293B]/10 rounded-2xl sm:rounded-full px-3.5 sm:px-6 py-2 shadow-lg hover:shadow-xl"
+            : "max-w-full bg-white border-b border-[#1E293B]/10 rounded-none px-3.5 sm:px-12 py-3.5 sm:py-5 shadow-none"
+          }`}>
+
           {/* Logo Brand */}
-          <Link href="/" className="flex items-center group shrink-0">
-            <img 
-              src="/images/logo.png" 
-              alt="RAVTRON®" 
-              className="h-6 sm:h-9 w-auto max-w-[130px] sm:max-w-none object-contain mix-blend-multiply transition-all duration-300 group-hover:scale-105"
+          <Link href="/" className="flex items-center group shrink-0 mr-2 sm:mr-6">
+            <img
+              src="/logo.png"
+              alt="RAVTRON®"
+              className="h-5 sm:h-9 w-auto max-w-[105px] xs:max-w-[125px] sm:max-w-none object-contain mix-blend-multiply transition-all duration-300 group-hover:scale-105"
             />
           </Link>
 
@@ -198,21 +201,19 @@ export default function Navbar() {
                   >
                     <Link
                       href={link.href}
-                      className={`text-sm transition-colors relative py-1 inline-flex items-center gap-1 after:absolute after:bottom-0 after:h-[2px] after:bg-[#3674B5] after:transition-all ${
-                        active
+                      className={`text-sm transition-colors relative py-1 inline-flex items-center gap-1 after:absolute after:bottom-0 after:h-[2px] after:bg-[#3674B5] after:transition-all ${active
                           ? "font-bold text-[#3674B5] after:w-full after:left-0"
                           : "font-semibold text-[#1E293B]/70 hover:text-[#1E293B] after:left-1/2 after:w-0 hover:after:w-full hover:after:left-0"
-                      }`}
+                        }`}
                     >
                       <span>{link.name}</span>
                       <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${isCategoriesOpen ? "rotate-180 text-[#3674B5]" : "text-[#1E293B]/50"}`} />
                     </Link>
 
                     {/* Mega Dropdown Menu for Categories */}
-                    <div 
-                      className={`absolute top-full left-1/2 -translate-x-1/2 mt-3 w-[88vw] max-w-5xl bg-white/98 backdrop-blur-2xl border border-[#1E293B]/12 rounded-3xl p-6 sm:p-7 shadow-2xl transition-all duration-300 z-[100] ${
-                        isCategoriesOpen ? "opacity-100 scale-100 pointer-events-auto" : "opacity-0 scale-95 pointer-events-none"
-                      }`}
+                    <div
+                      className={`absolute top-full left-1/2 -translate-x-1/2 mt-3 w-[88vw] max-w-5xl bg-white/98 backdrop-blur-2xl border border-[#1E293B]/12 rounded-3xl p-6 sm:p-7 shadow-2xl transition-all duration-300 z-[100] ${isCategoriesOpen ? "opacity-100 scale-100 pointer-events-auto" : "opacity-0 scale-95 pointer-events-none"
+                        }`}
                       onMouseEnter={handleCategoriesMouseEnter}
                       onMouseLeave={handleCategoriesMouseLeave}
                     >
@@ -227,7 +228,7 @@ export default function Navbar() {
                             <p className="text-[10px] font-semibold text-[#1E293B]/50">Explore structured product collections with official specs</p>
                           </div>
                         </div>
-                        <Link 
+                        <Link
                           href="/categories"
                           onClick={() => setIsCategoriesOpen(false)}
                           className="text-xs font-bold text-[#3674B5] hover:text-white hover:bg-[#3674B5] flex items-center gap-1.5 transition-all bg-[#3674B5]/8 px-3.5 py-1.5 rounded-full border border-[#3674B5]/20"
@@ -240,7 +241,7 @@ export default function Navbar() {
                       {/* Structured Categories Grid (4 Columns) */}
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5" suppressHydrationWarning>
                         {categoriesToRender.map((cat) => {
-                          const imgPath = cat.image || "/images/charger.png";
+                          const imgPath = cat.image || "/logo.png";
                           return (
                             <div
                               key={cat.name}
@@ -252,8 +253,8 @@ export default function Navbar() {
                             >
                               {/* Card Thumbnail: Fit image perfectly into rounded frame */}
                               <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white border border-[#1E293B]/10 p-0.5 shrink-0 flex items-center justify-center overflow-hidden shadow-xs group-hover/item:scale-105 transition-transform duration-300">
-                                <img 
-                                  src={imgPath} 
+                                <img
+                                  src={imgPath}
                                   alt={cat.name}
                                   className="w-full h-full object-cover rounded-xl"
                                 />
@@ -287,11 +288,10 @@ export default function Navbar() {
                 <Link
                   key={link.name}
                   href={link.href}
-                  className={`text-sm transition-colors relative py-1 after:absolute after:bottom-0 after:h-[2px] after:bg-[#3674B5] after:transition-all ${
-                    active
+                  className={`text-sm transition-colors relative py-1 after:absolute after:bottom-0 after:h-[2px] after:bg-[#3674B5] after:transition-all ${active
                       ? "font-bold text-[#3674B5] after:w-full after:left-0"
                       : "font-semibold text-[#1E293B]/70 hover:text-[#1E293B] after:left-1/2 after:w-0 hover:after:w-full hover:after:left-0"
-                  }`}
+                    }`}
                 >
                   {link.name}
                 </Link>
@@ -300,25 +300,25 @@ export default function Navbar() {
           </div>
 
           {/* Action Icons & CTAs */}
-          <div className="flex items-center gap-1 sm:gap-4">
+          <div className="flex items-center gap-0.5 xs:gap-1.5 sm:gap-4 shrink-0">
             {/* Search Icon */}
-            <button 
+            <button
               onClick={() => setIsSearchOpen(true)}
-              className="p-1.5 sm:p-2 rounded-full hover:bg-[#3674B5]/5 text-[#1E293B]/70 hover:text-[#1E293B] transition-all hover:scale-105 active:scale-95"
+              className="p-1 sm:p-2 rounded-full hover:bg-[#3674B5]/5 text-[#1E293B]/70 hover:text-[#1E293B] transition-all hover:scale-105 active:scale-95"
               aria-label="Search Products"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4.5 h-4.5 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </button>
 
             {/* Wishlist Button */}
-            <Link 
+            <Link
               href="/wishlist"
-              className="p-1.5 sm:p-2 rounded-full hover:bg-[#3674B5]/5 text-[#1E293B]/70 hover:text-[#1E293B] transition-all relative hover:scale-105 active:scale-95 inline-flex"
+              className="p-1 sm:p-2 rounded-full hover:bg-[#3674B5]/5 text-[#1E293B]/70 hover:text-[#1E293B] transition-all relative hover:scale-105 active:scale-95 inline-flex"
               aria-label="Wishlist"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4.5 h-4.5 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
               {wishlist.length > 0 && (
@@ -329,12 +329,12 @@ export default function Navbar() {
             </Link>
 
             {/* Cart Button */}
-            <Link 
+            <Link
               href="/cart"
-              className="p-1.5 sm:p-2 rounded-full hover:bg-[#3674B5]/5 text-[#1E293B]/70 hover:text-[#1E293B] transition-all relative hover:scale-105 active:scale-95 inline-flex"
+              className="p-1 sm:p-2 rounded-full hover:bg-[#3674B5]/5 text-[#1E293B]/70 hover:text-[#1E293B] transition-all relative hover:scale-105 active:scale-95 inline-flex"
               aria-label="Cart"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4.5 h-4.5 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
               {getCartCount() > 0 && (
@@ -343,7 +343,6 @@ export default function Navbar() {
                 </span>
               )}
             </Link>
-
 
             {/* Login / Sign Up or Profile Dropdown */}
             {user ? (
@@ -356,10 +355,10 @@ export default function Navbar() {
                     <img
                       src={user.avatar}
                       alt={user.name}
-                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border border-[#3674B5]/20"
+                      className="w-6 h-6 sm:w-8 sm:h-8 rounded-full object-cover border border-[#3674B5]/20"
                     />
                   ) : (
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-[#3674B5]/20 bg-[#3674B5]/10 text-[#3674B5] flex items-center justify-center font-display font-extrabold text-[11px] sm:text-xs uppercase">
+                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border border-[#3674B5]/20 bg-[#3674B5]/10 text-[#3674B5] flex items-center justify-center font-display font-extrabold text-[10px] sm:text-xs uppercase">
                       {user.name ? user.name.charAt(0) : "U"}
                     </div>
                   )}
@@ -419,18 +418,21 @@ export default function Navbar() {
               </Link>
             )}
 
+            {/* Vertical Divider on Mobile */}
+            <div className="md:hidden h-4.5 w-[1px] bg-[#1E293B]/10 mx-0.5" />
+
             {/* Mobile Menu Toggle */}
-            <button 
+            <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-1.5 sm:p-2 rounded-full hover:bg-[#3674B5]/5 text-[#1E293B]/70 hover:text-[#1E293B]"
+              className="md:hidden p-1.5 rounded-full hover:bg-[#3674B5]/5 text-[#1E293B]/70 hover:text-[#1E293B] shrink-0"
               aria-label="Toggle Menu"
             >
               {mobileMenuOpen ? (
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               ) : (
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               )}
@@ -448,11 +450,10 @@ export default function Navbar() {
                   key={link.name}
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
-                    active
+                  className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${active
                       ? "bg-[#3674B5]/10 text-[#3674B5]"
                       : "hover:bg-[#3674B5]/5 text-[#1E293B]/80 hover:text-[#1E293B]"
-                  }`}
+                    }`}
                 >
                   {link.name}
                 </Link>

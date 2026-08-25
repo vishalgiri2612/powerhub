@@ -31,7 +31,7 @@ import CartDrawer from "../../components/CartDrawer";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { wishlist, getCartCount, toggleWishlist, addToCart, showToast } = useCart();
+  const { wishlist, getCartCount, toggleWishlist, addToCart, showToast, clearCartAndWishlist } = useCart();
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState("overview"); // overview, orders, wishlist, addresses, settings
 
@@ -212,7 +212,12 @@ export default function ProfilePage() {
   };
 
   const handleSignOut = async () => {
-    localStorage.removeItem("ravtron_session");
+    if (clearCartAndWishlist) clearCartAndWishlist();
+    try {
+      localStorage.removeItem("ravtron_session");
+      localStorage.removeItem("ravtron_cart");
+      localStorage.removeItem("ravtron_wishlist");
+    } catch (e) {}
     try {
       await fetch("/api/auth/logout", { method: "POST" });
     } catch (e) {

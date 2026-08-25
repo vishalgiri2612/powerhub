@@ -151,7 +151,7 @@ export default function ProductDetailPage({ params }) {
         if (curr && product.gallery && product.gallery.includes(curr)) {
           return curr;
         }
-        return product.image || "/images/charger.png";
+        return product.image || "/logo.png";
       });
       if (product.sizes && product.sizes.length > 0) {
         setSelectedSize((curr) => (product.sizes.includes(curr) ? curr : product.sizes[0]));
@@ -399,7 +399,7 @@ export default function ProductDetailPage({ params }) {
               {/* Full-Frame Edge-to-Edge Image */}
               {(selectedImage || product.image) ? (
                 <img
-                  src={selectedImage || product.image || "/images/charger.png"}
+                  src={selectedImage || product.image || "/logo.png"}
                   alt={product.name}
                   className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-103"
                   style={{
@@ -574,22 +574,24 @@ export default function ProductDetailPage({ params }) {
               return (
                 <div
                   onClick={() => setIsOffersModalOpen(true)}
-                  className="bg-[#FFFDF7] border border-[#EAE3D2] hover:border-[#3674B5]/40 transition-all rounded-2xl p-4 flex items-center justify-between shadow-2xs cursor-pointer group hover:bg-[#FFFBF0]"
+                  className="bg-[#FFFDF7] border border-[#EAE3D2] hover:border-[#3674B5]/40 transition-all rounded-2xl p-3.5 sm:p-4 flex items-center justify-between gap-2.5 sm:gap-3 shadow-2xs cursor-pointer group hover:bg-[#FFFBF0]"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#FEF3D6] text-[#B8860B] flex items-center justify-center text-lg flex-shrink-0 shadow-2xs group-hover:scale-110 transition-transform">
+                  <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#FEF3D6] text-[#B8860B] flex items-center justify-center text-base sm:text-lg shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
                       🎁
                     </div>
-                    <div className="space-y-0.5">
-                      <h4 className="text-xs font-black text-[#1E293B] uppercase tracking-wider flex items-center gap-2">
-                        <span>APPLY COUPON &amp; OFFERS</span>
+                    <div className="min-w-0 flex-1 space-y-0.5">
+                      <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                        <h4 className="text-[11px] sm:text-xs font-black text-[#1E293B] uppercase tracking-wider leading-tight">
+                          APPLY COUPON &amp; OFFERS
+                        </h4>
                         {applicableCoupons.length > 0 && (
-                          <span className="text-[9px] font-black bg-[#3674B5] text-white px-2 py-0.5 rounded-full">
-                            {applicableCoupons.length} Available
+                          <span className="text-[9px] font-black bg-[#3674B5] text-white px-2 py-0.5 rounded-full whitespace-nowrap inline-block">
+                            {applicableCoupons.length} AVAILABLE
                           </span>
                         )}
-                      </h4>
-                      <p className="text-[11px] font-semibold text-[#1E293B]/60">
+                      </div>
+                      <p className="text-[10px] sm:text-[11px] font-semibold text-[#1E293B]/60 truncate">
                         {applicableCoupons.length > 0
                           ? `View all ${applicableCoupons.length} promotional discounts & festive deals`
                           : "View promotional discounts & coupons"}
@@ -598,9 +600,9 @@ export default function ProductDetailPage({ params }) {
                   </div>
                   <button
                     type="button"
-                    className="text-xs font-black text-[#B8860B] group-hover:text-[#3674B5] flex items-center gap-1 group-hover:translate-x-1 transition-transform"
+                    className="text-[11px] sm:text-xs font-black text-[#B8860B] group-hover:text-[#3674B5] flex items-center gap-0.5 sm:gap-1 group-hover:translate-x-1 transition-transform shrink-0 whitespace-nowrap pl-1"
                   >
-                    <span>View All Offers</span>
+                    <span>View Offers</span>
                     <span>&gt;</span>
                   </button>
                 </div>
@@ -628,7 +630,7 @@ export default function ProductDetailPage({ params }) {
               {/* Add to Bag Button with inline Minus/Plus when in cart */}
               {cartItemQty > 0 ? (
                 <div 
-                  className="flex-1 py-2.5 md:py-3 px-3 rounded-2xl bg-[#3674B5] text-white font-extrabold shadow-md flex items-center justify-between border-2 border-[#3674B5]"
+                  className="flex-1 h-12 sm:h-14 px-1 sm:px-3 rounded-2xl bg-[#3674B5] text-white font-extrabold shadow-md flex items-center justify-between border-2 border-[#3674B5] shrink-0 min-w-0"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <button
@@ -637,17 +639,17 @@ export default function ProductDetailPage({ params }) {
                       e.stopPropagation();
                       updateQuantity(product.id, -1);
                     }}
-                    className="w-8 h-8 rounded-xl hover:bg-[#578FCA] transition-colors flex items-center justify-center cursor-pointer text-base font-black shrink-0"
+                    className="w-5.5 h-5.5 xs:w-6 xs:h-6 sm:w-8 sm:h-8 rounded-md xs:rounded-lg sm:rounded-xl bg-white/20 hover:bg-white/30 transition-colors flex items-center justify-center cursor-pointer text-xs sm:text-base font-black shrink-0"
                     aria-label="Decrease quantity"
                     title="Decrease quantity"
                   >
                     −
                   </button>
-                  <span className="text-xs md:text-sm font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 select-none">
-                    <svg className="w-4 h-4 md:w-4.5 md:h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <span className="text-[10px] xs:text-[11px] sm:text-xs md:text-sm font-extrabold uppercase tracking-wider flex items-center justify-center gap-0.5 sm:gap-1.5 select-none whitespace-nowrap px-0.5 min-w-0">
+                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 hidden xs:inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                     </svg>
-                    In Bag ({cartItemQty})
+                    <span>In Bag ({cartItemQty})</span>
                   </span>
                   <button
                     type="button"
@@ -655,7 +657,7 @@ export default function ProductDetailPage({ params }) {
                       e.stopPropagation();
                       addToCart(product, 1);
                     }}
-                    className="w-8 h-8 rounded-xl hover:bg-[#578FCA] transition-colors flex items-center justify-center cursor-pointer text-base font-black shrink-0"
+                    className="w-5.5 h-5.5 xs:w-6 xs:h-6 sm:w-8 sm:h-8 rounded-md xs:rounded-lg sm:rounded-xl bg-white/20 hover:bg-white/30 transition-colors flex items-center justify-center cursor-pointer text-xs sm:text-base font-black shrink-0"
                     aria-label="Increase quantity"
                     title="Increase quantity"
                   >
@@ -665,24 +667,24 @@ export default function ProductDetailPage({ params }) {
               ) : (
                 <button
                   onClick={handleAdd}
-                  className="flex-1 py-3.5 md:py-4.5 rounded-2xl border-2 border-[#1E293B] hover:bg-[#F8F9FA] text-[#1E293B] text-xs font-extrabold uppercase tracking-widest transition-all duration-300 hover:scale-[1.02] active:scale-97 flex items-center justify-center gap-2"
+                  className="flex-1 h-12 sm:h-14 rounded-2xl border-2 border-[#1E293B] hover:bg-[#F8F9FA] text-[#1E293B] text-xs font-extrabold uppercase tracking-widest transition-all duration-300 hover:scale-[1.02] active:scale-97 flex items-center justify-center gap-1.5 sm:gap-2 shrink-0 min-w-0"
                 >
-                  <svg className="w-4 h-4 md:w-4.5 md:h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4 md:w-4.5 md:h-4.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                   </svg>
-                  <span>Add to Bag</span>
+                  <span className="whitespace-nowrap">Add to Bag</span>
                 </button>
               )}
 
               {/* Buy Now Button */}
               <button
                 onClick={handleBuyNow}
-                className="flex-1 py-3.5 md:py-4.5 rounded-2xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-extrabold uppercase tracking-widest transition-all duration-300 hover:scale-[1.02] active:scale-97 flex items-center justify-center gap-2 shadow-lg shadow-[#1A1917]/10"
+                className="flex-1 h-12 sm:h-14 rounded-2xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-extrabold uppercase tracking-widest transition-all duration-300 hover:scale-[1.02] active:scale-97 flex items-center justify-center gap-1.5 sm:gap-2 shadow-lg shadow-[#1A1917]/10 shrink-0 min-w-0"
               >
-                <svg className="w-4 h-4 md:w-4.5 md:h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 md:w-4.5 md:h-4.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
-                <span>Buy Now</span>
+                <span className="whitespace-nowrap">Buy Now</span>
               </button>
             </div>
 

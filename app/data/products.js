@@ -8,11 +8,9 @@ export const products = [
     discountBadge: "-28%",
     rating: 4.9,
     reviewsCount: 182,
-    image: "/images/charger.png",
+    image: "/logo.png",
     gallery: [
-      "/images/charger.png",
-      "/images/charger_angle.png",
-      "/images/charger_pack.png"
+      "/logo.png"
     ],
     category: "Accessories",
     subcategory: "Power Adapter",
@@ -31,11 +29,9 @@ export const products = [
     discountBadge: "Bestseller",
     rating: 4.9,
     reviewsCount: 340,
-    image: "/images/magsafe.png",
+    image: "/logo.png",
     gallery: [
-      "/images/magsafe.png",
-      "/images/charger.png",
-      "/images/cable.png"
+      "/logo.png"
     ],
     category: "Docking Stations",
     subcategory: "TYPE C",
@@ -55,11 +51,9 @@ export const products = [
     discountBadge: "-30%",
     rating: 4.8,
     reviewsCount: 95,
-    image: "/images/cable.png",
+    image: "/logo.png",
     gallery: [
-      "/images/cable.png",
-      "/images/powerbank_use.png",
-      "/images/charger_angle.png"
+      "/logo.png"
     ],
     category: "Cables",
     subcategory: "Power Cords",
@@ -79,11 +73,9 @@ export const products = [
     discountBadge: "New",
     rating: 4.9,
     reviewsCount: 54,
-    image: "/images/webcam.png",
+    image: "/logo.png",
     gallery: [
-      "/images/webcam.png",
-      "/images/hero.png",
-      "/images/charger.png"
+      "/logo.png"
     ],
     category: "Accessories",
     subcategory: "Webcam",
@@ -102,10 +94,9 @@ export const products = [
     discountBadge: "-33%",
     rating: 4.8,
     reviewsCount: 124,
-    image: "/images/webcam.png",
+    image: "/logo.png",
     gallery: [
-      "/images/webcam.png",
-      "/images/cable.png"
+      "/logo.png"
     ],
     category: "Accessories",
     subcategory: "Privacy Filter",
@@ -125,10 +116,9 @@ export const products = [
     discountBadge: "Best Value",
     rating: 4.9,
     reviewsCount: 88,
-    image: "/images/ravtron_networking.png",
+    image: "/logo.png",
     gallery: [
-      "/images/ravtron_networking.png",
-      "/images/cable.png"
+      "/logo.png"
     ],
     category: "Networking",
     subcategory: "PATCH CORD",
@@ -147,9 +137,9 @@ export const products = [
     discountBadge: "Save 41%",
     rating: 4.8,
     reviewsCount: 1,
-    image: "/images/ravtron_utility_dev.png",
+    image: "/logo.png",
     gallery: [
-      "/images/ravtron_utility_dev.png"
+      "/logo.png"
     ],
     category: "Surveillance",
     subcategory: "Power Supply",
@@ -171,77 +161,77 @@ export const categories = [
   {
     name: "Cables",
     icon: "🔌",
-    image: "/images/cable.png",
+    image: "/logo.png",
     showOnHome: true,
     subcategories: ["HDMI Cables", "VGA Cables", "Power Cords", "Cable Cum Converter"]
   },
   {
     name: "HDMI Cables",
     icon: "🔌",
-    image: "/images/cable.png",
+    image: "/logo.png",
     showOnHome: true,
     subcategories: []
   },
   {
     name: "VGA Cables",
     icon: "🔌",
-    image: "/images/cable.png",
+    image: "/logo.png",
     showOnHome: true,
     subcategories: []
   },
   {
     name: "Power Cords",
     icon: "🔌",
-    image: "/images/charger.png",
+    image: "/logo.png",
     showOnHome: true,
     subcategories: []
   },
   {
     name: "Converters",
     icon: "⚡",
-    image: "/images/charger.png",
+    image: "/logo.png",
     showOnHome: true,
     subcategories: ["HDMI", "VGA", "Display Port", "Mini DP", "Type C", "USB"]
   },
   {
     name: "Accessories",
     icon: "💼",
-    image: "/images/webcam.png",
+    image: "/logo.png",
     showOnHome: true,
     subcategories: ["Privacy Filter", "Webcam", "Power Adapter", "Aux Cables", "SSD Enclosure", "Wall Mount", "Laptop Stand"]
   },
   {
     name: "Surveillance",
     icon: "🛡️",
-    image: "/images/ravtron_utility_dev.png",
+    image: "/logo.png",
     showOnHome: false,
     subcategories: ["CCTV Cables", "Power Supply", "PoE Switch", "BNC Connector", "DC Pin", "Video Balun"]
   },
   {
     name: "Docking Stations",
     icon: "💻",
-    image: "/images/magsafe.png",
+    image: "/logo.png",
     showOnHome: true,
     subcategories: ["Dual Type C", "Type C"]
   },
   {
     name: "Audio Video",
     icon: "📺",
-    image: "/images/hero.png",
+    image: "/logo.png",
     showOnHome: true,
     subcategories: ["HDMI Extender", "HDMI Splitter", "HDMI Switcher", "Matrix"]
   },
   {
     name: "Networking",
     icon: "🌐",
-    image: "/images/ravtron_networking.png",
+    image: "/logo.png",
     showOnHome: false,
     subcategories: ["PATCH CORD", "CAT6 CABLE"]
   },
   {
     name: "USB HUBS",
     icon: "🔌",
-    image: "/images/magsafe.png",
+    image: "/logo.png",
     showOnHome: true,
     subcategories: ["TYPE C", "USB"]
   }
