@@ -100,6 +100,7 @@ function SignupContent() {
 
   const handleGoogleAuth = useGoogleLogin({
     flow: "implicit",
+    ux_mode: "redirect",
     onSuccess: (tokenResponse) => {
       handleGoogleSuccessResponse({ access_token: tokenResponse.access_token });
     },
@@ -109,7 +110,7 @@ function SignupContent() {
       if (err?.error === "popup_closed_by_user") {
         setError("Sign-in popup was closed.");
       } else {
-        setError("Google Sign-In failed or popup was blocked by browser.");
+        setError("Google Sign-In failed. Please check browser pop-up permissions or try registering with email.");
       }
     }
   });
