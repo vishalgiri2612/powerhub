@@ -175,13 +175,13 @@ function SignupContent() {
     <div className="min-h-screen bg-bg-brand text-text-brand antialiased selection:bg-[#3674B5] selection:text-white flex flex-col justify-between">
       <Navbar />
 
-      <main className="flex-grow flex items-center justify-center px-4 py-16 md:py-24 relative overflow-hidden">
+      <main className="flex-grow flex items-center justify-center px-2 xs:px-4 py-8 sm:py-16 md:py-24 relative overflow-hidden">
         {/* Dynamic decorative warm light radial glows */}
         <div className="absolute top-1/10 right-1/10 w-96 h-96 rounded-full bg-[#E8EFE5] opacity-40 blur-3xl pointer-events-none z-0" />
         <div className="absolute bottom-1/10 left-1/10 w-96 h-96 rounded-full bg-[#E5D0C6] opacity-30 blur-3xl pointer-events-none z-0" />
 
         {/* Center Card */}
-        <div className="w-full max-w-[480px] rounded-3xl bg-white border border-[#1E293B]/10 p-6 md:p-10 shadow-2xl relative z-10 hover-lift duration-500">
+        <div className="w-full max-w-[480px] rounded-2xl sm:rounded-3xl bg-white border border-[#1E293B]/10 p-3.5 sm:p-6 md:p-10 shadow-2xl relative z-10 hover-lift duration-500">
           
           {/* Header */}
           <div className="text-center space-y-3 mb-8">
