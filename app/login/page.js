@@ -68,22 +68,34 @@ function LoginContent() {
     }
   };
 
-  const handleGoogleAuth = useGoogleLogin({
-    flow: "implicit",
-    ux_mode: "redirect",
-    onSuccess: (tokenResponse) => {
-      handleGoogleSuccessResponse({ access_token: tokenResponse.access_token });
-    },
-    onError: (err) => {
-      console.error("Google Login Error:", err);
-      setIsLoading(false);
-      if (err?.error === "popup_closed_by_user") {
-        setError("Sign-in popup was closed.");
-      } else {
-        setError("Google Sign-In failed. Please check browser pop-up permissions or try logging in with email.");
+  // Handle direct Google OAuth callback from URL hash fragment
+  React.useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hash) {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get("access_token");
+      if (accessToken) {
+        window.history.replaceState(null, "", window.location.pathname);
+        handleGoogleSuccessResponse({ access_token: accessToken });
       }
     }
-  });
+  }, []);
+
+  const triggerGoogleRedirect = () => {
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "538059283255-qc41jgp3n3287bgmcs16efjgdt2fcb1s.apps.googleusercontent.com";
+    const redirectUri = typeof window !== "undefined"
+      ? `${window.location.origin}/login`
+      : "https://powerhub-umber.vercel.app/login";
+
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      response_type: "token",
+      scope: "openid profile email",
+      prompt: "select_account"
+    });
+
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -269,7 +281,7 @@ function LoginContent() {
           <div className="flex flex-col items-center justify-center gap-3 w-full">
             <button
               type="button"
-              onClick={() => handleGoogleAuth()}
+              onClick={triggerGoogleRedirect}
               disabled={isLoading || success}
               className="w-full py-3.5 px-4 rounded-2xl bg-white border border-[#1E293B]/15 hover:bg-slate-50 text-xs font-extrabold text-[#1E293B] transition-all duration-300 hover:scale-[1.01] active:scale-98 flex items-center justify-center gap-3 shadow-2xs cursor-pointer disabled:opacity-50 disabled:scale-100"
             >
