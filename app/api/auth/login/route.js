@@ -6,7 +6,6 @@ import { escapeRegex, sanitizeEmail, logSecurityEvent } from "@/lib/security";
 
 export async function POST(request) {
   try {
-    await dbConnect();
     const { email, password } = await request.json();
 
     if (!email || !password) {
@@ -21,12 +20,18 @@ export async function POST(request) {
     const isHttps = forwardedProto === "https" || request.url.startsWith("https://");
     const secure = isProduction && isHttps;
 
-    const adminEnvEmail = sanitizeEmail(process.env.ADMIN_EMAIL || "ravtron@admin.com");
-    const adminEnvPassword = process.env.ADMIN_PASSWORD || "admin123";
-    const adminEnvName = process.env.ADMIN_NAME || "Visha Rawat";
+    const adminEnvEmail = sanitizeEmail(process.env.ADMIN_EMAIL || "officerequirementsgurgaon@gmail.com");
+    const adminEnvPassword = process.env.ADMIN_PASSWORD || "@Ravtron1947";
+    const adminEnvName = process.env.ADMIN_NAME || "Ravtron";
 
-    // Check if the user attempting login is an Administrator
-    const existingUser = await User.findOne({ email: { $regex: safeRegex } });
+    let existingUser = null;
+    try {
+      await dbConnect();
+      existingUser = await User.findOne({ email: { $regex: safeRegex } });
+    } catch (dbErr) {
+      console.warn("MongoDB connection notice during login:", dbErr.message);
+    }
+
     const isAdminLogin = inputEmail === adminEnvEmail || (existingUser && existingUser.role === "Administrator");
 
     if (isAdminLogin) {
@@ -40,13 +45,17 @@ export async function POST(request) {
 
       // Auto-provision configured environment admin if missing in database
       if (!adminUser && inputEmail === adminEnvEmail) {
-        adminUser = await User.create({
-          name: adminEnvName,
-          email: adminEnvEmail,
-          role: "Administrator",
-          joinDate: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
-          active: true
-        });
+        try {
+          adminUser = await User.create({
+            name: adminEnvName,
+            email: adminEnvEmail,
+            role: "Administrator",
+            joinDate: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+            active: true
+          });
+        } catch (e) {
+          console.warn("Failed to persist admin to MongoDB during login:", e.message);
+        }
       }
 
       if (adminUser && adminUser.active === false) {
@@ -85,26 +94,31 @@ export async function POST(request) {
       if (!clientUser) {
         // Auto-register new customer account
         const defaultName = inputEmail.split("@")[0].split(".").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ") || "RAVTRON Client";
-        clientUser = await User.create({
-          name: defaultName,
-          email: inputEmail,
-          role: "Customer",
-          joinDate: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
-          active: true
-        });
+        try {
+          clientUser = await User.create({
+            name: defaultName,
+            email: inputEmail,
+            role: "Customer",
+            joinDate: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+            active: true
+          });
+        } catch (e) {
+          console.warn("Failed to persist customer to MongoDB during login:", e.message);
+        }
       }
 
-      if (clientUser.active === false) {
+      if (clientUser && clientUser.active === false) {
         logSecurityEvent("CUSTOMER_LOGIN_DISABLED_PROFILE", { email: inputEmail });
         return NextResponse.json({ error: "Access denied. Your profile has been deactivated. Please contact support." }, { status: 403 });
       }
 
+      const defaultClientName = inputEmail.split("@")[0].split(".").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ") || "RAVTRON Client";
       const sessionUser = {
-        name: clientUser.name,
-        email: clientUser.email,
+        name: clientUser?.name || defaultClientName,
+        email: clientUser?.email || inputEmail,
         phone: "",
         avatar: "",
-        joinDate: clientUser.joinDate,
+        joinDate: clientUser?.joinDate || "June 2026",
         role: "Customer",
         isLoggedIn: true
       };
