@@ -3,6 +3,7 @@ import dbConnect from "@/lib/dbConnect";
 import Coupon from "@/models/Coupon";
 import { getCachedCoupons, setCachedCoupons, clearCouponsCache } from "@/lib/cache";
 import { verifyAdmin } from "@/lib/auth";
+import { verifyCsrfOrigin } from "@/lib/csrf";
 
 export const dynamic = "force-dynamic";
 
@@ -65,6 +66,8 @@ export async function GET() {
 
 export async function POST(request) {
   try {
+    const csrf = verifyCsrfOrigin(request);
+    if (!csrf.ok) return csrf.response;
     if (!(await verifyAdmin())) {
       return NextResponse.json({ error: "Unauthorized access: Administrator role required" }, { status: 403 });
     }
@@ -131,6 +134,8 @@ export async function POST(request) {
 
 export async function DELETE(request) {
   try {
+    const csrf = verifyCsrfOrigin(request);
+    if (!csrf.ok) return csrf.response;
     if (!(await verifyAdmin())) {
       return NextResponse.json({ error: "Unauthorized access: Administrator role required" }, { status: 403 });
     }

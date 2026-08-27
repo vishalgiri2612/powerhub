@@ -202,8 +202,8 @@ export default function Footer() {
             <ul className={`${openSections.contact ? "block" : "hidden"} lg:block space-y-3.5 mt-2 lg:mt-4 pb-4 lg:pb-0 text-sm font-semibold text-[#1E293B]/70`}>
               <li className="flex flex-col">
                 <span className="text-[10px] font-bold text-[#1E293B]/40 uppercase tracking-wide">Write to Us</span>
-                <a href="mailto:support@ksgautomation.com" className="hover:text-[#3674B5] transition-colors mt-0.5">
-                  support@ksgautomation.com
+                <a href="mailto:officerequirementsgurgaon@gmail.com" className="hover:text-[#3674B5] transition-colors mt-0.5">
+                  officerequirementsgurgaon@gmail.com
                 </a>
               </li>
               <li className="flex flex-col">

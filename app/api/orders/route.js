@@ -75,6 +75,16 @@ export async function POST(request) {
       }
 
       const qty = Number(item.qty || item.quantity || 1);
+
+      // Stock / Inventory Validation (SEC-007)
+      if (typeof product.stock === "number" && product.stock < qty) {
+        return NextResponse.json({
+          error: product.stock <= 0
+            ? `Sorry, "${product.name}" is currently out of stock.`
+            : `Sorry, only ${product.stock} unit(s) of "${product.name}" are available in stock.`
+        }, { status: 400 });
+      }
+
       subtotal += price * qty;
 
       validatedItems.push({
@@ -113,6 +123,19 @@ export async function POST(request) {
     }
     
     const newOrder = await Order.create(body);
+
+    // Stock / Inventory Deduction (SEC-007)
+    for (const item of validatedItems) {
+      try {
+        await Product.updateOne(
+          { id: item.productId, stock: { $gte: item.qty } },
+          { $inc: { stock: -item.qty } }
+        );
+      } catch (stockErr) {
+        console.warn(`Failed to deduct inventory for product ${item.productId}:`, stockErr.message);
+      }
+    }
+
     clearOrdersCache();
 
     // Trigger emails in background (without blocking response)

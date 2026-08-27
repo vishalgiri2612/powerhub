@@ -204,7 +204,11 @@ export default function WishlistPage() {
                       </div>
                     </div>
 
-                    {cartItemQty > 0 ? (
+                    {typeof product.stock === "number" && product.stock <= 0 ? (
+                      <span className="px-2 py-1 sm:px-3.5 sm:py-2 rounded-lg sm:rounded-xl text-[9px] sm:text-[10px] font-extrabold bg-rose-50 text-rose-600 border border-rose-200 cursor-not-allowed shrink-0">
+                        Out of Stock
+                      </span>
+                    ) : cartItemQty > 0 ? (
                       <div 
                         className="inline-flex items-center rounded-lg sm:rounded-xl bg-[#3674B5] text-white font-extrabold shadow-md overflow-hidden shrink-0"
                         onClick={(e) => e.stopPropagation()}

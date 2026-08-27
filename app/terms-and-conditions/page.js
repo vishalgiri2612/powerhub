@@ -91,8 +91,8 @@ export default function TermsAndConditionsPage() {
 
               <div className="pt-4 border-t border-slate-200/80 px-3">
                 <p className="text-[11px] font-semibold text-slate-500">Legal inquiries?</p>
-                <a href="mailto:support@ksgautomation.com" className="text-xs font-bold text-[#3674B5] hover:underline">
-                  support@ksgautomation.com
+                <a href="mailto:officerequirementsgurgaon@gmail.com" className="text-xs font-bold text-[#3674B5] hover:underline">
+                  officerequirementsgurgaon@gmail.com
                 </a>
               </div>
             </div>

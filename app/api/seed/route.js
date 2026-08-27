@@ -7,8 +7,8 @@ import User from "@/models/User";
 import HeroSlide from "@/models/HeroSlide";
 import { products, categories } from "@/app/data/products";
 
-const adminSeedEmail = process.env.ADMIN_EMAIL || "ravtron@admin.com";
-const adminSeedName = process.env.ADMIN_NAME || "Visha Rawat";
+const adminSeedEmail = process.env.ADMIN_EMAIL || "admin@example.com";
+const adminSeedName = process.env.ADMIN_NAME || "Administrator";
 
 const initialMockOrders = [
   {
@@ -70,7 +70,7 @@ const initialMockOrders = [
 const initialMockUsers = [
   { name: adminSeedName, email: adminSeedEmail, role: "Administrator", joinDate: "June 2026", active: true },
   { name: "Rahul Sharma", email: "rahul@gmail.com", role: "Customer", joinDate: "May 2026", active: true },
-  { name: "Ksg Automation", email: "support@ksgautomation.com", role: "Customer", joinDate: "April 2026", active: false }
+  { name: "Ksg Automation", email: "officerequirementsgurgaon@gmail.com", role: "Customer", joinDate: "April 2026", active: false }
 ];
 
 export async function GET(request) {
@@ -84,7 +84,15 @@ export async function GET(request) {
 
     const { searchParams } = new URL(request.url);
     const key = searchParams.get("key") || request.headers.get("x-api-key");
-    if (process.env.SEED_API_KEY && key !== process.env.SEED_API_KEY) {
+
+    // SEC-013: SEED_API_KEY is MANDATORY — if unset, block all access to prevent accidental data wipe
+    if (!process.env.SEED_API_KEY) {
+      return NextResponse.json(
+        { success: false, error: "Seed endpoint is locked: SEED_API_KEY environment variable is not configured." },
+        { status: 403 }
+      );
+    }
+    if (key !== process.env.SEED_API_KEY) {
       return NextResponse.json(
         { success: false, error: "Unauthorized: Invalid or missing seed API key." },
         { status: 401 }

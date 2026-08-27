@@ -99,15 +99,15 @@ const getCategoryIconDetails = (categoryName) => {
 
 export default function AdminPanelPage() {
   const router = useRouter();
-  const { 
-    showToast, 
-    refreshProducts, 
-    refreshCategories, 
-    products: cartProducts, 
+  const {
+    showToast,
+    refreshProducts,
+    refreshCategories,
+    products: cartProducts,
     categories: cartCategories,
     coupons: globalCoupons,
     couponsLoading,
-    refreshCoupons 
+    refreshCoupons
   } = useCart();
   const [isAdmin, setIsAdmin] = useState(false);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
@@ -147,6 +147,7 @@ export default function AdminPanelPage() {
     minPurchase: 0,
     applicableCategory: "All",
     badgeType: "Festive Offer",
+    expiryDate: "",
     active: true
   });
 
@@ -165,6 +166,7 @@ export default function AdminPanelPage() {
         applicableProductId: couponToEdit.applicableProductId || "",
         applicableProductName: couponToEdit.applicableProductName || "",
         badgeType: couponToEdit.badgeType || "Festive Offer",
+        expiryDate: couponToEdit.expiryDate || "",
         active: couponToEdit.active !== undefined ? couponToEdit.active : true
       });
     } else {
@@ -180,6 +182,7 @@ export default function AdminPanelPage() {
         applicableProductId: "",
         applicableProductName: "",
         badgeType: "Festive Offer",
+        expiryDate: "",
         active: true
       });
     }
@@ -272,14 +275,14 @@ export default function AdminPanelPage() {
   const categoriesListToUse = adminCategories.length > 0
     ? adminCategories
     : [
-        { name: "Cables" },
-        { name: "Converters" },
-        { name: "Accessories" },
-        { name: "Surveillance" },
-        { name: "Docking Stations" },
-        { name: "Audio Video" },
-        { name: "Networking" }
-      ];
+      { name: "Cables" },
+      { name: "Converters" },
+      { name: "Accessories" },
+      { name: "Surveillance" },
+      { name: "Docking Stations" },
+      { name: "Audio Video" },
+      { name: "Networking" }
+    ];
 
   const topSellingProducts = React.useMemo(() => {
     const map = {};
@@ -395,7 +398,7 @@ export default function AdminPanelPage() {
           canvas.height = height;
           const ctx = canvas.getContext("2d");
           ctx.drawImage(img, 0, 0, width, height);
-          
+
           const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
           resolve(dataUrl);
         };
@@ -452,29 +455,23 @@ export default function AdminPanelPage() {
     }
   };
 
-  const defaultAdminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "ravtron@admin.com";
+  const defaultAdminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "officerequirementsgurgaon@gmail.com";
 
   useEffect(() => {
     const checkAdminAuth = async () => {
       try {
         const res = await fetch("/api/auth/me");
         const data = await res.json();
-        if (data.isLoggedIn && data.user && (data.user.role === "Administrator" || data.user.email?.toLowerCase() === defaultAdminEmail.toLowerCase())) {
+        if (data.isLoggedIn && data.user && data.user.role === "Administrator") {
           setIsAdmin(true);
           localStorage.setItem("ravtron_session", JSON.stringify(data.user));
         } else {
-          const session = localStorage.getItem("ravtron_session");
-          if (session) {
-            try {
-              const parsed = JSON.parse(session);
-              if (parsed && (parsed.role === "Administrator" || (parsed.email && parsed.email.toLowerCase() === defaultAdminEmail.toLowerCase()))) {
-                setIsAdmin(true);
-              }
-            } catch (e) {}
-          }
+          setIsAdmin(false);
+          localStorage.removeItem("ravtron_session");
         }
       } catch (e) {
         console.error("Admin auth check error:", e);
+        setIsAdmin(false);
       } finally {
         setIsAuthChecking(false);
         fetchAdminData();
@@ -543,30 +540,43 @@ export default function AdminPanelPage() {
         showToast("Access Granted. Welcome to Admin Panel.");
         fetchAdminData();
         return;
+      } else {
+        showToast(data.error || "Invalid administrative credentials.", "error");
       }
     } catch (err) {
       console.error("Admin Auth Error:", err);
-    }
-
-    // Direct password fallback
-    if (adminPassword === "admin123" || adminPassword === "admin") {
-      const adminSession = {
-        name: "Admin User",
-        email: defaultAdminEmail,
-        role: "Administrator",
-        isLoggedIn: true
-      };
-      localStorage.setItem("ravtron_session", JSON.stringify(adminSession));
-      setIsAdmin(true);
-      showToast("Access Granted. Welcome to Admin Panel.");
-      fetchAdminData();
-    } else {
-      showToast("Invalid administrative credentials.", "error");
+      showToast("Server connection failed. Please try again.", "error");
     }
   };
 
   const handleSaveProduct = async (e) => {
     e.preventDefault();
+
+
+    if (!productForm.name || !productForm.name.trim()) {
+      showToast("Please enter a product name.", "error");
+      return;
+    }
+
+    if (!productForm.category || !productForm.category.trim()) {
+      showToast("Please select a product category.", "error");
+      return;
+    }
+
+    if (!productForm.price || isNaN(productForm.price) || Number(productForm.price) <= 0) {
+      showToast("Please enter a valid product price greater than ₹0.", "error");
+      return;
+    }
+
+    if (!productForm.shortSpec || !productForm.shortSpec.trim()) {
+      showToast("Please enter a short specification / summary for the product.", "error");
+      return;
+    }
+
+    if (productForm.stock === "" || productForm.stock === undefined || isNaN(productForm.stock) || Number(productForm.stock) < 0) {
+      showToast("Please enter a valid stock quantity (0 or greater).", "error");
+      return;
+    }
 
     const priceNum = Number(productForm.price);
     const origPriceNum = Number(productForm.originalPrice || productForm.price);
@@ -592,7 +602,7 @@ export default function AdminPanelPage() {
           price: Number(sp.price),
           originalPrice: Number(sp.originalPrice || sp.price)
         })),
-      color: productForm.color || "",
+      color: productForm.color && productForm.color.trim() ? productForm.color.trim() : "Standard",
       stock: Number(productForm.stock || 0),
       isNewArrival: !!productForm.isNewArrival,
       featured: !!productForm.featured,
@@ -653,7 +663,7 @@ export default function AdminPanelPage() {
           throw new Error(errData.error || "Failed to delete product");
         }
         // Clear hero slide cache so deleted product doesn't flash on next page refresh
-        try { localStorage.removeItem("hero_slides_cache"); } catch (e) {}
+        try { localStorage.removeItem("hero_slides_cache"); } catch (e) { }
         showToast("Product deleted successfully.", "info");
         await fetchAdminData();
       } catch (err) {
@@ -906,8 +916,8 @@ export default function AdminPanelPage() {
         gallery: (Array.isArray(productToEdit.gallery) && productToEdit.gallery.length > 0)
           ? productToEdit.gallery
           : productToEdit.image
-          ? [productToEdit.image]
-          : ["/logo.png"],
+            ? [productToEdit.image]
+            : ["/logo.png"],
         sizes: productToEdit.sizes || [],
         privacySizes: productToEdit.privacySizes || [],
         channels: productToEdit.channels || [],
@@ -1023,14 +1033,14 @@ export default function AdminPanelPage() {
     if (subcategoryFilter !== "all") {
       const subTerm = subcategoryFilter.toLowerCase().trim();
       const subCatTrimmed = subCatStr.trim();
-      
+
       if (subCatTrimmed) {
         matchesSubcategory = subCatTrimmed === subTerm;
       } else {
         const fullText = `${nameStr} ${catStr} ${specStr} ${descStr}`;
         const subWords = subTerm.split(/\s+/).filter(w => w.length > 1);
-        matchesSubcategory = 
-          fullText.includes(subTerm) || 
+        matchesSubcategory =
+          fullText.includes(subTerm) ||
           (subWords.length > 0 && subWords.every(word => fullText.includes(word)));
       }
     }
@@ -1059,8 +1069,8 @@ export default function AdminPanelPage() {
             <button
               onClick={() => setActiveTab("overview")}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === "overview"
-                  ? "bg-[#3674B5] text-white shadow-xs"
-                  : "text-slate-500 hover:bg-slate-50/50 hover:text-slate-900"
+                ? "bg-[#3674B5] text-white shadow-xs"
+                : "text-slate-500 hover:bg-slate-50/50 hover:text-slate-900"
                 }`}
             >
               <LayoutDashboard className="w-4 h-4" />
@@ -1073,8 +1083,8 @@ export default function AdminPanelPage() {
                 setSubTab("all");
               }}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${activeTab === "products"
-                  ? "bg-slate-50 text-slate-900 font-bold"
-                  : "text-slate-500 hover:bg-slate-50/50 hover:text-slate-900"
+                ? "bg-slate-50 text-slate-900 font-bold"
+                : "text-slate-500 hover:bg-slate-50/50 hover:text-slate-900"
                 }`}
             >
               <Package className="w-4 h-4 text-slate-400" />
@@ -1084,8 +1094,8 @@ export default function AdminPanelPage() {
             <button
               onClick={() => setActiveTab("orders")}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${activeTab === "orders"
-                  ? "bg-slate-50 text-slate-900 font-bold"
-                  : "text-slate-500 hover:bg-slate-50/50 hover:text-slate-900"
+                ? "bg-slate-50 text-slate-900 font-bold"
+                : "text-slate-500 hover:bg-slate-50/50 hover:text-slate-900"
                 }`}
             >
               <ShoppingBag className="w-4 h-4 text-slate-400" />
@@ -1095,8 +1105,8 @@ export default function AdminPanelPage() {
             <button
               onClick={() => setActiveTab("users")}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${activeTab === "users"
-                  ? "bg-slate-50 text-slate-900 font-bold"
-                  : "text-slate-500 hover:bg-slate-50/50 hover:text-slate-900"
+                ? "bg-slate-50 text-slate-900 font-bold"
+                : "text-slate-500 hover:bg-slate-50/50 hover:text-slate-900"
                 }`}
             >
               <Users className="w-4 h-4 text-slate-400" />
@@ -1106,8 +1116,8 @@ export default function AdminPanelPage() {
             <button
               onClick={() => setActiveTab("categories")}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${activeTab === "categories"
-                  ? "bg-slate-50 text-slate-900 font-bold"
-                  : "text-slate-500 hover:bg-slate-50/50 hover:text-slate-900"
+                ? "bg-slate-50 text-slate-900 font-bold"
+                : "text-slate-500 hover:bg-slate-50/50 hover:text-slate-900"
                 }`}
             >
               <FolderPlus className="w-4 h-4 text-slate-400" />
@@ -1117,8 +1127,8 @@ export default function AdminPanelPage() {
             <button
               onClick={() => setActiveTab("hero")}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${activeTab === "hero"
-                  ? "bg-slate-50 text-slate-900 font-bold"
-                  : "text-slate-500 hover:bg-slate-50/50 hover:text-slate-900"
+                ? "bg-slate-50 text-slate-900 font-bold"
+                : "text-slate-500 hover:bg-slate-50/50 hover:text-slate-900"
                 }`}
             >
               <Zap className="w-4 h-4 text-slate-400" />
@@ -1128,8 +1138,8 @@ export default function AdminPanelPage() {
             <button
               onClick={() => setActiveTab("coupons")}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${activeTab === "coupons"
-                  ? "bg-[#3674B5]/10 text-[#3674B5] font-extrabold"
-                  : "text-slate-500 hover:bg-slate-50/50 hover:text-slate-900"
+                ? "bg-[#3674B5]/10 text-[#3674B5] font-extrabold"
+                : "text-slate-500 hover:bg-slate-50/50 hover:text-slate-900"
                 }`}
             >
               <Gift className="w-4 h-4 text-[#3674B5]" />
@@ -1154,7 +1164,7 @@ export default function AdminPanelPage() {
                 localStorage.removeItem("ravtron_session");
                 localStorage.removeItem("ravtron_cart");
                 localStorage.removeItem("ravtron_wishlist");
-              } catch (e) {}
+              } catch (e) { }
               try {
                 await fetch("/api/auth/logout", { method: "POST" });
               } catch (e) {
@@ -1262,25 +1272,22 @@ export default function AdminPanelPage() {
               </div>
 
               {/* Low Stock Alert Metric */}
-              <div className={`border rounded-2xl p-5 shadow-2xs relative overflow-hidden flex flex-col justify-between space-y-4 ${
-                adminProducts.filter(p => (p.stock ?? 0) <= 10).length > 0
+              <div className={`border rounded-2xl p-5 shadow-2xs relative overflow-hidden flex flex-col justify-between space-y-4 ${adminProducts.filter(p => (p.stock ?? 0) <= 10).length > 0
                   ? "bg-rose-50/50 border-rose-200"
                   : "bg-white border-slate-200/80"
-              }`}>
+                }`}>
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Low Stock Alerts</span>
-                  <div className={`w-9 h-9 rounded-xl border flex items-center justify-center ${
-                    adminProducts.filter(p => (p.stock ?? 0) <= 10).length > 0
+                  <div className={`w-9 h-9 rounded-xl border flex items-center justify-center ${adminProducts.filter(p => (p.stock ?? 0) <= 10).length > 0
                       ? "bg-rose-100 border-rose-300 text-rose-600"
                       : "bg-slate-50 border-slate-200 text-slate-400"
-                  }`}>
+                    }`}>
                     <AlertTriangle className="w-4 h-4" />
                   </div>
                 </div>
                 <div>
-                  <h3 className={`text-2xl font-black font-display tracking-tight ${
-                    adminProducts.filter(p => (p.stock ?? 0) <= 10).length > 0 ? "text-rose-600" : "text-slate-900"
-                  }`}>
+                  <h3 className={`text-2xl font-black font-display tracking-tight ${adminProducts.filter(p => (p.stock ?? 0) <= 10).length > 0 ? "text-rose-600" : "text-slate-900"
+                    }`}>
                     {adminProducts.filter(p => (p.stock ?? 0) <= 10).length} Items Alert
                   </h3>
                   <p className="text-[10px] font-bold text-slate-500 mt-1">
@@ -1292,7 +1299,7 @@ export default function AdminPanelPage() {
 
             {/* MAIN TWO-COLUMN DASHBOARD GRID */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
-              
+
               {/* LEFT SIDE (7 COLS): LOW STOCK REPLENISHMENT MANAGER */}
               <div className="lg:col-span-7 space-y-4">
                 <div className="flex items-center justify-between">
@@ -1344,11 +1351,10 @@ export default function AdminPanelPage() {
                                   </td>
                                   <td className="p-3 text-slate-500 font-medium">{p.category}</td>
                                   <td className="p-3 text-center">
-                                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
-                                      stockVal <= 2
+                                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${stockVal <= 2
                                         ? "bg-rose-100 text-rose-700 animate-pulse"
                                         : "bg-amber-100 text-amber-700"
-                                    }`}>
+                                      }`}>
                                       {stockVal <= 2 ? `CRITICAL: ${stockVal}` : `LOW: ${stockVal}`}
                                     </span>
                                   </td>
@@ -1397,12 +1403,11 @@ export default function AdminPanelPage() {
                       topSellingProducts.map((item, index) => (
                         <div key={item.id} className="flex items-center justify-between p-3 rounded-2xl bg-[#F8F9FA] border border-slate-100 hover:border-slate-200 transition-all">
                           <div className="flex items-center gap-3.5">
-                            <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black ${
-                              index === 0 ? "bg-amber-100 text-amber-800 border border-amber-300" :
-                              index === 1 ? "bg-slate-200 text-slate-700 border border-slate-300" :
-                              index === 2 ? "bg-orange-100 text-orange-800 border border-orange-200" :
-                              "bg-slate-100 text-slate-500"
-                            }`}>
+                            <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black ${index === 0 ? "bg-amber-100 text-amber-800 border border-amber-300" :
+                                index === 1 ? "bg-slate-200 text-slate-700 border border-slate-300" :
+                                  index === 2 ? "bg-orange-100 text-orange-800 border border-orange-200" :
+                                    "bg-slate-100 text-slate-500"
+                              }`}>
                               #{index + 1}
                             </span>
                             <div className="w-9 h-9 rounded-xl bg-white border border-slate-200 overflow-hidden shrink-0">
@@ -1434,7 +1439,7 @@ export default function AdminPanelPage() {
 
               {/* RIGHT SIDE (5 COLS): RETURN REQUESTS & LIVE ORDERS STREAM */}
               <div className="lg:col-span-5 space-y-6">
-                
+
                 {/* 7-Day Return Requests Alert Section */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
@@ -1556,11 +1561,10 @@ export default function AdminPanelPage() {
                           <div>
                             <button
                               onClick={() => handleToggleCouponActive(c)}
-                              className={`px-3 py-1.5 rounded-xl text-[10px] font-extrabold uppercase transition-all shadow-2xs cursor-pointer ${
-                                c.active !== false
+                              className={`px-3 py-1.5 rounded-xl text-[10px] font-extrabold uppercase transition-all shadow-2xs cursor-pointer ${c.active !== false
                                   ? "bg-emerald-500 hover:bg-emerald-600 text-white"
                                   : "bg-slate-200 hover:bg-slate-300 text-slate-600"
-                              }`}
+                                }`}
                             >
                               {c.active !== false ? "Active ✓" : "Disabled ✕"}
                             </button>
@@ -1997,8 +2001,8 @@ export default function AdminPanelPage() {
                             <button
                               onClick={() => handleToggleUserActive(u.email)}
                               className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold uppercase transition-all cursor-pointer ${u.active !== false
-                                  ? "border-amber-100 bg-amber-50/40 text-amber-600 hover:bg-amber-50"
-                                  : "border-emerald-100 bg-emerald-50/40 text-emerald-600 hover:bg-emerald-50"
+                                ? "border-amber-100 bg-amber-50/40 text-amber-600 hover:bg-amber-50"
+                                : "border-emerald-100 bg-emerald-50/40 text-emerald-600 hover:bg-emerald-50"
                                 }`}
                             >
                               {u.active !== false ? "Disable" : "Enable"}
@@ -2188,9 +2192,8 @@ export default function AdminPanelPage() {
                   </div>
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200">
                     <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Home Slots Used:</span>
-                    <span className={`text-xs font-black ${
-                      adminCategories.filter(c => c.homePosition > 0).length >= 6 ? "text-rose-500" : "text-emerald-600"
-                    }`}>
+                    <span className={`text-xs font-black ${adminCategories.filter(c => c.homePosition > 0).length >= 6 ? "text-rose-500" : "text-emerald-600"
+                      }`}>
                       {adminCategories.filter(c => c.homePosition > 0).length}/6
                     </span>
                   </div>
@@ -2236,14 +2239,13 @@ export default function AdminPanelPage() {
                             <select
                               value={c.homePosition || 0}
                               onChange={(e) => handleSetCategoryPosition(c.name, Number(e.target.value))}
-                              className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all outline-none cursor-pointer ${
-                                c.homePosition > 0
+                              className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all outline-none cursor-pointer ${c.homePosition > 0
                                   ? "border-emerald-200 bg-emerald-50 text-emerald-700"
                                   : "border-slate-200 bg-slate-50 text-slate-400"
-                              }`}
+                                }`}
                             >
                               <option value={0}>— Not on Home —</option>
-                              {[1,2,3,4,5,6].map(pos => {
+                              {[1, 2, 3, 4, 5, 6].map(pos => {
                                 const occupant = adminCategories.find(cat => cat.name !== c.name && cat.homePosition === pos);
                                 return (
                                   <option key={pos} value={pos}>
@@ -2357,51 +2359,65 @@ export default function AdminPanelPage() {
                         <th className="p-4">Badge / Type</th>
                         <th className="p-4">Discount</th>
                         <th className="p-4">Min Purchase</th>
-                        <th className="p-4">Category</th>
+                        <th className="p-4">Expiry Date</th>
                         <th className="p-4 text-center">Status</th>
                         <th className="p-4 text-center">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {(globalCoupons || []).map((c, index) => (
-                        <tr key={c._id || c.code} className="border-b border-slate-50 hover:bg-slate-50/40 transition-colors">
-                          <td className="p-4 text-center font-bold text-slate-400">{index + 1}</td>
-                          <td className="p-4">
-                            <div className="space-y-0.5">
-                              <div className="flex items-center gap-2">
-                                <span className="font-black text-slate-900 text-xs tracking-wider bg-slate-100 border border-slate-200/80 px-2.5 py-1 rounded-lg">
-                                  {c.code}
-                                </span>
+                      {(globalCoupons || []).map((c, index) => {
+                        const isExpired = Boolean(c.expiryDate && new Date(c.expiryDate).setHours(23,59,59,999) < new Date());
+                        return (
+                          <tr key={c._id || c.code} className="border-b border-slate-50 hover:bg-slate-50/40 transition-colors">
+                            <td className="p-4 text-center font-bold text-slate-400">{index + 1}</td>
+                            <td className="p-4">
+                              <div className="space-y-0.5">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-black text-slate-900 text-xs tracking-wider bg-slate-100 border border-slate-200/80 px-2.5 py-1 rounded-lg">
+                                    {c.code}
+                                  </span>
+                                  {isExpired && (
+                                    <span className="px-2 py-0.5 rounded-md text-[8px] font-black uppercase bg-rose-100 text-rose-700 border border-rose-200">
+                                      Expired
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="font-bold text-slate-800 text-xs mt-1">{c.title}</p>
+                                {c.description && <p className="text-[10px] text-slate-400 max-w-xs truncate">{c.description}</p>}
                               </div>
-                              <p className="font-bold text-slate-800 text-xs mt-1">{c.title}</p>
-                              {c.description && <p className="text-[10px] text-slate-400 max-w-xs truncate">{c.description}</p>}
-                            </div>
-                          </td>
-                          <td className="p-4">
-                            <span className="inline-block px-2.5 py-1 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200">
-                              {c.badgeType || "🏷️ Promo"}
-                            </span>
-                          </td>
-                          <td className="p-4 font-black text-[#3674B5] text-sm">
-                            {c.type === "percentage" ? `${c.discountValue}% OFF` : `₹${c.discountValue} OFF`}
-                          </td>
-                          <td className="p-4 text-slate-600 font-bold">
-                            {c.minPurchase > 0 ? `₹${c.minPurchase.toLocaleString()}` : "No Min Order"}
-                          </td>
-                          <td className="p-4 font-bold text-slate-500 uppercase text-[10px]">
-                            {c.applicableCategory || "All"}
-                          </td>
-                          <td className="p-4 text-center">
-                            <button
-                              onClick={() => handleToggleCouponActive(c)}
-                              className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase transition-all shadow-2xs ${
-                                c.active 
-                                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100" 
-                                  : "bg-slate-100 text-slate-400 border border-slate-200 hover:bg-slate-200"
-                              }`}
-                            >
-                              {c.active ? "Active" : "Disabled"}
-                            </button>
+                            </td>
+                            <td className="p-4">
+                              <span className="inline-block px-2.5 py-1 rounded-lg text-[9px] font-extrabold uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200">
+                                {c.badgeType || "🏷️ Promo"}
+                              </span>
+                            </td>
+                            <td className="p-4 font-black text-[#3674B5] text-sm">
+                              {c.type === "percentage" ? `${c.discountValue}% OFF` : `₹${c.discountValue} OFF`}
+                            </td>
+                            <td className="p-4 text-slate-600 font-bold">
+                              {c.minPurchase > 0 ? `₹${c.minPurchase.toLocaleString()}` : "No Min Order"}
+                            </td>
+                            <td className="p-4 text-slate-600 font-bold text-xs">
+                              {c.expiryDate ? (
+                                <span className={isExpired ? "text-rose-600 font-extrabold" : "text-slate-700"}>
+                                  📅 {c.expiryDate}
+                                </span>
+                              ) : (
+                                <span className="text-slate-400 font-normal italic">No Expiry (Never)</span>
+                              )}
+                            </td>
+                            <td className="p-4 text-center">
+                              <button
+                                onClick={() => handleToggleCouponActive(c)}
+                                className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase transition-all shadow-2xs ${isExpired
+                                    ? "bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100"
+                                    : c.active
+                                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
+                                      : "bg-slate-100 text-slate-400 border border-slate-200 hover:bg-slate-200"
+                                  }`}
+                              >
+                                {isExpired ? "Expired" : c.active ? "Active" : "Disabled"}
+                              </button>
                           </td>
                           <td className="p-4">
                             <div className="flex items-center justify-center gap-1.5">
@@ -2422,7 +2438,8 @@ export default function AdminPanelPage() {
                             </div>
                           </td>
                         </tr>
-                      ))}
+                      );
+                    })}
                       {(!globalCoupons || globalCoupons.length === 0) && (
                         <tr>
                           <td colSpan={8} className="p-8 text-center text-xs text-slate-400 font-semibold italic">
@@ -2552,7 +2569,7 @@ export default function AdminPanelPage() {
                 {(() => {
                   const selectedCatObj = categoriesListToUse.find((c) => c.name.toLowerCase() === (productForm.category || "").toLowerCase());
                   const availableSubs = Array.isArray(selectedCatObj?.subcategories) ? selectedCatObj.subcategories : [];
-                  
+
                   const subOptions = [...availableSubs];
                   if (productForm.subcategory && !subOptions.some((s) => s.toLowerCase() === productForm.subcategory.toLowerCase())) {
                     subOptions.unshift(productForm.subcategory);
@@ -2641,11 +2658,10 @@ export default function AdminPanelPage() {
                             }
                             setProductForm({ ...productForm, channels: newChannels });
                           }}
-                          className={`px-3.5 py-1.5 rounded-lg border text-[11px] font-bold transition-all duration-200 ${
-                            isChecked
+                          className={`px-3.5 py-1.5 rounded-lg border text-[11px] font-bold transition-all duration-200 ${isChecked
                               ? "bg-[#3674B5] text-white border-[#3674B5] shadow-xs font-black scale-105"
                               : "bg-white text-slate-700 border-slate-250 hover:bg-slate-50 hover:text-slate-900 font-bold"
-                          }`}
+                            }`}
                         >
                           {ch}
                         </button>
@@ -2737,7 +2753,7 @@ export default function AdminPanelPage() {
                   <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                     Available Cable Sizes & Custom Lengths
                   </label>
-                  
+
                   {/* Presets */}
                   <div className="space-y-1">
                     <span className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Presets</span>
@@ -2757,11 +2773,10 @@ export default function AdminPanelPage() {
                               }
                               setProductForm({ ...productForm, sizes: newSizes });
                             }}
-                            className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all duration-205 ${
-                              isChecked
+                            className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all duration-205 ${isChecked
                                 ? "bg-black text-white border-black shadow-2xs font-extrabold"
                                 : "bg-slate-50 text-slate-500 border-slate-250 hover:bg-slate-100 hover:text-slate-800 font-bold"
-                            }`}
+                              }`}
                           >
                             {sz}
                           </button>
@@ -2850,195 +2865,194 @@ export default function AdminPanelPage() {
 
               {/* Privacy Screen Size Configurations — Always Visible */}
               <div className="space-y-3.5 border-t border-slate-100 pt-3 text-left">
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    Privacy Screen — Available Sizes &amp; Resolutions
-                  </label>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Privacy Screen — Available Sizes &amp; Resolutions
+                </label>
 
-                  {/* Presets */}
-                  <div className="space-y-1">
-                    <span className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Common Laptop Screen Sizes</span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {[
-                        '12.5" 16:9 283x166mm',
-                        '13.3" 16:9 300x176mm',
-                        '13.3" 16:10 293x190mm',
-                        '14" 16:9 316x184mm',
-                        '14" 16:10 309x198mm',
-                        '15.6" 16:9 351x204mm',
-                        '15.6" 16:10 342x220mm',
-                        '16" 16:10 344x215mm',
-                        '17.3" 16:9 382x215mm'
-                      ].map((sz) => {
-                        const isChecked = productForm.privacySizes?.includes(sz);
-                        return (
-                          <button
-                            key={sz}
-                            type="button"
-                            onClick={() => {
-                              let newSizes = [...(productForm.privacySizes || [])];
-                              if (newSizes.includes(sz)) {
-                                newSizes = newSizes.filter((s) => s !== sz);
-                              } else {
-                                newSizes.push(sz);
-                              }
-                              setProductForm({ ...productForm, privacySizes: newSizes });
-                            }}
-                            className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all duration-205 ${
-                              isChecked
-                                ? "bg-black text-white border-black shadow-2xs font-extrabold"
-                                : "bg-slate-50 text-slate-500 border-slate-250 hover:bg-slate-100 hover:text-slate-800 font-bold"
-                            }`}
-                          >
-                            {sz}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Custom Add Section */}
-                  <div className="space-y-1.5 pt-1">
-                    <span className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Add Custom Size / Resolution</span>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        placeholder='e.g. 14" 16:9 309x174mm'
-                        className="flex-1 bg-[#F8F9FA] border border-slate-200/65 rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-[#3674B5] transition-all"
-                        id="customPrivacySizeInput"
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            const val = e.target.value.trim();
-                            if (val && !productForm.privacySizes?.includes(val)) {
-                              setProductForm({
-                                ...productForm,
-                                privacySizes: [...(productForm.privacySizes || []), val]
-                              });
-                              e.target.value = "";
+                {/* Presets */}
+                <div className="space-y-1">
+                  <span className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Common Laptop Screen Sizes</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      '12.5" 16:9 283x166mm',
+                      '13.3" 16:9 300x176mm',
+                      '13.3" 16:10 293x190mm',
+                      '14" 16:9 316x184mm',
+                      '14" 16:10 309x198mm',
+                      '15.6" 16:9 351x204mm',
+                      '15.6" 16:10 342x220mm',
+                      '16" 16:10 344x215mm',
+                      '17.3" 16:9 382x215mm'
+                    ].map((sz) => {
+                      const isChecked = productForm.privacySizes?.includes(sz);
+                      return (
+                        <button
+                          key={sz}
+                          type="button"
+                          onClick={() => {
+                            let newSizes = [...(productForm.privacySizes || [])];
+                            if (newSizes.includes(sz)) {
+                              newSizes = newSizes.filter((s) => s !== sz);
+                            } else {
+                              newSizes.push(sz);
                             }
-                          }
-                        }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const input = document.getElementById("customPrivacySizeInput");
-                          const val = input?.value.trim();
+                            setProductForm({ ...productForm, privacySizes: newSizes });
+                          }}
+                          className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all duration-205 ${isChecked
+                              ? "bg-black text-white border-black shadow-2xs font-extrabold"
+                              : "bg-slate-50 text-slate-500 border-slate-250 hover:bg-slate-100 hover:text-slate-800 font-bold"
+                            }`}
+                        >
+                          {sz}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Custom Add Section */}
+                <div className="space-y-1.5 pt-1">
+                  <span className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Add Custom Size / Resolution</span>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder='e.g. 14" 16:9 309x174mm'
+                      className="flex-1 bg-[#F8F9FA] border border-slate-200/65 rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-[#3674B5] transition-all"
+                      id="customPrivacySizeInput"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          const val = e.target.value.trim();
                           if (val && !productForm.privacySizes?.includes(val)) {
                             setProductForm({
                               ...productForm,
                               privacySizes: [...(productForm.privacySizes || []), val]
                             });
-                            input.value = "";
+                            e.target.value = "";
                           }
-                        }}
-                        className="px-4 bg-[#3674B5] text-white text-xs font-bold rounded-xl hover:bg-[#578FCA] transition-all"
-                      >
-                        Add
-                      </button>
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const input = document.getElementById("customPrivacySizeInput");
+                        const val = input?.value.trim();
+                        if (val && !productForm.privacySizes?.includes(val)) {
+                          setProductForm({
+                            ...productForm,
+                            privacySizes: [...(productForm.privacySizes || []), val]
+                          });
+                          input.value = "";
+                        }
+                      }}
+                      className="px-4 bg-[#3674B5] text-white text-xs font-bold rounded-xl hover:bg-[#578FCA] transition-all"
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
+
+                {/* Selected Output Preview */}
+                {productForm.privacySizes && productForm.privacySizes.length > 0 && (
+                  <div className="space-y-1.5 pt-1">
+                    <span className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Configured Sizes (Store Preview)</span>
+                    <div className="flex flex-wrap gap-1.5 p-2.5 bg-[#F8F9FA] rounded-xl border border-slate-200">
+                      {productForm.privacySizes.map((sz) => (
+                        <span
+                          key={sz}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-slate-200 text-slate-800 text-[10px] font-bold rounded-lg shadow-3xs"
+                        >
+                          <span>{sz}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setProductForm({
+                                ...productForm,
+                                privacySizes: productForm.privacySizes.filter((s) => s !== sz)
+                              });
+                            }}
+                            className="text-slate-400 hover:text-rose-600 transition-colors"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
                     </div>
                   </div>
+                )}
 
-                  {/* Selected Output Preview */}
-                  {productForm.privacySizes && productForm.privacySizes.length > 0 && (
-                    <div className="space-y-1.5 pt-1">
-                      <span className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Configured Sizes (Store Preview)</span>
-                      <div className="flex flex-wrap gap-1.5 p-2.5 bg-[#F8F9FA] rounded-xl border border-slate-200">
-                        {productForm.privacySizes.map((sz) => (
-                          <span
-                            key={sz}
-                            className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-slate-200 text-slate-800 text-[10px] font-bold rounded-lg shadow-3xs"
-                          >
-                            <span>{sz}</span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setProductForm({
-                                  ...productForm,
-                                  privacySizes: productForm.privacySizes.filter((s) => s !== sz)
-                                });
-                              }}
-                              className="text-slate-400 hover:text-rose-600 transition-colors"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <p className="text-[9px] text-slate-400 font-medium">
-                    Select presets or type any custom size. These appear as selectable options on the product page for customers.
-                  </p>
-                </div>
+                <p className="text-[9px] text-slate-400 font-medium">
+                  Select presets or type any custom size. These appear as selectable options on the product page for customers.
+                </p>
+              </div>
 
               {/* Variant Pricing overrides */}
               {((productForm.sizes && productForm.sizes.length > 0) ||
                 (productForm.privacySizes && productForm.privacySizes.length > 0) ||
                 (productForm.channels && productForm.channels.length > 0)) && (
-                <div className="space-y-3 border-t border-slate-100 pt-3 text-left">
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    Variant Specific Pricing overrides
-                  </label>
-                  <p className="text-[9px] text-slate-400 font-medium -mt-1 leading-normal">
-                    Specify different prices for different length/size/channel segments. Leave blank to default to the base product price.
-                  </p>
-                  <div className="space-y-2 bg-slate-50/50 rounded-xl p-3 border border-slate-200/60 max-h-[220px] overflow-y-auto">
-                    {[
-                      ...(productForm.sizes || []),
-                      ...(productForm.privacySizes || []),
-                      ...(productForm.channels || [])
-                    ].map((sz) => {
-                      const currentOverride = (productForm.sizePrices || []).find((sp) => sp.size === sz) || { size: sz, price: "", originalPrice: "" };
-                      return (
-                        <div key={sz} className="grid grid-cols-12 gap-2 items-center">
-                          <span className="col-span-4 text-[10px] font-extrabold text-slate-600 truncate" title={sz}>{sz}</span>
-                          <div className="col-span-4">
-                            <input
-                              type="number"
-                              required
-                              placeholder="Price"
-                              className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-[10px] font-semibold text-slate-800 outline-none focus:border-slate-350"
-                              value={currentOverride.price}
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                let newOverrides = [...(productForm.sizePrices || [])];
-                                const idx = newOverrides.findIndex((sp) => sp.size === sz);
-                                if (idx > -1) {
-                                  newOverrides[idx] = { ...newOverrides[idx], price: val ? Number(val) : "" };
-                                } else {
-                                  newOverrides.push({ size: sz, price: val ? Number(val) : "", originalPrice: "" });
-                                }
-                                setProductForm({ ...productForm, sizePrices: newOverrides });
-                              }}
-                            />
+                  <div className="space-y-3 border-t border-slate-100 pt-3 text-left">
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      Variant Specific Pricing overrides
+                    </label>
+                    <p className="text-[9px] text-slate-400 font-medium -mt-1 leading-normal">
+                      Specify different prices for different length/size/channel segments. Leave blank to default to the base product price.
+                    </p>
+                    <div className="space-y-2 bg-slate-50/50 rounded-xl p-3 border border-slate-200/60 max-h-[220px] overflow-y-auto">
+                      {[
+                        ...(productForm.sizes || []),
+                        ...(productForm.privacySizes || []),
+                        ...(productForm.channels || [])
+                      ].map((sz) => {
+                        const currentOverride = (productForm.sizePrices || []).find((sp) => sp.size === sz) || { size: sz, price: "", originalPrice: "" };
+                        return (
+                          <div key={sz} className="grid grid-cols-12 gap-2 items-center">
+                            <span className="col-span-4 text-[10px] font-extrabold text-slate-600 truncate" title={sz}>{sz}</span>
+                            <div className="col-span-4">
+                              <input
+                                type="number"
+                                required
+                                placeholder="Price"
+                                className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-[10px] font-semibold text-slate-800 outline-none focus:border-slate-350"
+                                value={currentOverride.price}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  let newOverrides = [...(productForm.sizePrices || [])];
+                                  const idx = newOverrides.findIndex((sp) => sp.size === sz);
+                                  if (idx > -1) {
+                                    newOverrides[idx] = { ...newOverrides[idx], price: val ? Number(val) : "" };
+                                  } else {
+                                    newOverrides.push({ size: sz, price: val ? Number(val) : "", originalPrice: "" });
+                                  }
+                                  setProductForm({ ...productForm, sizePrices: newOverrides });
+                                }}
+                              />
+                            </div>
+                            <div className="col-span-4">
+                              <input
+                                type="number"
+                                placeholder="Orig Price"
+                                className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-[10px] font-semibold text-slate-800 outline-none focus:border-slate-350"
+                                value={currentOverride.originalPrice}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  let newOverrides = [...(productForm.sizePrices || [])];
+                                  const idx = newOverrides.findIndex((sp) => sp.size === sz);
+                                  if (idx > -1) {
+                                    newOverrides[idx] = { ...newOverrides[idx], originalPrice: val ? Number(val) : "" };
+                                  } else {
+                                    newOverrides.push({ size: sz, price: "", originalPrice: val ? Number(val) : "" });
+                                  }
+                                  setProductForm({ ...productForm, sizePrices: newOverrides });
+                                }}
+                              />
+                            </div>
                           </div>
-                          <div className="col-span-4">
-                            <input
-                              type="number"
-                              placeholder="Orig Price"
-                              className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-[10px] font-semibold text-slate-800 outline-none focus:border-slate-350"
-                              value={currentOverride.originalPrice}
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                let newOverrides = [...(productForm.sizePrices || [])];
-                                const idx = newOverrides.findIndex((sp) => sp.size === sz);
-                                if (idx > -1) {
-                                  newOverrides[idx] = { ...newOverrides[idx], originalPrice: val ? Number(val) : "" };
-                                } else {
-                                  newOverrides.push({ size: sz, price: "", originalPrice: val ? Number(val) : "" });
-                                }
-                                setProductForm({ ...productForm, sizePrices: newOverrides });
-                              }}
-                            />
-                          </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* Product Gallery (Up to 5 Images) */}
               <div className="space-y-2">
@@ -3060,8 +3074,8 @@ export default function AdminPanelPage() {
                       <div
                         key={index}
                         className={`relative aspect-square rounded-xl border-2 flex items-center justify-center overflow-hidden transition-all group bg-[#F8F9FA] ${imgUrl
-                            ? "border-slate-200"
-                            : "border-dashed border-slate-300 hover:border-[#3674B5] hover:bg-slate-50"
+                          ? "border-slate-200"
+                          : "border-dashed border-slate-300 hover:border-[#3674B5] hover:bg-slate-50"
                           }`}
                       >
                         {imgUrl ? (
@@ -3135,30 +3149,18 @@ export default function AdminPanelPage() {
                 </p>
               </div>
 
-              {/* Color Accent & Stock */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Color Accent</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Matte Black"
-                    className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-slate-350"
-                    value={productForm.color}
-                    onChange={(e) => setProductForm({ ...productForm, color: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Stock Quantity</label>
-                  <input
-                    type="number"
-                    required
-                    min="0"
-                    placeholder="e.g. 50"
-                    className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-slate-350"
-                    value={productForm.stock}
-                    onChange={(e) => setProductForm({ ...productForm, stock: e.target.value })}
-                  />
-                </div>
+              {/* Stock Quantity */}
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Stock Quantity</label>
+                <input
+                  type="number"
+                  required
+                  min="0"
+                  placeholder="e.g. 50"
+                  className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-slate-350"
+                  value={productForm.stock}
+                  onChange={(e) => setProductForm({ ...productForm, stock: e.target.value })}
+                />
               </div>
 
               {/* Status toggles */}
@@ -3399,11 +3401,10 @@ export default function AdminPanelPage() {
                       key={preset}
                       type="button"
                       onClick={() => setCouponForm({ ...couponForm, badgeType: preset })}
-                      className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all cursor-pointer ${
-                        couponForm.badgeType === preset
+                      className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all cursor-pointer ${couponForm.badgeType === preset
                           ? "bg-[#3674B5] text-white border-[#3674B5] font-extrabold shadow-2xs scale-105"
                           : "bg-[#F8F9FA] text-slate-600 border-slate-200 hover:bg-slate-100"
-                      }`}
+                        }`}
                     >
                       {preset}
                     </button>
@@ -3424,6 +3425,35 @@ export default function AdminPanelPage() {
                     Admins can select a quick preset or type any custom brand badge title (with emojis if desired).
                   </span>
                 </div>
+              </div>
+
+              {/* Expiration Date Section */}
+              <div className="space-y-1.5 text-left bg-slate-50 border border-slate-200/80 p-3.5 rounded-2xl">
+                <div className="flex justify-between items-center">
+                  <label className="block text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">
+                    📅 Expiration Date (Optional)
+                  </label>
+                  {couponForm.expiryDate && (
+                    <button
+                      type="button"
+                      onClick={() => setCouponForm({ ...couponForm, expiryDate: "" })}
+                      className="text-[10px] font-bold text-rose-500 hover:underline cursor-pointer"
+                    >
+                      Clear Expiry
+                    </button>
+                  )}
+                </div>
+                <input
+                  type="date"
+                  className="w-full bg-white border border-slate-200/80 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 outline-none focus:border-[#3674B5] transition-all"
+                  value={couponForm.expiryDate}
+                  onChange={(e) => setCouponForm({ ...couponForm, expiryDate: e.target.value })}
+                />
+                <span className="text-[9px] text-slate-500 font-medium block">
+                  {couponForm.expiryDate
+                    ? `Coupon will automatically expire at 11:59 PM on ${couponForm.expiryDate}.`
+                    : "Leave empty for a permanent (never-expiring) promotional coupon."}
+                </span>
               </div>
 
               {/* Active Switch */}
@@ -3465,13 +3495,13 @@ export default function AdminPanelPage() {
       {selectedCustomer && (() => {
         const custOrders = adminOrders.filter(
           (o) => o.customerEmail?.toLowerCase() === selectedCustomer.email?.toLowerCase() ||
-                 o.customerName?.toLowerCase() === selectedCustomer.name?.toLowerCase()
+            o.customerName?.toLowerCase() === selectedCustomer.name?.toLowerCase()
         );
 
         return (
           <div className="fixed inset-0 z-[1000] flex items-center justify-center px-4 bg-black/40 backdrop-blur-xs">
             <div className="w-full max-w-2xl rounded-2xl bg-white border border-slate-100 p-6 md:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto animate-fade-in text-left">
-              
+
               <button
                 onClick={() => {
                   setSelectedCustomer(null);
@@ -3502,9 +3532,8 @@ export default function AdminPanelPage() {
                   </div>
                   <div className="space-y-1">
                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Access Role</span>
-                    <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase inline-block ${
-                      selectedCustomer.role === "Administrator" ? "bg-[#3674B5]/10 text-[#3674B5]" : "bg-slate-200 text-slate-600"
-                    }`}>
+                    <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase inline-block ${selectedCustomer.role === "Administrator" ? "bg-[#3674B5]/10 text-[#3674B5]" : "bg-slate-200 text-slate-600"
+                      }`}>
                       {selectedCustomer.role}
                     </span>
                   </div>
@@ -3523,7 +3552,7 @@ export default function AdminPanelPage() {
 
                 <div className="space-y-3">
                   <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Purchase History & Tracking</h4>
-                  
+
                   {custOrders.length === 0 ? (
                     <div className="text-center py-8 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
                       <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">No Orders Placed Yet</p>
@@ -3780,7 +3809,7 @@ function HeroSlideEditor({
           {/* Images Section */}
           <div className="space-y-4 text-left">
             <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Slide Images</h4>
-            
+
             <div className="grid grid-cols-2 gap-4">
               {/* Disconnected State Image */}
               <div className="space-y-2 text-left">
@@ -3825,7 +3854,7 @@ function HeroSlideEditor({
           {/* Links & Tags Section */}
           <div className="space-y-4 text-left">
             <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Settings & Content</h4>
-            
+
             {/* Product Redirection Select */}
             <div className="space-y-1.5 text-left">
               <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">On-Click Target Product Redirection</label>
@@ -3847,7 +3876,7 @@ function HeroSlideEditor({
             {/* Tag Inputs */}
             <div className="space-y-3 pt-2 text-left">
               <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Floating Info Chips Text</label>
-              
+
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <span className="text-[9px] font-black text-slate-400 uppercase">Tag 1 Label</span>

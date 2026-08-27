@@ -1,4 +1,51 @@
 /** @type {import('next').NextConfig} */
+
+//  Content-Security-Policy
+// Built specifically for this app's dependency surface:
+//   - Google OAuth popup  → accounts.google.com, apis.google.com
+//   - Cloudinary uploads  → res.cloudinary.com
+//   - Google Fonts        → fonts.googleapis.com, fonts.gstatic.com
+//   - Google profile pics → lh*.googleusercontent.com
+//
+// 'unsafe-inline' on script-src is required by Next.js for hydration scripts.
+// 'unsafe-eval' is only allowed in development (source maps). Removed in production.
+const isDev = process.env.NODE_ENV === "development";
+
+const ContentSecurityPolicy = [
+  // Default: only self
+  "default-src 'self'",
+
+  // Scripts: self + Next.js inline hydration + Google OAuth
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://accounts.google.com https://apis.google.com`,
+
+  // Styles: self + inline (Tailwind/CSS-in-JS) + Google Fonts
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+
+  // Fonts: self + Google Fonts static assets
+  "font-src 'self' https://fonts.gstatic.com",
+
+  // Images: self + data URIs + blob + Cloudinary + Google avatars
+  "img-src 'self' data: blob: https://res.cloudinary.com https://lh3.googleusercontent.com https://lh4.googleusercontent.com https://lh5.googleusercontent.com https://lh6.googleusercontent.com",
+
+  // XHR/Fetch: self + Google OAuth token endpoints
+  "connect-src 'self' https://accounts.google.com https://oauth2.googleapis.com https://www.googleapis.com",
+
+  // Frames: only Google OAuth popup
+  "frame-src https://accounts.google.com",
+
+  // Block all plugins (Flash etc.)
+  "object-src 'none'",
+
+  // Restrict <base> to same origin
+  "base-uri 'self'",
+
+  // Restrict form submissions to same origin
+  "form-action 'self'",
+
+  // Prevent this page from being embedded in iframes (defence-in-depth with X-Frame-Options)
+  "frame-ancestors 'none'",
+].join("; ");
+
 const nextConfig = {
   compress: true,
   reactStrictMode: true,
@@ -31,6 +78,11 @@ const nextConfig = {
           {
             key: "Pragma",
             value: "no-cache",
+          },
+          // SEC-015: Content-Security-Policy
+          {
+            key: "Content-Security-Policy",
+            value: ContentSecurityPolicy,
           },
           {
             key: "X-Frame-Options",
@@ -84,3 +136,4 @@ const nextConfig = {
 };
 
 export default nextConfig;
+

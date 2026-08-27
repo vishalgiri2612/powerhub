@@ -1,17 +1,12 @@
 import { NextResponse } from "next/server";
+import { parseSessionFromCookieEdge } from "@/lib/authEdge";
 
-export function middleware(request) {
+export async function middleware(request) {
   const { pathname } = request.nextUrl;
-  const sessionCookie = request.cookies.get("ravtron_session")?.value;
+  const rawCookieValue = request.cookies.get("ravtron_session")?.value;
 
-  let session = null;
-  if (sessionCookie) {
-    try {
-      session = JSON.parse(decodeURIComponent(sessionCookie));
-    } catch (e) {
-      console.error("Failed to parse session cookie in middleware:", e);
-    }
-  }
+  // Verify HMAC signature and parse session (Edge-compatible, returns null if tampered/missing)
+  const session = rawCookieValue ? await parseSessionFromCookieEdge(rawCookieValue) : null;
 
   // 1. Protect /admin route: must be logged in as Administrator
   if (pathname.startsWith("/admin")) {

@@ -24,16 +24,17 @@ function LoginContent() {
   const [success, setSuccess] = useState(false);
   const [userRole, setUserRole] = useState("");
 
-  const handleGoogleSuccessResponse = async (payload) => {
+  // useGoogleLogin with flow="implicit" returns a TokenResponse { access_token, ... }
+  // (token stays in JS memory, never in the URL — unlike the old Implicit redirect flow)
+  // The backend /api/auth/google already handles access_token by fetching userinfo from Google.
+  const handleGoogleSuccessResponse = async (tokenResponse) => {
     setIsLoading(true);
     setError("");
     try {
       const response = await fetch("/api/auth/google", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ access_token: tokenResponse.access_token })
       });
 
       if (!response.ok) {
@@ -53,14 +54,10 @@ function LoginContent() {
 
       if (sessionUser.role === "Administrator") {
         showToast("Administrator access authorized with Google.");
-        setTimeout(() => {
-          window.location.href = "/admin";
-        }, 1000);
+        setTimeout(() => { window.location.href = "/admin"; }, 1000);
       } else {
         showToast(`Welcome ${sessionUser.name}! Access granted.`);
-        setTimeout(() => {
-          window.location.href = "/";
-        }, 1000);
+        setTimeout(() => { window.location.href = "/"; }, 1000);
       }
     } catch (err) {
       setIsLoading(false);
@@ -68,34 +65,12 @@ function LoginContent() {
     }
   };
 
-  // Handle direct Google OAuth callback from URL hash fragment
-  React.useEffect(() => {
-    if (typeof window !== "undefined" && window.location.hash) {
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const accessToken = hashParams.get("access_token");
-      if (accessToken) {
-        window.history.replaceState(null, "", window.location.pathname);
-        handleGoogleSuccessResponse({ access_token: accessToken });
-      }
-    }
-  }, []);
-
-  const triggerGoogleRedirect = () => {
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "538059283255-qc41jgp3n3287bgmcs16efjgdt2fcb1s.apps.googleusercontent.com";
-    const redirectUri = typeof window !== "undefined"
-      ? `${window.location.origin}/login`
-      : "https://powerhub-umber.vercel.app/login";
-
-    const params = new URLSearchParams({
-      client_id: clientId,
-      redirect_uri: redirectUri,
-      response_type: "token",
-      scope: "openid profile email",
-      prompt: "select_account"
-    });
-
-    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
-  };
+  const googleLogin = useGoogleLogin({
+    onSuccess: handleGoogleSuccessResponse,
+    onError: () => setError("Google sign-in was cancelled or failed. Please try again."),
+    flow: "implicit",  // token returned directly to JS callback — does NOT appear in browser URL
+    ux_mode: "popup",
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -221,7 +196,7 @@ function LoginContent() {
                   Password
                 </label>
                 <Link
-                  href="/support"
+                  href="/forgot-password"
                   className="text-[11px] font-bold text-[#3674B5] hover:underline"
                 >
                   Forgot?
@@ -281,7 +256,7 @@ function LoginContent() {
           <div className="flex flex-col items-center justify-center gap-3 w-full">
             <button
               type="button"
-              onClick={triggerGoogleRedirect}
+              onClick={() => googleLogin()}
               disabled={isLoading || success}
               className="w-full py-3.5 px-4 rounded-2xl bg-white border border-[#1E293B]/15 hover:bg-slate-50 text-xs font-extrabold text-[#1E293B] transition-all duration-300 hover:scale-[1.01] active:scale-98 flex items-center justify-center gap-3 shadow-2xs cursor-pointer disabled:opacity-50 disabled:scale-100"
             >

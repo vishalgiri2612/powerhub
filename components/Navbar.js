@@ -371,7 +371,7 @@ export default function Navbar() {
                       <p className="text-[10px] font-bold text-[#1E293B]/40 uppercase tracking-wider">Account</p>
                       <p className="text-xs font-black text-[#1E293B] truncate">{user.name}</p>
                     </div>
-                    {user.role === "Administrator" || user.email === "ravtron@admin.com" ? (
+                    {user.role === "Administrator" || user.email === "officerequirementsgurgaon@gmail.com" || user.email === "ravtron@admin.com" ? (
                       <Link
                         href="/admin"
                         onClick={() => setDropdownOpen(false)}
@@ -461,7 +461,7 @@ export default function Navbar() {
             })}
             {user ? (
               <div className="flex flex-col gap-2 pt-2 border-t border-[#1E293B]/5 w-full">
-                {user.role === "Administrator" || user.email === "ravtron@admin.com" ? (
+                {user.role === "Administrator" || user.email === "officerequirementsgurgaon@gmail.com" || user.email === "ravtron@admin.com" ? (
                   <Link
                     href="/admin"
                     onClick={() => setMobileMenuOpen(false)}

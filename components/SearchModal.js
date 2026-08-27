@@ -130,16 +130,22 @@ export default function SearchModal() {
                       <span className="text-xs text-[#1E293B]/40 line-through">₹{product.originalPrice.toLocaleString()}</span>
                     </div>
                   </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      addToCart(product);
-                      setIsSearchOpen(false);
-                    }}
-                    className="px-4 py-2 rounded-lg bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-bold transition-all hover:scale-105 active:scale-95"
-                  >
-                    Add
-                  </button>
+                  {typeof product.stock === "number" && product.stock <= 0 ? (
+                    <span className="px-3 py-1.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-600 text-[10px] font-extrabold cursor-not-allowed">
+                      Out of Stock
+                    </span>
+                  ) : (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        addToCart(product);
+                        setIsSearchOpen(false);
+                      }}
+                      className="px-4 py-2 rounded-lg bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-bold transition-all hover:scale-105 active:scale-95"
+                    >
+                      Add
+                    </button>
+                  )}
                 </div>
               ))}
             </div>

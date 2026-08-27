@@ -845,10 +845,10 @@ export default function PrivacyPolicyPage() {
                   </p>
                   <p className="text-xs font-bold text-slate-800 pt-1">Email:</p>
                   <a 
-                    href="mailto:support@ksgautomation.com"
+                    href="mailto:officerequirementsgurgaon@gmail.com"
                     className="font-bold text-sm text-[#3674B5] hover:underline block"
                   >
-                    support@ksgautomation.com
+                    officerequirementsgurgaon@gmail.com
                   </a>
                 </div>
 

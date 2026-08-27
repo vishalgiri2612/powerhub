@@ -23,7 +23,10 @@ import {
   ArrowRight,
   ShieldCheck,
   Send,
-  Barcode
+  Barcode,
+  UploadCloud,
+  FileText,
+  X
 } from "lucide-react";
  
 export default function SupportPage() {
@@ -79,9 +82,10 @@ export default function SupportPage() {
     invoiceFile: "",
     issueDescription: ""
   });
+  const [proofFile, setProofFile] = useState(null);
   const [isSubmittingWarranty, setIsSubmittingWarranty] = useState(false);
   const [warrantySubmitted, setWarrantySubmitted] = useState(false);
- 
+
   // FAQ Data List
   const faqData = [
     {
@@ -120,7 +124,7 @@ export default function SupportPage() {
       answer: "We accept all major Credit/Debit Cards (Visa, Mastercard, RuPay), UPI payments, NetBanking, and popular e-wallets via our secure payment gateway."
     }
   ];
- 
+
   // Filter FAQs based on search query
   const filteredFaqs = faqData.filter(
     (faq) => 
@@ -128,7 +132,7 @@ export default function SupportPage() {
       faq.answer.toLowerCase().includes(faqSearch.toLowerCase()) ||
       faq.category.toLowerCase().includes(faqSearch.toLowerCase())
   );
- 
+
   // Handle Track Order API Submission
   const handleTrackOrder = async (e) => {
     e.preventDefault();
@@ -136,10 +140,10 @@ export default function SupportPage() {
       showToast("Please fill in both fields.", "error");
       return;
     }
- 
+
     setIsTracking(true);
     setTrackedOrder(null);
- 
+
     try {
       const response = await fetch(`/api/orders/${trackOrderId.trim()}`);
       if (!response.ok) {
@@ -148,14 +152,14 @@ export default function SupportPage() {
         }
         throw new Error("Failed to retrieve order tracking information.");
       }
- 
+
       const order = await response.json();
       
       // Verify that email matches (case insensitive)
       if (order.customerEmail?.toLowerCase() !== trackEmail.trim().toLowerCase()) {
         throw new Error("The email address provided does not match our records for this order.");
       }
- 
+
       setTrackedOrder(order);
       showToast("Order tracking data updated!");
     } catch (err) {
@@ -165,7 +169,7 @@ export default function SupportPage() {
       setIsTracking(false);
     }
   };
- 
+
   // Handle Contact Support Submission
   const handleContactSubmit = async (e) => {
     e.preventDefault();
@@ -199,13 +203,33 @@ export default function SupportPage() {
       setIsSubmittingContact(false);
     }
   };
- 
+
   // Handle Warranty Claim Submission
   const handleWarrantySubmit = async (e) => {
     e.preventDefault();
     setIsSubmittingWarranty(true);
- 
+
     try {
+      let uploadedProofUrl = "";
+
+      if (proofFile) {
+        const uploadFormData = new FormData();
+        uploadFormData.append("file", proofFile);
+
+        const uploadRes = await fetch("/api/upload/support-proof", {
+          method: "POST",
+          body: uploadFormData
+        });
+
+        if (!uploadRes.ok) {
+          const uploadErr = await uploadRes.json();
+          throw new Error(uploadErr.error || "Failed to upload invoice proof document");
+        }
+
+        const uploadData = await uploadRes.json();
+        uploadedProofUrl = uploadData.url;
+      }
+
       const response = await fetch("/api/support", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -213,8 +237,9 @@ export default function SupportPage() {
           name: warrantyForm.name,
           email: warrantyForm.email,
           subject: `1-Year Warranty Claim: ${warrantyForm.productName}`,
-          message: `Serial Number: ${warrantyForm.serialNumber || "N/A"}\nPurchase Date: ${warrantyForm.purchaseDate || "N/A"}\nIssue: ${warrantyForm.issueDescription}`,
-          category: "1-Year Product Warranty Claim"
+          message: `Serial Number: ${warrantyForm.serialNumber || "N/A"}\nPurchase Date: ${warrantyForm.purchaseDate || "N/A"}\nInvoice No: ${warrantyForm.invoiceFile || "N/A"}\nIssue Description: ${warrantyForm.issueDescription}`,
+          category: "1-Year Product Warranty Claim",
+          proofUrl: uploadedProofUrl
         })
       });
 
@@ -225,6 +250,7 @@ export default function SupportPage() {
 
       setIsSubmittingWarranty(false);
       setWarrantySubmitted(true);
+      setProofFile(null);
       showToast("Warranty replacement ticket registered.");
       setWarrantyForm({
         name: "",
@@ -706,16 +732,69 @@ export default function SupportPage() {
                         />
                       </div>
                       <div className="space-y-1.5 text-left">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Upload Purchase Invoice / Proof</label>
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Reseller Invoice / Order No.</label>
                         <input
                           type="text"
-                          placeholder="Enter reseller invoice no. (e.g. INV-9876)"
+                          placeholder="e.g. INV-9876 (Optional)"
                           className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-[#3674B5] transition-all"
                           value={warrantyForm.invoiceFile}
                           onChange={(e) => setWarrantyForm({ ...warrantyForm, invoiceFile: e.target.value })}
-                          required
                         />
                       </div>
+                    </div>
+
+                    {/* Direct Purchase Receipt / Invoice Proof Upload Field */}
+                    <div className="space-y-1.5 text-left">
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                        <span>Upload Purchase Invoice / Proof Receipt</span>
+                        <span className="text-[9px] text-[#3674B5] font-extrabold uppercase">JPG, PNG, WebP, PDF (Max 5MB)</span>
+                      </label>
+                      {proofFile ? (
+                        <div className="flex items-center justify-between p-3.5 bg-[#3674B5]/8 border border-[#3674B5]/30 rounded-xl animate-fade-in">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-8 h-8 rounded-lg bg-[#3674B5]/15 border border-[#3674B5]/30 flex items-center justify-center text-[#3674B5] shrink-0">
+                              <FileText className="w-4 h-4" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold text-slate-900 truncate">{proofFile.name}</p>
+                              <p className="text-[10px] font-semibold text-slate-500">{(proofFile.size / (1024 * 1024)).toFixed(2)} MB • Ready for submission</p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setProofFile(null)}
+                            className="p-1.5 rounded-lg hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-all shrink-0 cursor-pointer"
+                            title="Remove attached file"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <label className="flex items-center justify-center gap-2.5 p-4 bg-[#F8F9FA] hover:bg-slate-100/90 border border-dashed border-slate-300 rounded-xl cursor-pointer transition-all text-slate-500 hover:text-slate-800 group">
+                          <UploadCloud className="w-4 h-4 text-[#3674B5] group-hover:scale-110 transition-transform" />
+                          <span className="text-xs font-bold">Click to attach photo or PDF invoice receipt</span>
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,application/pdf"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              if (file.size > 5 * 1024 * 1024) {
+                                showToast("File size exceeds 5MB limit. Please choose a smaller file.", "error");
+                                return;
+                              }
+                              const ext = file.name.split(".").pop()?.toLowerCase();
+                              if (!["jpg", "jpeg", "png", "webp", "pdf"].includes(ext)) {
+                                showToast("Invalid file type. Only JPG, PNG, WebP images and PDF documents are allowed.", "error");
+                                return;
+                              }
+                              setProofFile(file);
+                              showToast("Proof receipt attached!");
+                            }}
+                          />
+                        </label>
+                      )}
                     </div>
  
                     <div className="space-y-1.5">

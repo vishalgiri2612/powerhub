@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
-import { verifyAdmin, verifyUser } from "@/lib/auth";
+import { verifyAdmin, verifyUser, setSessionCookie, getSessionCookieOptions, parseSessionFromCookie } from "@/lib/auth";
 import { cookies } from "next/headers";
 import { getCachedUsers, setCachedUsers, clearUsersCache } from "@/lib/cache";
 import { escapeRegex, sanitizeEmail, logSecurityEvent } from "@/lib/security";
+import { verifyCsrfOrigin } from "@/lib/csrf";
 
 export async function GET() {
   try {
@@ -27,6 +28,8 @@ export async function GET() {
 
 export async function PUT(request) {
   try {
+    const csrf = verifyCsrfOrigin(request);
+    if (!csrf.ok) return csrf.response;
     const body = await request.json();
     const { email, role, name, active } = body;
 
@@ -64,18 +67,15 @@ export async function PUT(request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const isProduction = process.env.NODE_ENV === "production";
-    const forwardedProto = request.headers.get("x-forwarded-proto");
-    const isHttps = forwardedProto === "https" || request.url.startsWith("https://");
-    const secure = isProduction && isHttps;
+    const cookieOptions = getSessionCookieOptions(request);
 
     // Update session cookie if the user is updating their own profile
     const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get("ravtron_session")?.value;
-    if (sessionCookie) {
+    const rawCookieValue = cookieStore.get("ravtron_session")?.value;
+    if (rawCookieValue) {
       try {
-        const session = JSON.parse(decodeURIComponent(sessionCookie));
-        if (session.email.toLowerCase() === cleanEmail) {
+        const session = parseSessionFromCookie(rawCookieValue);
+        if (session && session.email.toLowerCase() === cleanEmail) {
           const sessionUser = {
             name: updatedUser.name,
             email: updatedUser.email,
@@ -85,15 +85,7 @@ export async function PUT(request) {
             role: updatedUser.role,
             isLoggedIn: true
           };
-          cookieStore.set({
-            name: "ravtron_session",
-            value: encodeURIComponent(JSON.stringify(sessionUser)),
-            httpOnly: true,
-            secure,
-            path: "/",
-            maxAge: 345600, // 4 days
-            sameSite: "lax"
-          });
+          setSessionCookie(cookieStore, sessionUser, cookieOptions);
         }
       } catch (e) {
         console.error("Failed to update session cookie in PUT /api/users", e);
@@ -109,6 +101,8 @@ export async function PUT(request) {
 
 export async function POST(request) {
   try {
+    const csrf = verifyCsrfOrigin(request);
+    if (!csrf.ok) return csrf.response;
     await dbConnect();
     const body = await request.json();
     const { name, email, role, joinDate } = body;
@@ -124,7 +118,7 @@ export async function POST(request) {
     const userToSession = existing || await User.create({
       name,
       email: cleanEmail,
-      role: role || "Customer",
+      role: "Customer", // SEC-009: Role is ALWAYS forced to "Customer" — never trust client input
       joinDate: joinDate || new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
       active: true
     });
@@ -139,21 +133,8 @@ export async function POST(request) {
       isLoggedIn: true
     };
 
-    const isProduction = process.env.NODE_ENV === "production";
-    const forwardedProto = request.headers.get("x-forwarded-proto");
-    const isHttps = forwardedProto === "https" || request.url.startsWith("https://");
-    const secure = isProduction && isHttps;
-
     const cookieStore = await cookies();
-    cookieStore.set({
-      name: "ravtron_session",
-      value: encodeURIComponent(JSON.stringify(sessionUser)),
-      httpOnly: true,
-      secure,
-      path: "/",
-      maxAge: 345600, // 4 days
-      sameSite: "lax"
-    });
+    setSessionCookie(cookieStore, sessionUser, getSessionCookieOptions(request));
 
     clearUsersCache();
     return NextResponse.json(userToSession, { status: existing ? 200 : 201 });

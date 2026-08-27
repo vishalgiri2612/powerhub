@@ -29,7 +29,7 @@ const ProductSchema = new mongoose.Schema(
     subcategory: { type: String, default: "" },
     featured: { type: Boolean, default: false },
     isNewArrival: { type: Boolean, default: false },
-    color: { type: String, required: true },
+    color: { type: String, default: "Standard" },
     stock: { type: Number, default: 0 },
     description: { type: String, default: "" },
     topSelling: { type: Boolean, default: false },

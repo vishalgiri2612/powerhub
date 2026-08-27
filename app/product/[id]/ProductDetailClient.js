@@ -612,8 +612,12 @@ export default function ProductDetailPage({ params }) {
             {/* Premium Trust Badges Bar */}
             <div className="grid grid-cols-3 gap-2 py-3 px-4 bg-[#F8F9FA] rounded-2xl border border-slate-100 text-center">
               <div className="flex flex-col items-center gap-0.5">
-                <span className="text-[11px] font-black text-[#1E293B]">100% Genuine</span>
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">RAVTRON® Product</span>
+                <span className={`text-[11px] font-black ${typeof product.stock === "number" && product.stock <= 0 ? "text-rose-600" : "text-[#1E293B]"}`}>
+                  {typeof product.stock === "number" && product.stock <= 0 ? "Out of Stock" : "100% Genuine"}
+                </span>
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                  {typeof product.stock === "number" && product.stock <= 0 ? "Currently Unavailable" : "RAVTRON® Product"}
+                </span>
               </div>
               <div className="flex flex-col items-center gap-0.5 border-x border-slate-200/60">
                 <span className="text-[11px] font-black text-[#3674B5]">1 Year Warranty</span>
@@ -625,71 +629,83 @@ export default function ProductDetailPage({ params }) {
               </div>
             </div>
 
-            {/* Direct action rows (Quantity selector on left of Add to Bag button) */}
-            <div className="flex items-center gap-2.5 sm:gap-3 md:gap-4 pt-1">
-              {/* Add to Bag Button with inline Minus/Plus when in cart */}
-              {cartItemQty > 0 ? (
-                <div 
-                  className="flex-1 h-12 sm:h-14 px-1 sm:px-3 rounded-2xl bg-[#3674B5] text-white font-extrabold shadow-md flex items-center justify-between border-2 border-[#3674B5] shrink-0 min-w-0"
-                  onClick={(e) => e.stopPropagation()}
+            {/* Direct action rows */}
+            {typeof product.stock === "number" && product.stock <= 0 ? (
+              <div className="w-full pt-1">
+                <button
+                  disabled
+                  className="w-full h-12 sm:h-14 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 text-xs font-extrabold uppercase tracking-widest cursor-not-allowed flex items-center justify-center gap-2 shadow-2xs"
                 >
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      updateQuantity(product.id, -1);
-                    }}
-                    className="w-5.5 h-5.5 xs:w-6 xs:h-6 sm:w-8 sm:h-8 rounded-md xs:rounded-lg sm:rounded-xl bg-white/20 hover:bg-white/30 transition-colors flex items-center justify-center cursor-pointer text-xs sm:text-base font-black shrink-0"
-                    aria-label="Decrease quantity"
-                    title="Decrease quantity"
+                  <svg className="w-4 h-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                  </svg>
+                  <span>Currently Out of Stock</span>
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2.5 sm:gap-3 md:gap-4 pt-1">
+                {/* Add to Bag Button with inline Minus/Plus when in cart */}
+                {cartItemQty > 0 ? (
+                  <div 
+                    className="flex-1 h-12 sm:h-14 px-1 sm:px-3 rounded-2xl bg-[#3674B5] text-white font-extrabold shadow-md flex items-center justify-between border-2 border-[#3674B5] shrink-0 min-w-0"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    −
-                  </button>
-                  <span className="text-[10px] xs:text-[11px] sm:text-xs md:text-sm font-extrabold uppercase tracking-wider flex items-center justify-center gap-0.5 sm:gap-1.5 select-none whitespace-nowrap px-0.5 min-w-0">
-                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 hidden xs:inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        updateQuantity(product.id, -1);
+                      }}
+                      className="w-5.5 h-5.5 xs:w-6 xs:h-6 sm:w-8 sm:h-8 rounded-md xs:rounded-lg sm:rounded-xl bg-white/20 hover:bg-white/30 transition-colors flex items-center justify-center cursor-pointer text-xs sm:text-base font-black shrink-0"
+                      aria-label="Decrease quantity"
+                      title="Decrease quantity"
+                    >
+                      −
+                    </button>
+                    <span className="text-[10px] xs:text-[11px] sm:text-xs md:text-sm font-extrabold uppercase tracking-wider flex items-center justify-center gap-0.5 sm:gap-1.5 select-none whitespace-nowrap px-0.5 min-w-0">
+                      <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 hidden xs:inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                      </svg>
+                      <span>In Bag ({cartItemQty})</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        addToCart(product, 1);
+                      }}
+                      className="w-5.5 h-5.5 xs:w-6 xs:h-6 sm:w-8 sm:h-8 rounded-md xs:rounded-lg sm:rounded-xl bg-white/20 hover:bg-white/30 transition-colors flex items-center justify-center cursor-pointer text-xs sm:text-base font-black shrink-0"
+                      aria-label="Increase quantity"
+                      title="Increase quantity"
+                    >
+                      +
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleAdd}
+                    className="flex-1 h-12 sm:h-14 rounded-2xl border-2 border-[#1E293B] hover:bg-[#F8F9FA] text-[#1E293B] text-xs font-extrabold uppercase tracking-widest transition-all duration-300 hover:scale-[1.02] active:scale-97 flex items-center justify-center gap-1.5 sm:gap-2 shrink-0 min-w-0"
+                  >
+                    <svg className="w-4 h-4 md:w-4.5 md:h-4.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                     </svg>
-                    <span>In Bag ({cartItemQty})</span>
-                  </span>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      addToCart(product, 1);
-                    }}
-                    className="w-5.5 h-5.5 xs:w-6 xs:h-6 sm:w-8 sm:h-8 rounded-md xs:rounded-lg sm:rounded-xl bg-white/20 hover:bg-white/30 transition-colors flex items-center justify-center cursor-pointer text-xs sm:text-base font-black shrink-0"
-                    aria-label="Increase quantity"
-                    title="Increase quantity"
-                  >
-                    +
+                    <span className="whitespace-nowrap">Add to Bag</span>
                   </button>
-                </div>
-              ) : (
+                )}
+
+                {/* Buy Now Button */}
                 <button
-                  onClick={handleAdd}
-                  className="flex-1 h-12 sm:h-14 rounded-2xl border-2 border-[#1E293B] hover:bg-[#F8F9FA] text-[#1E293B] text-xs font-extrabold uppercase tracking-widest transition-all duration-300 hover:scale-[1.02] active:scale-97 flex items-center justify-center gap-1.5 sm:gap-2 shrink-0 min-w-0"
+                  onClick={handleBuyNow}
+                  className="flex-1 h-12 sm:h-14 rounded-2xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-extrabold uppercase tracking-widest transition-all duration-300 hover:scale-[1.02] active:scale-97 flex items-center justify-center gap-1.5 sm:gap-2 shadow-lg shadow-[#1A1917]/10 shrink-0 min-w-0"
                 >
                   <svg className="w-4 h-4 md:w-4.5 md:h-4.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
-                  <span className="whitespace-nowrap">Add to Bag</span>
+                  <span className="whitespace-nowrap">Buy Now</span>
                 </button>
-              )}
-
-              {/* Buy Now Button */}
-              <button
-                onClick={handleBuyNow}
-                className="flex-1 h-12 sm:h-14 rounded-2xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-extrabold uppercase tracking-widest transition-all duration-300 hover:scale-[1.02] active:scale-97 flex items-center justify-center gap-1.5 sm:gap-2 shadow-lg shadow-[#1A1917]/10 shrink-0 min-w-0"
-              >
-                <svg className="w-4 h-4 md:w-4.5 md:h-4.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                <span className="whitespace-nowrap">Buy Now</span>
-              </button>
-            </div>
-
+              </div>
+            )}
           </div>
-
         </div>
 
         {/* Full-width Product Tabs Section (Overview, Specifications, Shipping & Return, Reviews) */}

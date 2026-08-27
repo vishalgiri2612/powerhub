@@ -49,6 +49,29 @@ function ShopContent() {
     setSearchInput(searchParam || "");
   }, [categoryParam, subParam, searchParam]);
 
+  // 250ms Debounced sync for search input changes to URL parameter
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const params = new URLSearchParams(window.location.search);
+      const currentUrlSearch = params.get("search") || params.get("q") || params.get("tag") || "";
+      const trimmedInput = searchInput.trim();
+
+      if (trimmedInput !== currentUrlSearch) {
+        if (trimmedInput) {
+          params.set("search", trimmedInput);
+        } else {
+          params.delete("search");
+          params.delete("q");
+          params.delete("tag");
+        }
+        const newUrl = params.toString() ? `/shop?${params.toString()}` : "/shop";
+        router.replace(newUrl, { scroll: false });
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [searchInput, router]);
+
   const handleFilterClick = (categoryName) => {
     const params = new URLSearchParams(window.location.search);
     if (categoryName === "All") {
@@ -195,20 +218,7 @@ function ShopContent() {
               type="text"
               placeholder="Search products..."
               value={searchInput}
-              onChange={(e) => {
-                const val = e.target.value;
-                setSearchInput(val);
-                const params = new URLSearchParams(window.location.search);
-                if (val.trim()) {
-                  params.set("search", val.trim());
-                } else {
-                  params.delete("search");
-                  params.delete("q");
-                  params.delete("tag");
-                }
-                const newUrl = params.toString() ? `/shop?${params.toString()}` : "/shop";
-                router.replace(newUrl, { scroll: false });
-              }}
+              onChange={(e) => setSearchInput(e.target.value)}
               className="w-full bg-white border border-slate-300 rounded-full pl-10 pr-9 py-2 md:py-2.5 text-xs font-bold text-[#1E293B] placeholder-[#1E293B]/60 outline-none focus:border-[#3674B5] focus:ring-2 focus:ring-[#3674B5]/20 shadow-xs transition-all"
             />
             {searchInput && (
@@ -350,7 +360,11 @@ function ShopContent() {
                   <div>
                     {/* Top Row: Badges & Wishlist */}
                     <div className="flex items-center justify-between z-10 relative">
-                      {Boolean(product.discountBadge && product.discountBadge.trim()) ? (
+                      {typeof product.stock === "number" && product.stock <= 0 ? (
+                        <span className="text-[8px] sm:text-[9px] font-extrabold uppercase px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full bg-rose-50 border border-rose-200 text-rose-600 tracking-wider shadow-xs">
+                          OUT OF STOCK
+                        </span>
+                      ) : Boolean(product.discountBadge && product.discountBadge.trim()) ? (
                         <span className="text-[8px] sm:text-[9px] font-extrabold uppercase px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full backdrop-blur-md bg-white/80 border border-[#1E293B]/10 text-[#1E293B] tracking-wider shadow-xs">
                           {product.discountBadge}
                         </span>
@@ -391,7 +405,7 @@ function ShopContent() {
                         alt={product.name}
                         fill
                         sizes="(max-width: 640px) 150px, (max-width: 768px) 250px, 300px"
-                        className="object-cover transition-all duration-500 group-hover:scale-106 group-hover:rotate-1 pointer-events-none"
+                        className={`object-cover transition-all duration-500 group-hover:scale-106 group-hover:rotate-1 pointer-events-none ${typeof product.stock === "number" && product.stock <= 0 ? "grayscale opacity-75" : ""}`}
                         style={{
                           filter: "drop-shadow(0 12px 20px rgba(26,25,23,0.06))"
                         }}
@@ -470,7 +484,11 @@ function ShopContent() {
                       </div>
                     </div>
 
-                    {cartItemQty > 0 ? (
+                    {typeof product.stock === "number" && product.stock <= 0 ? (
+                      <span className="px-2 py-1 sm:px-3.5 sm:py-2 rounded-lg sm:rounded-xl text-[9px] sm:text-[10px] font-extrabold bg-rose-50 text-rose-600 border border-rose-200 cursor-not-allowed shrink-0">
+                        Out of Stock
+                      </span>
+                    ) : cartItemQty > 0 ? (
                       <div 
                         className="inline-flex items-center rounded-lg sm:rounded-xl bg-[#3674B5] text-white font-extrabold shadow-md overflow-hidden shrink-0"
                         onClick={(e) => e.stopPropagation()}

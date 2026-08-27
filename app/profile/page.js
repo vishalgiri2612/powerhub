@@ -878,11 +878,14 @@ export default function ProfilePage() {
                 <div className="space-y-1.5">
                   <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Phone Number</label>
                   <input
-                    type="text"
-                    placeholder="Enter phone number"
+                    type="tel"
+                    maxLength={10}
+                    inputMode="numeric"
+                    pattern="[0-9]{10}"
+                    placeholder="Enter 10-digit phone number"
                     className="w-full bg-[#F8F9FA] border border-slate-200/60 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:bg-white"
                     value={profilePhone}
-                    onChange={(e) => setProfilePhone(e.target.value)}
+                    onChange={(e) => setProfilePhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
                     disabled={isSaving}
                   />
                 </div>

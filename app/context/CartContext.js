@@ -313,7 +313,17 @@ export function CartProvider({ children }) {
       return;
     }
 
+    // Resolve latest stock from products array if available
+    const matchedProduct = products.find(p => String(p.id) === String(product.id) || String(p._id) === String(product.id)) || product;
+    const availableStock = matchedProduct.stock !== undefined ? matchedProduct.stock : (product.stock !== undefined ? product.stock : 999);
+
+    if (typeof availableStock === "number" && availableStock <= 0) {
+      showToast(`Sorry, "${product.name}" is currently out of stock.`, "error");
+      return;
+    }
+
     const variantTag = product.selectedSize || product.selectedPrivacySize || product.selectedChannel;
+
     setCart((prevCart) => {
       const existing = prevCart.find(
         (item) =>
@@ -322,6 +332,17 @@ export function CartProvider({ children }) {
           item.selectedPrivacySize === product.selectedPrivacySize &&
           item.selectedChannel === product.selectedChannel
       );
+
+      const currentQtyInCart = existing ? existing.quantity : 0;
+      const targetQty = currentQtyInCart + quantityToAdd;
+
+      if (typeof availableStock === "number" && targetQty > availableStock) {
+        showToast(availableStock <= 0
+          ? `Sorry, "${product.name}" is currently out of stock.`
+          : `Sorry, only ${availableStock} unit(s) of "${product.name}" are available in stock.`, "error");
+        return prevCart;
+      }
+
       if (existing) {
         showToast(`Added ${quantityToAdd}x ${product.name}${variantTag ? ` (${variantTag})` : ""} to cart`);
         return prevCart.map((item) =>
@@ -329,12 +350,12 @@ export function CartProvider({ children }) {
           item.selectedSize === product.selectedSize &&
           item.selectedPrivacySize === product.selectedPrivacySize &&
           item.selectedChannel === product.selectedChannel
-            ? { ...item, quantity: item.quantity + quantityToAdd }
+            ? { ...item, quantity: item.quantity + quantityToAdd, stock: availableStock }
             : item
         );
       }
       showToast(`Added ${quantityToAdd}x ${product.name}${variantTag ? ` (${variantTag})` : ""} to cart`);
-      return [...prevCart, { ...product, quantity: quantityToAdd }];
+      return [...prevCart, { ...product, quantity: quantityToAdd, stock: availableStock }];
     });
   };
 
@@ -409,6 +430,16 @@ export function CartProvider({ children }) {
 
           if (isMatch) {
             const nextQty = item.quantity + amount;
+            if (amount > 0) {
+              const matchedProduct = products.find(p => String(p.id) === String(item.id) || String(p._id) === String(item.id)) || item;
+              const availableStock = matchedProduct.stock !== undefined ? matchedProduct.stock : item.stock;
+              if (typeof availableStock === "number" && nextQty > availableStock) {
+                showToast(availableStock <= 0
+                  ? `Sorry, "${item.name}" is currently out of stock.`
+                  : `Sorry, only ${availableStock} unit(s) of "${item.name}" are available in stock.`, "error");
+                return item;
+              }
+            }
             return { ...item, quantity: nextQty };
           }
           return item;
@@ -448,8 +479,19 @@ export function CartProvider({ children }) {
     const foundCoupon = coupons.find((c) => c.code === cleanCode && c.active);
 
     if (!foundCoupon) {
-      showToast(`Coupon code '${cleanCode}' is invalid or expired`, "error");
+      showToast(`Coupon code '${cleanCode}' is invalid or inactive`, "error");
       return false;
+    }
+
+    // Check expiration date
+    if (foundCoupon.expiryDate) {
+      const today = new Date();
+      const expiry = new Date(foundCoupon.expiryDate);
+      expiry.setHours(23, 59, 59, 999);
+      if (today > expiry) {
+        showToast(`Coupon code '${cleanCode}' expired on ${foundCoupon.expiryDate}`, "error");
+        return false;
+      }
     }
 
     const subtotal = getSubtotal();

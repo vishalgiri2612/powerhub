@@ -2,11 +2,31 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
 import { cookies } from "next/headers";
-import { escapeRegex, sanitizeEmail, logSecurityEvent } from "@/lib/security";
+import { escapeRegex, sanitizeEmail, logSecurityEvent, comparePassword, hashPassword, verifyBotProtection } from "@/lib/security";
+import { rateLimit, getClientIp } from "@/lib/rateLimit";
+import { setSessionCookie, getSessionCookieOptions } from "@/lib/auth";
 
 export async function POST(request) {
   try {
-    const { email, password } = await request.json();
+    const clientIp = getClientIp(request);
+    const rateCheck = rateLimit(`login_${clientIp}`, 5, 60 * 1000);
+    if (!rateCheck.success) {
+      logSecurityEvent("LOGIN_RATE_LIMIT_EXCEEDED", { ip: clientIp });
+      return NextResponse.json(
+        { error: "Too many login attempts. Please wait 1 minute before trying again." },
+        { status: 429, headers: { "Retry-After": "60" } }
+      );
+    }
+
+    const body = await request.json();
+
+    // Check honeypot / bot protection
+    const botCheck = verifyBotProtection(body);
+    if (botCheck.isBot) {
+      return NextResponse.json({ error: "Invalid submission detected." }, { status: 400 });
+    }
+
+    const { email, password } = body;
 
     if (!email || !password) {
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
@@ -15,19 +35,22 @@ export async function POST(request) {
     const inputEmail = sanitizeEmail(email);
     const safeRegex = new RegExp(`^${escapeRegex(inputEmail)}$`, "i");
 
-    const isProduction = process.env.NODE_ENV === "production";
-    const forwardedProto = request.headers.get("x-forwarded-proto");
-    const isHttps = forwardedProto === "https" || request.url.startsWith("https://");
-    const secure = isProduction && isHttps;
+    const cookieOptions = getSessionCookieOptions(request);
 
-    const adminEnvEmail = sanitizeEmail(process.env.ADMIN_EMAIL || "officerequirementsgurgaon@gmail.com");
-    const adminEnvPassword = process.env.ADMIN_PASSWORD || "@Ravtron1947";
-    const adminEnvName = process.env.ADMIN_NAME || "Ravtron";
+
+    if (!process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWORD) {
+      logSecurityEvent("MISSING_ADMIN_ENV_VARS", { ip: clientIp });
+      console.error("FATAL: ADMIN_EMAIL and ADMIN_PASSWORD must be set in environment variables.");
+      return NextResponse.json({ error: "Server configuration error." }, { status: 500 });
+    }
+    const adminEnvEmail = sanitizeEmail(process.env.ADMIN_EMAIL);
+    const adminEnvPassword = process.env.ADMIN_PASSWORD;
+    const adminEnvName = process.env.ADMIN_NAME || "Administrator";
 
     let existingUser = null;
     try {
       await dbConnect();
-      existingUser = await User.findOne({ email: { $regex: safeRegex } });
+      existingUser = await User.findOne({ email: { $regex: safeRegex } }).select("+password");
     } catch (dbErr) {
       console.warn("MongoDB connection notice during login:", dbErr.message);
     }
@@ -35,9 +58,14 @@ export async function POST(request) {
     const isAdminLogin = inputEmail === adminEnvEmail || (existingUser && existingUser.role === "Administrator");
 
     if (isAdminLogin) {
-      // Validate Admin Security Password strictly against environment configuration
-      if (password !== adminEnvPassword) {
-        logSecurityEvent("ADMIN_LOGIN_FAILED", { email: inputEmail });
+      // Validate Admin Password strictly against env configuration or bcrypt hash if stored
+      let isValidAdminPass = password === adminEnvPassword;
+      if (!isValidAdminPass && existingUser && existingUser.password) {
+        isValidAdminPass = await comparePassword(password, existingUser.password);
+      }
+
+      if (!isValidAdminPass) {
+        logSecurityEvent("ADMIN_LOGIN_FAILED", { email: inputEmail, ip: clientIp });
         return NextResponse.json({ error: "Invalid administrative security credentials." }, { status: 401 });
       }
 
@@ -46,9 +74,11 @@ export async function POST(request) {
       // Auto-provision configured environment admin if missing in database
       if (!adminUser && inputEmail === adminEnvEmail) {
         try {
+          const hashedPassword = await hashPassword(adminEnvPassword);
           adminUser = await User.create({
             name: adminEnvName,
             email: adminEnvEmail,
+            password: hashedPassword,
             role: "Administrator",
             joinDate: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
             active: true
@@ -74,17 +104,9 @@ export async function POST(request) {
       };
 
       const cookieStore = await cookies();
-      cookieStore.set({
-        name: "ravtron_session",
-        value: encodeURIComponent(JSON.stringify(sessionUser)),
-        httpOnly: true,
-        secure,
-        path: "/",
-        maxAge: 345600, // 4 days
-        sameSite: "lax"
-      });
+      setSessionCookie(cookieStore, sessionUser, cookieOptions);
 
-      logSecurityEvent("ADMIN_LOGIN_SUCCESS", { email: inputEmail });
+      logSecurityEvent("ADMIN_LOGIN_SUCCESS", { email: inputEmail, ip: clientIp });
       return NextResponse.json({ success: true, user: sessionUser });
 
     } else {
@@ -92,18 +114,23 @@ export async function POST(request) {
       let clientUser = existingUser;
 
       if (!clientUser) {
-        // Auto-register new customer account
-        const defaultName = inputEmail.split("@")[0].split(".").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ") || "RAVTRON Client";
+        logSecurityEvent("CUSTOMER_LOGIN_USER_NOT_FOUND", { email: inputEmail, ip: clientIp });
+        return NextResponse.json({ error: "No account found with this email. Please create an account." }, { status: 404 });
+      }
+
+      if (clientUser.password) {
+        const isValid = await comparePassword(password, clientUser.password);
+        if (!isValid) {
+          logSecurityEvent("CUSTOMER_LOGIN_FAILED", { email: inputEmail, ip: clientIp });
+          return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
+        }
+      } else {
+        // Upgrade legacy user to bcrypt password storage on first password login
         try {
-          clientUser = await User.create({
-            name: defaultName,
-            email: inputEmail,
-            role: "Customer",
-            joinDate: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
-            active: true
-          });
+          clientUser.password = await hashPassword(password);
+          await clientUser.save();
         } catch (e) {
-          console.warn("Failed to persist customer to MongoDB during login:", e.message);
+          console.warn("Failed to update user password hash:", e.message);
         }
       }
 
@@ -124,16 +151,9 @@ export async function POST(request) {
       };
 
       const cookieStore = await cookies();
-      cookieStore.set({
-        name: "ravtron_session",
-        value: encodeURIComponent(JSON.stringify(sessionUser)),
-        httpOnly: true,
-        secure,
-        path: "/",
-        maxAge: 345600, // 4 days
-        sameSite: "lax"
-      });
+      setSessionCookie(cookieStore, sessionUser, cookieOptions);
 
+      logSecurityEvent("CUSTOMER_LOGIN_SUCCESS", { email: inputEmail, ip: clientIp });
       return NextResponse.json({ success: true, user: sessionUser });
     }
   } catch (error) {
@@ -141,3 +161,4 @@ export async function POST(request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+

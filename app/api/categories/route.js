@@ -4,6 +4,7 @@ import Category from "@/models/Category";
 import Product from "@/models/Product";
 import { verifyAdmin } from "@/lib/auth";
 import { getCachedCategories, setCachedCategories, clearCategoriesCache, clearProductsCache } from "@/lib/cache";
+import { verifyCsrfOrigin } from "@/lib/csrf";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,8 @@ export async function GET() {
 
 export async function POST(request) {
   try {
+    const csrf = verifyCsrfOrigin(request);
+    if (!csrf.ok) return csrf.response;
     if (!(await verifyAdmin())) {
       return NextResponse.json({ error: "Unauthorized access: Administrator role required" }, { status: 403 });
     }
@@ -53,6 +56,8 @@ export async function POST(request) {
 
 export async function DELETE(request) {
   try {
+    const csrf = verifyCsrfOrigin(request);
+    if (!csrf.ok) return csrf.response;
     if (!(await verifyAdmin())) {
       return NextResponse.json({ error: "Unauthorized access: Administrator role required" }, { status: 403 });
     }
@@ -80,6 +85,8 @@ export async function DELETE(request) {
 
 export async function PUT(request) {
   try {
+    const csrf = verifyCsrfOrigin(request);
+    if (!csrf.ok) return csrf.response;
     if (!(await verifyAdmin())) {
       return NextResponse.json({ error: "Unauthorized access: Administrator role required" }, { status: 403 });
     }

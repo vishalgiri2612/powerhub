@@ -4,9 +4,12 @@ import Order from "@/models/Order";
 import { verifyAdmin, verifyUser } from "@/lib/auth";
 import { clearOrdersCache } from "@/lib/cache";
 import { sendReturnStatusEmail, sendShipmentNotificationEmail } from "@/lib/email";
+import { verifyCsrfOrigin } from "@/lib/csrf";
 
 export async function PUT(request, { params }) {
   try {
+    const csrf = verifyCsrfOrigin(request);
+    if (!csrf.ok) return csrf.response;
     if (!(await verifyAdmin())) {
       return NextResponse.json({ error: "Unauthorized access: Administrator role required" }, { status: 403 });
     }
@@ -14,10 +17,27 @@ export async function PUT(request, { params }) {
     const { id } = await params;
     const body = await request.json();
 
-    const updatedOrder = await Order.findOneAndUpdate({ id }, body, {
-      new: true,
-      runValidators: true
-    });
+    // SEC-008: Strict field whitelist — prevents mass assignment on sensitive fields
+    // Fields like total, items, customerEmail, customerName, id are NEVER overwritable after checkout.
+    const allowedUpdates = {};
+
+    if (body.status !== undefined)           allowedUpdates.status = body.status;
+    if (body.statusColor !== undefined)      allowedUpdates.statusColor = body.statusColor;
+    if (body.trackingSteps !== undefined)    allowedUpdates.trackingSteps = body.trackingSteps;
+    if (body.trackingId !== undefined)       allowedUpdates.trackingId = body.trackingId;
+    if (body.courier !== undefined)          allowedUpdates.courier = body.courier;
+    if (body.returnRequest !== undefined)    allowedUpdates.returnRequest = body.returnRequest;
+    if (body.adminNote !== undefined)        allowedUpdates.adminNote = body.adminNote;
+
+    if (Object.keys(allowedUpdates).length === 0) {
+      return NextResponse.json({ error: "No valid fields provided for update." }, { status: 400 });
+    }
+
+    const updatedOrder = await Order.findOneAndUpdate(
+      { id },
+      { $set: allowedUpdates },
+      { new: true, runValidators: true }
+    );
 
     if (!updatedOrder) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });

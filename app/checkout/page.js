@@ -361,7 +361,11 @@ export default function CheckoutPage() {
 
   // Form Input Helpers
   const handleContactChange = (e) => {
-    setContactForm({ ...contactForm, [e.target.name]: e.target.value });
+    let val = e.target.value;
+    if (e.target.name === "phone") {
+      val = val.replace(/\D/g, "").slice(0, 10);
+    }
+    setContactForm({ ...contactForm, [e.target.name]: val });
   };
 
   const handleShippingChange = (e) => {
@@ -410,6 +414,22 @@ export default function CheckoutPage() {
     if (cart.length === 0) {
       showToast("Your cart is empty. Add products to proceed.", "error");
       return;
+    }
+
+    // Check for out of stock items in cart before starting processing
+    for (const item of cart) {
+      const p = (Array.isArray(products) ? products.find(prod => String(prod.id) === String(item.id) || String(prod._id) === String(item.id)) : null) || item;
+      const stockVal = p.stock !== undefined ? p.stock : item.stock;
+      if (typeof stockVal === "number") {
+        if (stockVal <= 0) {
+          showToast(`Sorry, "${item.name}" is currently out of stock. Please remove it from your bag to proceed.`, "error");
+          return;
+        }
+        if (item.quantity > stockVal) {
+          showToast(`Sorry, only ${stockVal} unit(s) of "${item.name}" are available in stock.`, "error");
+          return;
+        }
+      }
     }
 
     // Double check all step validations
@@ -497,9 +517,12 @@ export default function CheckoutPage() {
       },
       body: JSON.stringify(newOrder)
     })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to save order to database");
-        return res.json();
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || "Failed to save order to database");
+        }
+        return data;
       })
       .then((data) => {
         setCreatedOrder(newOrder);
@@ -509,7 +532,8 @@ export default function CheckoutPage() {
       })
       .catch((err) => {
         console.error("Order database error:", err);
-        showToast("Failed to secure order details in database", "error");
+        setPaymentResult("failure");
+        showToast(err.message || "Failed to secure order details in database", "error");
       });
   };
 
@@ -713,7 +737,10 @@ export default function CheckoutPage() {
                             type="tel"
                             required
                             name="phone"
-                            placeholder="10-digit number"
+                            maxLength={10}
+                            inputMode="numeric"
+                            pattern="[0-9]{10}"
+                            placeholder="10-digit mobile number"
                             className="w-full bg-[#F8F9FA] border border-[#1E293B]/10 rounded-xl pl-11 pr-4 py-3.5 text-xs font-semibold text-[#1E293B] placeholder-slate-400 outline-none focus:bg-white focus:border-[#3674B5] transition-all"
                             value={contactForm.phone}
                             onChange={handleContactChange}
@@ -935,10 +962,13 @@ export default function CheckoutPage() {
                             <input
                               type="tel"
                               required
-                              placeholder="10-digit Mobile Number"
+                              maxLength={10}
+                              inputMode="numeric"
+                              pattern="[0-9]{10}"
+                              placeholder="10-digit mobile number"
                               className="w-full bg-white border border-[#1E293B]/10 rounded-xl px-4 py-3 text-xs font-semibold text-[#1E293B] outline-none focus:border-[#3674B5]"
                               value={newAddressForm.phone}
-                              onChange={(e) => setNewAddressForm({ ...newAddressForm, phone: e.target.value })}
+                              onChange={(e) => setNewAddressForm({ ...newAddressForm, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })}
                             />
                           </div>
                         </div>

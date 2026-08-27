@@ -4,8 +4,12 @@ import User from "@/models/User";
 import { cookies } from "next/headers";
 import { OAuth2Client } from "google-auth-library";
 import { escapeRegex, sanitizeEmail, logSecurityEvent, isAllowedDomain } from "@/lib/security";
+import { setSessionCookie, getSessionCookieOptions } from "@/lib/auth";
 
-const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "538059283255-qc41jgp3n3287bgmcs16efjgdt2fcb1s.apps.googleusercontent.com";
+const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+if (!googleClientId) {
+  console.error("FATAL: NEXT_PUBLIC_GOOGLE_CLIENT_ID is not set in environment variables.");
+}
 const client = new OAuth2Client(googleClientId);
 
 export async function POST(request) {
@@ -83,8 +87,9 @@ export async function POST(request) {
     const inputEmail = sanitizeEmail(email);
     const safeRegex = new RegExp(`^${escapeRegex(inputEmail)}$`, "i");
 
-    const adminEnvEmail = sanitizeEmail(process.env.ADMIN_EMAIL || "ravtron@admin.com");
-    const adminEnvName = process.env.ADMIN_NAME || "Visha Rawat";
+    // SEC-011: No hardcoded fallback credentials — must be set via environment variables
+    const adminEnvEmail = process.env.ADMIN_EMAIL ? sanitizeEmail(process.env.ADMIN_EMAIL) : null;
+    const adminEnvName = process.env.ADMIN_NAME || "Administrator";
 
     // Search for existing user in MongoDB
     let existingUser = await User.findOne({ email: { $regex: safeRegex } });
@@ -117,18 +122,8 @@ export async function POST(request) {
       isLoggedIn: true
     };
 
-    const isProduction = process.env.NODE_ENV === "production";
-
     const cookieStore = await cookies();
-    cookieStore.set({
-      name: "ravtron_session",
-      value: encodeURIComponent(JSON.stringify(sessionUser)),
-      httpOnly: true,
-      secure: isProduction,
-      path: "/",
-      maxAge: 345600, // 4 days
-      sameSite: "lax"
-    });
+    setSessionCookie(cookieStore, sessionUser, getSessionCookieOptions(request));
 
     logSecurityEvent("GOOGLE_AUTH_SUCCESS", { email: inputEmail, role: existingUser.role });
     return NextResponse.json({ success: true, user: sessionUser });

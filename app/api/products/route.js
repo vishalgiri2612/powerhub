@@ -3,6 +3,7 @@ import dbConnect from "@/lib/dbConnect";
 import Product from "@/models/Product";
 import { verifyAdmin } from "@/lib/auth";
 import { getCachedProducts, setCachedProducts, clearProductsCache } from "@/lib/cache";
+import { verifyCsrfOrigin } from "@/lib/csrf";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +46,8 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
+    const csrf = verifyCsrfOrigin(request);
+    if (!csrf.ok) return csrf.response;
     if (!(await verifyAdmin())) {
       return NextResponse.json({ error: "Unauthorized access: Administrator role required" }, { status: 403 });
     }
