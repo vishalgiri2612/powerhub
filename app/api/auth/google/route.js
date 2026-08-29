@@ -6,11 +6,10 @@ import { OAuth2Client } from "google-auth-library";
 import { escapeRegex, sanitizeEmail, logSecurityEvent, isAllowedDomain } from "@/lib/security";
 import { setSessionCookie, getSessionCookieOptions } from "@/lib/auth";
 
-const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-if (!googleClientId) {
-  console.error("FATAL: NEXT_PUBLIC_GOOGLE_CLIENT_ID is not set in environment variables.");
+function getGoogleOAuthClient() {
+  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || process.env.PUBLIC_GOOGLE_CLIENT_ID || "dummy-client-id";
+  return new OAuth2Client(clientId);
 }
-const client = new OAuth2Client(googleClientId);
 
 export async function POST(request) {
   try {
@@ -21,6 +20,9 @@ export async function POST(request) {
     let email = "";
     let name = "";
     let picture = "";
+
+    const client = getGoogleOAuthClient();
+    const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || process.env.PUBLIC_GOOGLE_CLIENT_ID;
 
     if (credential) {
       // Verify Google ID Token

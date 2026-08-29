@@ -7,11 +7,12 @@ import Order from "@/models/Order";
 import { verifyUser } from "@/lib/auth";
 import { calculateVerifiedCouponDiscount } from "@/lib/couponSecurity";
 
-// Initialise the Razorpay instance with server-side credentials
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+// Helper to safely initialize Razorpay without crashing build evaluation
+function getRazorpayInstance() {
+  const key_id = process.env.RAZORPAY_KEY_ID || "rzp_test_placeholder";
+  const key_secret = process.env.RAZORPAY_KEY_SECRET || "placeholder_secret";
+  return new Razorpay({ key_id, key_secret });
+}
 
 export async function POST(request) {
   try {
@@ -100,6 +101,19 @@ export async function POST(request) {
     // Razorpay accepts amount in the SMALLEST currency unit (paise for INR)
     const amountInPaise = Math.round(verifiedTotal * 100);
 
+    // Check if Razorpay keys are configured before attempting order creation
+    if (
+      !process.env.RAZORPAY_KEY_ID ||
+      !process.env.RAZORPAY_KEY_SECRET ||
+      process.env.RAZORPAY_KEY_ID.includes("REPLACE")
+    ) {
+      return NextResponse.json(
+        { error: "Razorpay API keys are not configured in environment variables." },
+        { status: 500 }
+      );
+    }
+
+    const razorpay = getRazorpayInstance();
     const razorpayOrder = await razorpay.orders.create({
       amount: amountInPaise,
       currency,
