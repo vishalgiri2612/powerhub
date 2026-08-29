@@ -5,6 +5,9 @@ import Product from "@/models/Product";
 import { verifyAdmin, verifyUser } from "@/lib/auth";
 import { getCachedOrders, setCachedOrders, clearOrdersCache } from "@/lib/cache";
 import { sendOrderConfirmationEmail, sendNewOrderAdminAlert } from "@/lib/email";
+import { rateLimit, getClientIp } from "@/lib/rateLimit";
+import Coupon from "@/models/Coupon";
+import { calculateVerifiedCouponDiscount } from "@/lib/couponSecurity";
 
 export async function GET(request) {
   try {
@@ -39,6 +42,16 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
+    // Rate limit: max 10 COD orders per IP per 10 minutes — prevents inventory drain attacks
+    const clientIp = getClientIp(request);
+    const rateLimitCheck = rateLimit(`cod_order_${clientIp}`, 10, 10 * 60 * 1000);
+    if (!rateLimitCheck.success) {
+      return NextResponse.json(
+        { error: "Too many orders placed. Please wait a few minutes before trying again." },
+        { status: 429, headers: { "Retry-After": "600" } }
+      );
+    }
+
     const body = await request.json();
     if (!body.customerEmail || !(await verifyUser(body.customerEmail))) {
       return NextResponse.json({ error: "Unauthorized: Invalid session or missing email" }, { status: 403 });
@@ -97,8 +110,14 @@ export async function POST(request) {
       });
     }
 
-    // 2. Validate Coupon and Savings
-    let verifiedSavings = 0;
+    // 2. Server-side coupon validation & savings calculation (100% secure)
+    const { verifiedSavings, couponCode } = await calculateVerifiedCouponDiscount({
+      couponCodeInput: body.coupon,
+      customerEmail: body.customerEmail,
+      validatedItems,
+      subtotal
+    });
+    body.coupon = couponCode;
 
     // 3. Recalculate shipping delivery charge
     // Delivery: standard (free if subtotal > 999, else 99) or express (199)

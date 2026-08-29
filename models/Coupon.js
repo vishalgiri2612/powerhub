@@ -13,6 +13,7 @@ const CouponSchema = new mongoose.Schema(
     applicableProductName: { type: String, default: "" },
     badgeType: { type: String, default: "Festive Offer" },
     expiryDate: { type: String, default: "" },
+    oneTimePerUser: { type: Boolean, default: true },
     active: { type: Boolean, default: true }
   },
   { timestamps: true }

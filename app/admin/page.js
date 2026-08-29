@@ -148,6 +148,7 @@ export default function AdminPanelPage() {
     applicableCategory: "All",
     badgeType: "Festive Offer",
     expiryDate: "",
+    oneTimePerUser: true,
     active: true
   });
 
@@ -167,6 +168,7 @@ export default function AdminPanelPage() {
         applicableProductName: couponToEdit.applicableProductName || "",
         badgeType: couponToEdit.badgeType || "Festive Offer",
         expiryDate: couponToEdit.expiryDate || "",
+        oneTimePerUser: couponToEdit.oneTimePerUser !== undefined ? couponToEdit.oneTimePerUser : true,
         active: couponToEdit.active !== undefined ? couponToEdit.active : true
       });
     } else {
@@ -183,6 +185,7 @@ export default function AdminPanelPage() {
         applicableProductName: "",
         badgeType: "Festive Offer",
         expiryDate: "",
+        oneTimePerUser: true,
         active: true
       });
     }
@@ -455,7 +458,8 @@ export default function AdminPanelPage() {
     }
   };
 
-  const defaultAdminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "officerequirementsgurgaon@gmail.com";
+  // Admin email is NOT pre-filled — admin must enter it manually (security: never expose admin email in JS bundle)
+  const defaultAdminEmail = "";
 
   useEffect(() => {
     const checkAdminAuth = async () => {
@@ -3454,6 +3458,19 @@ export default function AdminPanelPage() {
                     ? `Coupon will automatically expire at 11:59 PM on ${couponForm.expiryDate}.`
                     : "Leave empty for a permanent (never-expiring) promotional coupon."}
                 </span>
+              </div>
+
+              {/* Single Use Per Customer Switch */}
+              <div className="pt-1">
+                <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 rounded border-slate-200 text-[#3674B5]"
+                    checked={couponForm.oneTimePerUser}
+                    onChange={(e) => setCouponForm({ ...couponForm, oneTimePerUser: e.target.checked })}
+                  />
+                  <span>Limit to 1-time use per customer (automatically hidden once used)</span>
+                </label>
               </div>
 
               {/* Active Switch */}

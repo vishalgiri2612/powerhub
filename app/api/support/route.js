@@ -44,7 +44,7 @@ export async function POST(request) {
     // SEC-014: Escape all user-supplied fields to prevent HTML injection in admin alert email
     const esc = (s) => s == null ? "" : String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#x27;");
 
-    const adminEmail = process.env.ADMIN_EMAIL || process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+    const adminEmail = process.env.ADMIN_EMAIL || "officerequirementsgurgaon@gmail.com";
     if (adminEmail) {
       sendEmail({
         to: adminEmail,

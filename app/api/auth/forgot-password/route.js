@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
 import OTP from "@/models/OTP";
-import { escapeRegex, sanitizeEmail, logSecurityEvent, verifyBotProtection } from "@/lib/security";
+import { escapeRegex, sanitizeEmail, hashPassword, logSecurityEvent, verifyBotProtection } from "@/lib/security";
 import { rateLimit, getClientIp } from "@/lib/rateLimit";
 import { sendPasswordResetOTPEmail } from "@/lib/email";
 
@@ -64,13 +64,14 @@ export async function POST(request) {
 
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const hashedOtp = await hashPassword(otp); // SECURITY: store bcrypt hash, not plain OTP
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
 
     // Clear old reset OTPs for this email and store new one
     await OTP.deleteMany({ email: cleanEmail, type: "reset" });
     await OTP.create({
       email: cleanEmail,
-      otp,
+      otp: hashedOtp, // bcrypt hash of OTP
       name: userName,
       type: "reset",
       expiresAt

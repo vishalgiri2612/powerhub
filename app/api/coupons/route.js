@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Coupon from "@/models/Coupon";
+import Order from "@/models/Order";
 import { getCachedCoupons, setCachedCoupons, clearCouponsCache } from "@/lib/cache";
-import { verifyAdmin } from "@/lib/auth";
+import { verifyAdmin, getSession } from "@/lib/auth";
 import { verifyCsrfOrigin } from "@/lib/csrf";
+import { escapeRegex } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
@@ -43,12 +45,14 @@ const DEFAULT_COUPONS = [
   }
 ];
 
-export async function GET() {
+export async function GET(request) {
   try {
-    const cached = getCachedCoupons();
-    if (cached) {
-      return NextResponse.json(cached);
-    }
+    const { searchParams } = new URL(request.url || "http://localhost");
+    const paramEmail = searchParams.get("email");
+    const forAdmin = searchParams.get("forAdmin") === "true";
+
+    const session = await getSession();
+    const userEmail = paramEmail || (session?.isLoggedIn ? session.email : null);
 
     await dbConnect();
     let coupons = await Coupon.find({}).sort({ createdAt: -1 }).lean();
@@ -57,7 +61,33 @@ export async function GET() {
       coupons = await Coupon.insertMany(DEFAULT_COUPONS);
     }
 
-    setCachedCoupons(coupons);
+    // Cache overall coupon list for admin / general queries
+    if (!userEmail && !forAdmin) {
+      setCachedCoupons(coupons);
+    }
+
+    // If user is authenticated / email provided, hide coupons they have already used
+    if (userEmail && !forAdmin) {
+      const userOrders = await Order.find({
+        customerEmail: new RegExp(`^${escapeRegex(userEmail.trim())}$`, "i"),
+        status: { $ne: "Cancelled" }
+      }).select("coupon").lean();
+
+      const usedCodes = new Set(
+        userOrders
+          .map((o) => (o.coupon ? o.coupon.trim().toUpperCase() : null))
+          .filter(Boolean)
+      );
+
+      coupons = coupons.filter((c) => {
+        const isOneTime = c.oneTimePerUser !== false; // Default true
+        if (isOneTime && usedCodes.has(c.code.toUpperCase())) {
+          return false; // HIDE coupon from this user because they already used it!
+        }
+        return true;
+      });
+    }
+
     return NextResponse.json(coupons);
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -73,7 +103,7 @@ export async function POST(request) {
     }
     await dbConnect();
     const body = await request.json();
-    const { id, code, title, description, type, discountValue, minPurchase, applicableCategory, applicableProductId, applicableProductName, badgeType, expiryDate, active } = body;
+    const { id, code, title, description, type, discountValue, minPurchase, applicableCategory, applicableProductId, applicableProductName, badgeType, expiryDate, oneTimePerUser, active } = body;
 
     if (!code || !title || discountValue === undefined) {
       return NextResponse.json({ error: "Coupon code, title, and discount value are required" }, { status: 400 });
@@ -97,6 +127,7 @@ export async function POST(request) {
           applicableProductName: applicableProductName || "",
           badgeType: badgeType || "Festive Offer",
           expiryDate: expiryDate || "",
+          oneTimePerUser: oneTimePerUser !== undefined ? oneTimePerUser : true,
           active: active !== undefined ? active : true
         },
         { new: true }
@@ -122,6 +153,7 @@ export async function POST(request) {
         applicableProductName: applicableProductName || "",
         badgeType: badgeType || "Festive Offer",
         expiryDate: expiryDate || "",
+        oneTimePerUser: oneTimePerUser !== undefined ? oneTimePerUser : true,
         active: active !== undefined ? active : true
       });
       clearCouponsCache();

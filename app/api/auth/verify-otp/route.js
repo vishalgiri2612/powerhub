@@ -3,7 +3,7 @@ import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
 import OTP from "@/models/OTP";
 import { cookies } from "next/headers";
-import { sanitizeEmail, logSecurityEvent } from "@/lib/security";
+import { sanitizeEmail, logSecurityEvent, comparePassword } from "@/lib/security";
 import { rateLimit, getClientIp } from "@/lib/rateLimit";
 import { setSessionCookie, getSessionCookieOptions } from "@/lib/auth";
 
@@ -50,8 +50,9 @@ export async function POST(request) {
       );
     }
 
-    // Verify OTP matching
-    if (otpRecord.otp !== cleanOtp) {
+    // Verify OTP — compare against bcrypt hash stored in DB
+    const isOtpValid = await comparePassword(cleanOtp, otpRecord.otp);
+    if (!isOtpValid) {
       logSecurityEvent("OTP_MISMATCH", { email: cleanEmail, ip: clientIp });
       return NextResponse.json(
         { error: "Invalid verification code. Please check your email and try again." },

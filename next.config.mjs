@@ -15,8 +15,8 @@ const ContentSecurityPolicy = [
   // Default: only self
   "default-src 'self'",
 
-  // Scripts: self + Next.js inline hydration + Google OAuth
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://accounts.google.com https://apis.google.com`,
+  // Scripts: self + Next.js inline hydration + Google OAuth + Razorpay checkout
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://accounts.google.com https://apis.google.com https://checkout.razorpay.com`,
 
   // Styles: self + inline (Tailwind/CSS-in-JS) + Google Fonts
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
@@ -27,11 +27,11 @@ const ContentSecurityPolicy = [
   // Images: self + data URIs + blob + Cloudinary + Google avatars
   "img-src 'self' data: blob: https://res.cloudinary.com https://lh3.googleusercontent.com https://lh4.googleusercontent.com https://lh5.googleusercontent.com https://lh6.googleusercontent.com",
 
-  // XHR/Fetch: self + Google OAuth token endpoints
-  "connect-src 'self' https://accounts.google.com https://oauth2.googleapis.com https://www.googleapis.com",
+  // XHR/Fetch: self + Google OAuth token endpoints + Razorpay API
+  "connect-src 'self' https://accounts.google.com https://oauth2.googleapis.com https://www.googleapis.com https://api.razorpay.com https://lumberjack.razorpay.com",
 
-  // Frames: only Google OAuth popup
-  "frame-src https://accounts.google.com",
+  // Frames: Google OAuth popup + Razorpay checkout iframe
+  "frame-src https://accounts.google.com https://api.razorpay.com https://checkout.razorpay.com",
 
   // Block all plugins (Flash etc.)
   "object-src 'none'",

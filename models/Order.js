@@ -36,6 +36,22 @@ const OrderSchema = new mongoose.Schema(
     customerEmail: { type: String, required: true },
     customerPhone: { type: String, default: "" },
     paymentMethod: { type: String, default: "CARD" },
+    // Razorpay real payment tracking fields
+    razorpayOrderId: { type: String, default: null },
+    razorpayPaymentId: { type: String, default: null },
+    paymentStatus: {
+      type: String,
+      default: "pending",
+      enum: ["pending", "paid", "failed", "cod"]
+    },
+    // Full shipping address stored on order (not just in localStorage)
+    shippingAddress: {
+      street: { type: String, default: "" },
+      city: { type: String, default: "" },
+      state: { type: String, default: "" },
+      zip: { type: String, default: "" },
+      country: { type: String, default: "India" }
+    },
     items: { type: [OrderItemSchema], default: [] },
     trackingSteps: { type: [TrackingStepSchema], default: [] },
     returnRequest: { type: ReturnRequestSchema, default: null }

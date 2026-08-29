@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
 import OTP from "@/models/OTP";
-import { escapeRegex, sanitizeEmail, hashPassword, logSecurityEvent } from "@/lib/security";
+import { escapeRegex, sanitizeEmail, hashPassword, comparePassword, logSecurityEvent } from "@/lib/security";
 import { rateLimit, getClientIp } from "@/lib/rateLimit";
 
 export async function POST(request) {
@@ -51,7 +51,9 @@ export async function POST(request) {
       );
     }
 
-    if (otpRecord.otp !== cleanOtp) {
+    // Verify OTP — compare input against bcrypt hash stored in DB
+    const isOtpValid = await comparePassword(cleanOtp, otpRecord.otp);
+    if (!isOtpValid) {
       logSecurityEvent("RESET_OTP_MISMATCH", { email: cleanEmail, ip: clientIp });
       return NextResponse.json(
         { error: "Invalid verification code. Please check your email and try again." },

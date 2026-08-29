@@ -88,11 +88,11 @@ export default function CheckoutPage() {
   // Net Banking State
   const [selectedBank, setSelectedBank] = useState("sbi");
 
-  // Payment Processing Simulation
+  // Real payment state
   const [isProcessing, setIsProcessing] = useState(false);
-  const [processingStep, setProcessingStep] = useState(0);
-  const [paymentResult, setPaymentResult] = useState(null); // null, "success", "failure"
+  const [paymentResult, setPaymentResult] = useState(null); // null | "success" | "failure"
   const [createdOrder, setCreatedOrder] = useState(null);
+  const [paymentError, setPaymentError] = useState("");
 
   // Address selection helper
   const handleSelectSavedAddress = (addr) => {
@@ -399,86 +399,28 @@ export default function CheckoutPage() {
   const taxAmount = Math.round(taxableAmount * 0.18); // 18% GST
   const grandTotal = taxableAmount + deliveryCharge + taxAmount;
 
-  // Simulated gateway messages sequence
-  const processingMessages = [
-    "Securing 256-bit encrypted gateway tunnel...",
-    "Authenticating transaction token credentials...",
-    "Awaiting secure authorization from bank...",
-    "Finalizing processing approvals..."
-  ];
-
-  // Start Payment Processing Modal
-  const handleFinalSubmit = (e) => {
-    e.preventDefault();
-
-    if (cart.length === 0) {
-      showToast("Your cart is empty. Add products to proceed.", "error");
-      return;
-    }
-
-    // Check for out of stock items in cart before starting processing
-    for (const item of cart) {
-      const p = (Array.isArray(products) ? products.find(prod => String(prod.id) === String(item.id) || String(prod._id) === String(item.id)) : null) || item;
-      const stockVal = p.stock !== undefined ? p.stock : item.stock;
-      if (typeof stockVal === "number") {
-        if (stockVal <= 0) {
-          showToast(`Sorry, "${item.name}" is currently out of stock. Please remove it from your bag to proceed.`, "error");
-          return;
-        }
-        if (item.quantity > stockVal) {
-          showToast(`Sorry, only ${stockVal} unit(s) of "${item.name}" are available in stock.`, "error");
-          return;
-        }
-      }
-    }
-
-    // Double check all step validations
-    if (!validateStep1()) {
-      setCurrentStep(1);
-      return;
-    }
-    if (!validateStep2()) {
-      setCurrentStep(2);
-      return;
-    }
-
-    if (paymentMethod === "card") {
-      if (!cardForm.number || !cardForm.name || !cardForm.expiry || !cardForm.cvv) {
-        showToast("Please fill out all card fields.", "error");
+  // ─── Load Razorpay checkout.js SDK dynamically ──────────────────────────
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]')) {
+        resolve(true);
         return;
       }
-    } else if (paymentMethod === "upi") {
-      if (!upiId.includes("@")) {
-        showToast("Please enter a valid UPI ID (e.g. username@upi).", "error");
-        return;
-      }
-    }
-
-    // Trigger loader
-    setIsProcessing(true);
-    setProcessingStep(0);
-    setPaymentResult(null);
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
   };
 
-  // Cycle through simulation processing steps
-  useEffect(() => {
-    if (!isProcessing || paymentResult !== null) return;
+  // ─── COD: submit order directly without Razorpay ─────────────────────────
+  const handleCODOrder = async () => {
+    setIsProcessing(true);
+    setPaymentError("");
 
-    if (processingStep < processingMessages.length - 1) {
-      const timer = setTimeout(() => {
-        setProcessingStep(prev => prev + 1);
-      }, 1200);
-      return () => clearTimeout(timer);
-    }
-  }, [isProcessing, processingStep, paymentResult]);
-
-  const simulatePaymentSuccess = () => {
     const orderId = "RVT-" + Math.floor(10000 + Math.random() * 90000) + "-IN";
-
-    // Save address locally to pre-populate next checkouts
-    localStorage.setItem("ravtron_address", JSON.stringify(shippingForm));
-
-    const newOrder = {
+    const orderPayload = {
       id: orderId,
       date: new Date().toLocaleDateString("en-US", { month: "long", day: "2-digit", year: "numeric" }),
       status: "Order Placed",
@@ -490,12 +432,13 @@ export default function CheckoutPage() {
       customerEmail: contactForm.email,
       customerPhone: contactForm.phone,
       shippingAddress: shippingForm,
-      deliveryPref: deliveryPref,
-      paymentMethod: paymentMethod.toUpperCase(),
+      deliveryPref,
+      paymentMethod: "COD",
+      paymentStatus: "cod",
       items: cart.map(item => ({
         productId: item.id,
         selectedSize: item.selectedSize || null,
-        name: item.selectedSize ? `${item.name} (${item.selectedSize})` : item.name,
+        name: item.name,
         image: item.image,
         price: item.price,
         qty: item.quantity
@@ -509,50 +452,200 @@ export default function CheckoutPage() {
       ]
     };
 
-    // POST order to MongoDB API
-    fetch("/api/orders", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(newOrder)
-    })
-      .then(async (res) => {
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error || "Failed to save order to database");
-        }
-        return data;
-      })
-      .then((data) => {
-        setCreatedOrder(newOrder);
-        setPaymentResult("success");
-        clearCart();
-        showToast("Payment Successful! Order Confirmed.", "success");
-      })
-      .catch((err) => {
-        console.error("Order database error:", err);
-        setPaymentResult("failure");
-        showToast(err.message || "Failed to secure order details in database", "error");
+    try {
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderPayload)
       });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to place COD order");
+      localStorage.setItem("ravtron_address", JSON.stringify(shippingForm));
+      setCreatedOrder(data);
+      setPaymentResult("success");
+      clearCart();
+      showToast("Order placed successfully! Pay on delivery.", "success");
+    } catch (err) {
+      console.error("[COD] Order error:", err);
+      setPaymentError(err.message || "Failed to place order. Please try again.");
+      setPaymentResult("failure");
+      showToast(err.message || "Failed to place order", "error");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-  const simulatePaymentFailure = () => {
-    setPaymentResult("failure");
-    showToast("Payment Failed. Please verify credentials.", "error");
+  // ─── Razorpay: open popup and handle real payment ─────────────────────────
+  const handleRazorpayPayment = async () => {
+    setIsProcessing(true);
+    setPaymentError("");
+
+    // 1. Dynamically load Razorpay SDK
+    const loaded = await loadRazorpayScript();
+    if (!loaded) {
+      setIsProcessing(false);
+      showToast("Failed to load payment gateway. Check your internet connection.", "error");
+      return;
+    }
+
+    try {
+      // 2. Create a Razorpay order on the server
+      const createRes = await fetch("/api/payment/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          // Send items so the server can recalculate the true amount from DB prices
+          items: cart.map(item => ({
+            productId: item.id,
+            selectedSize: item.selectedSize || null,
+            qty: item.quantity
+          })),
+          deliveryPref,
+          currency: "INR",
+          customerEmail: contactForm.email,
+          notes: {
+            customerName: contactForm.name,
+            customerPhone: contactForm.phone
+          }
+        })
+      });
+
+      const createData = await createRes.json();
+      if (!createRes.ok) throw new Error(createData.error || "Could not initiate payment");
+
+      const { razorpay_order_id, amount, currency, key_id } = createData;
+
+      // 3. Open Razorpay checkout popup
+      const razorpayOptions = {
+        key: key_id || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount,
+        currency,
+        name: "RAVTRON®",
+        description: `Order of ${cart.length} item(s)`,
+        image: "/logo-192.png", // Brand logo shown inside the Razorpay popup
+        order_id: razorpay_order_id,
+        theme: { color: "#3674B5" }, // RAVTRON brand blue
+        prefill: {
+          name: contactForm.name,
+          email: contactForm.email,
+          contact: contactForm.phone
+        },
+        // Which payment methods to show
+        config: {
+          display: {
+            blocks: {
+              utib: { name: "Pay via UPI", instruments: [{ method: "upi" }] },
+              other: { name: "Other Payment Modes", instruments: [{ method: "card" }, { method: "netbanking" }, { method: "wallet" }] }
+            },
+            sequence: ["block.utib", "block.other"],
+            preferences: { show_default_blocks: false }
+          }
+        },
+        // ── Success handler ────────────────────────────────────────────────
+        handler: async (response) => {
+          const { razorpay_payment_id, razorpay_order_id: rpOrderId, razorpay_signature } = response;
+
+          try {
+            const verifyRes = await fetch("/api/payment/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_order_id: rpOrderId,
+                razorpay_payment_id,
+                razorpay_signature,
+                orderData: {
+                  customerName: contactForm.name,
+                  customerEmail: contactForm.email,
+                  customerPhone: contactForm.phone,
+                  shippingAddress: shippingForm,
+                  deliveryPref,
+                  paymentMethod: paymentMethod.toUpperCase(),
+                  coupon: coupon || "",
+                  items: cart.map(item => ({
+                    productId: item.id,
+                    selectedSize: item.selectedSize || null,
+                    name: item.name,
+                    image: item.image,
+                    price: item.price,
+                    qty: item.quantity
+                  }))
+                }
+              })
+            });
+
+            const verifyData = await verifyRes.json();
+            if (!verifyRes.ok) throw new Error(verifyData.error || "Payment verification failed");
+
+            localStorage.setItem("ravtron_address", JSON.stringify(shippingForm));
+            setCreatedOrder(verifyData.order);
+            setPaymentResult("success");
+            clearCart();
+            showToast("Payment Successful! Order Confirmed.", "success");
+          } catch (verifyErr) {
+            console.error("[PAYMENT] Verify error:", verifyErr);
+            setPaymentError(verifyErr.message || "Payment captured but order confirmation failed. Contact support.");
+            setPaymentResult("failure");
+            showToast(verifyErr.message || "Order confirmation failed", "error");
+          } finally {
+            setIsProcessing(false);
+          }
+        },
+        // ── Modal dismissed / payment cancelled ────────────────────────────
+        modal: {
+          ondismiss: () => {
+            setIsProcessing(false);
+            showToast("Payment cancelled. You can try again.", "info");
+          }
+        }
+      };
+
+      // Open the Razorpay checkout window
+      const rzp = new window.Razorpay(razorpayOptions);
+
+      rzp.on("payment.failed", (response) => {
+        console.error("[RAZORPAY] Payment failed:", response.error);
+        setIsProcessing(false);
+        setPaymentError(response.error?.description || "Payment failed. Please try again.");
+        setPaymentResult("failure");
+        showToast(response.error?.description || "Payment failed", "error");
+      });
+
+      rzp.open();
+    } catch (err) {
+      console.error("[PAYMENT] Gateway error:", err);
+      setIsProcessing(false);
+      setPaymentError(err.message || "Payment initiation failed. Please try again.");
+      showToast(err.message || "Payment failed to initiate", "error");
+    }
   };
 
-  const cancelPayment = () => {
-    setIsProcessing(false);
-    setPaymentResult(null);
-    setProcessingStep(0);
-    showToast("Transaction cancelled by user.", "info");
+  // ─── Main submit handler ──────────────────────────────────────────────────
+  const handleFinalSubmit = (e) => {
+    e.preventDefault();
+
+    if (cart.length === 0) {
+      showToast("Your cart is empty. Add products to proceed.", "error");
+      return;
+    }
+
+    if (!validateStep1()) { setCurrentStep(1); return; }
+    if (!validateStep2()) { setCurrentStep(2); return; }
+
+    if (paymentMethod === "upi") {
+      // Note: UPI is handled inside the Razorpay popup — no pre-validation needed here
+    }
+
+    if (paymentMethod === "cod") {
+      handleCODOrder();
+    } else {
+      handleRazorpayPayment();
+    }
   };
 
   const resetFailureState = () => {
     setPaymentResult(null);
     setIsProcessing(false);
-    setProcessingStep(0);
+    setPaymentError("");
   };
 
   if (!currentUser) {
@@ -1113,114 +1206,30 @@ export default function CheckoutPage() {
                       ))}
                     </div>
 
-                    {/* Conditional Fields */}
+                    {/* Conditional Info Panels — actual entry happens inside Razorpay popup */}
                     <div className="pt-2 animate-fade-in-up">
-                      {paymentMethod === "card" && (
-                        <div className="space-y-4 max-w-md text-left">
-                          <div className="space-y-1.5">
-                            <label className="block text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Card Number</label>
-                            <div className="relative">
-                              <CreditCard className="absolute left-4 top-3.5 w-4 h-4 text-[#1E293B]/30" />
-                              <input
-                                type="text"
-                                name="number"
-                                placeholder="0000 0000 0000 0000"
-                                className="w-full bg-[#F8F9FA] border border-[#1E293B]/10 rounded-xl pl-11 pr-4 py-3.5 text-xs font-semibold text-[#1E293B] placeholder-slate-400 outline-none focus:bg-white focus:border-[#3674B5] transition-all"
-                                value={cardForm.number}
-                                onChange={handleCardChange}
-                                required={paymentMethod === "card"}
-                              />
-                            </div>
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <label className="block text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Cardholder Name</label>
-                            <input
-                              type="text"
-                              name="name"
-                              placeholder="AS WRITTEN ON CARD"
-                              className="w-full bg-[#F8F9FA] border border-[#1E293B]/10 rounded-xl px-4 py-3.5 text-xs font-semibold text-[#1E293B] uppercase placeholder-slate-400 outline-none focus:bg-white focus:border-[#3674B5] transition-all"
-                              value={cardForm.name}
-                              onChange={handleCardChange}
-                              required={paymentMethod === "card"}
-                            />
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1.5">
-                              <label className="block text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Expiry (MM/YY)</label>
-                              <input
-                                type="text"
-                                name="expiry"
-                                placeholder="MM/YY"
-                                className="w-full bg-[#F8F9FA] border border-[#1E293B]/10 rounded-xl px-4 py-3.5 text-xs font-semibold text-[#1E293B] placeholder-slate-400 outline-none focus:bg-white focus:border-[#3674B5] transition-all text-center"
-                                value={cardForm.expiry}
-                                onChange={handleCardChange}
-                                required={paymentMethod === "card"}
-                              />
-                            </div>
-                            <div className="space-y-1.5">
-                              <label className="block text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Security CVV</label>
-                              <input
-                                type="password"
-                                name="cvv"
-                                placeholder="···"
-                                className="w-full bg-[#F8F9FA] border border-[#1E293B]/10 rounded-xl px-4 py-3.5 text-xs font-semibold text-[#1E293B] placeholder-slate-400 outline-none focus:bg-white focus:border-[#3674B5] transition-all text-center"
-                                value={cardForm.cvv}
-                                onChange={handleCardChange}
-                                required={paymentMethod === "card"}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {paymentMethod === "upi" && (
-                        <div className="space-y-4 text-left max-w-md">
-                          <div className="space-y-1.5">
-                            <label className="block text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Virtual Payment Address (UPI ID)</label>
-                            <input
-                              type="text"
-                              placeholder="e.g. mobile@ybl, name@oksbi"
-                              className="w-full bg-[#F8F9FA] border border-[#1E293B]/10 rounded-xl px-4 py-3.5 text-xs font-semibold text-[#1E293B] placeholder-slate-400 outline-none focus:bg-white focus:border-[#3674B5] transition-all"
-                              value={upiId}
-                              onChange={(e) => setUpiId(e.target.value)}
-                              required={paymentMethod === "upi"}
-                            />
-                            <p className="text-[9px] text-slate-500 font-semibold leading-relaxed">
-                              A checkout verification request will be dispatched to your selected UPI mobile app upon confirmation.
+                      {(paymentMethod === "card" || paymentMethod === "upi" || paymentMethod === "netbanking") && (
+                        <div className="bg-[#3674B5]/5 border border-[#3674B5]/20 rounded-2xl p-4 max-w-lg flex items-start gap-3">
+                          <ShieldCheck className="w-5 h-5 text-[#3674B5] mt-0.5 flex-shrink-0" />
+                          <div className="space-y-1">
+                            <p className="text-xs font-extrabold text-[#1E293B]">
+                              Secured by Razorpay
+                            </p>
+                            <p className="text-[10px] font-semibold text-slate-500 leading-relaxed">
+                              Your payment details are entered securely inside the Razorpay checkout window — we never see or store your card or UPI credentials. Supports Cards, UPI, Net Banking, and Wallets.
                             </p>
                           </div>
                         </div>
                       )}
 
-                      {paymentMethod === "netbanking" && (
-                        <div className="space-y-4 text-left max-w-md">
-                          <div className="space-y-1.5">
-                            <label className="block text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Choose Bank</label>
-                            <select
-                              className="w-full bg-[#F8F9FA] border border-[#1E293B]/10 rounded-xl px-4 py-3.5 text-xs font-semibold text-[#1E293B] outline-none focus:bg-white focus:border-[#3674B5] transition-all"
-                              value={selectedBank}
-                              onChange={(e) => setSelectedBank(e.target.value)}
-                            >
-                              <option value="sbi">State Bank of India</option>
-                              <option value="hdfc">HDFC Bank</option>
-                              <option value="icici">ICICI Bank</option>
-                              <option value="axis">Axis Bank</option>
-                              <option value="kotak">Kotak Mahindra Bank</option>
-                            </select>
-                          </div>
-                        </div>
-                      )}
-
                       {paymentMethod === "cod" && (
-                        <div className="bg-[#1E293B]/5 border border-[#1E293B]/10 rounded-2xl p-4 max-w-lg space-y-1.5 text-left">
-                          <div className="flex items-center gap-2 text-amber-600 font-bold text-xs">
+                        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 max-w-lg space-y-1.5 text-left">
+                          <div className="flex items-center gap-2 text-amber-700 font-bold text-xs">
                             <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-                            <span>Cash on Delivery active</span>
+                            <span>Cash on Delivery — No online payment required</span>
                           </div>
-                          <p className="text-[10px] text-slate-700 font-semibold leading-relaxed">
-                            An additional safety verify check will be conducted by dispatch courier agents upon physical packet delivery. Please ensure correct payable sum is available on delivery day.
+                          <p className="text-[10px] text-amber-700 font-semibold leading-relaxed">
+                            Your order will be dispatched and payment collected at the time of delivery. Please keep the exact payable amount ready.
                           </p>
                         </div>
                       )}
@@ -1238,10 +1247,14 @@ export default function CheckoutPage() {
                       <button
                         type="button"
                         onClick={handleFinalSubmit}
-                        className="px-6 py-3 rounded-xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-extrabold uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm"
+                        disabled={isProcessing}
+                        className="px-6 py-3 rounded-xl bg-[#3674B5] hover:bg-[#578FCA] disabled:opacity-60 disabled:cursor-not-allowed text-white text-xs font-extrabold uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm"
                       >
-                        <Lock className="w-3.5 h-3.5" />
-                        <span>Confirm & Pay</span>
+                        {isProcessing ? (
+                          <><Loader2 className="w-3.5 h-3.5 animate-spin" /><span>Processing...</span></>
+                        ) : (
+                          <><Lock className="w-3.5 h-3.5" /><span>{paymentMethod === "cod" ? "Place Order" : "Pay with Razorpay"}</span></>
+                        )}
                       </button>
                     </div>
                   </div>
@@ -1428,7 +1441,7 @@ export default function CheckoutPage() {
                 <div className="border-t border-[#1E293B]/5 pt-4 flex items-start gap-2.5 text-left">
                   <ShieldCheck className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
                   <p className="text-[9px] text-slate-500 font-semibold leading-relaxed">
-                    Transactions are secured using a simulated 256-bit bank connection. Powerhub stores no plain credit credentials on files.
+                    Payments are processed securely by <span className="font-black text-[#3674B5]">Razorpay</span> using 256-bit SSL encryption. We never see or store your card or UPI details.
                   </p>
                 </div>
               </div>
@@ -1440,107 +1453,54 @@ export default function CheckoutPage() {
 
       </main>
 
-      {/* Simulated Secure Payment gateway Loader Overlay */}
-      {isProcessing && paymentResult === null && (
+      {/* COD Processing Spinner — only shows briefly while placing COD order */}
+      {isProcessing && paymentMethod === "cod" && paymentResult === null && (
         <div className="fixed inset-0 z-[2000] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="w-full max-w-md rounded-3xl bg-white border border-[#1E293B]/10 p-8 shadow-2xl relative text-center space-y-6 animate-fade-in-up">
-
-            <button
-              onClick={cancelPayment}
-              className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 text-[#1E293B]/60"
-              title="Cancel Transaction"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            {/* Spinner indicator */}
-            <div className="w-16 h-16 rounded-full bg-[#3674B5]/10 border border-[#3674B5]/20 flex items-center justify-center mx-auto text-[#3674B5]">
-              <Loader2 className="w-8 h-8 animate-spin" />
+          <div className="w-full max-w-sm rounded-3xl bg-white border border-[#1E293B]/10 p-8 shadow-2xl text-center space-y-5 animate-fade-in-up">
+            <div className="w-16 h-16 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto">
+              <Loader2 className="w-8 h-8 animate-spin text-amber-600" />
             </div>
-
-            <div className="space-y-1.5">
-              <h3 className="font-display font-black text-lg text-[#1E293B]">Secure Gateway Tunnel</h3>
-              <p className="text-xs font-semibold text-[#3674B5] tracking-wider uppercase">Simulated Payment Processing</p>
+            <div>
+              <h3 className="font-display font-black text-lg text-[#1E293B]">Placing Your Order</h3>
+              <p className="text-xs font-semibold text-slate-500 mt-1">Saving your order to our system...</p>
             </div>
-
-            {/* Steps text animation */}
-            <div className="h-10 flex items-center justify-center">
-              <p className="text-xs font-bold text-[#1E293B]/60 transition-all duration-300">
-                {processingMessages[processingStep]}
-              </p>
-            </div>
-
-            <div className="w-full bg-[#1E293B]/5 rounded-full h-1">
-              <div
-                className="bg-[#3674B5] h-1 rounded-full transition-all duration-500"
-                style={{ width: `${((processingStep + 1) / processingMessages.length) * 100}%` }}
-              />
-            </div>
-
-            {/* Developer Simulation controls panel */}
-            <div className="border-t border-[#1E293B]/10 pt-5 space-y-3">
-              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Gateway Simulation Panel</p>
-
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={simulatePaymentSuccess}
-                  className="py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-sm"
-                >
-                  Simulate Success
-                </button>
-                <button
-                  onClick={simulatePaymentFailure}
-                  className="py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-all shadow-sm"
-                >
-                  Simulate Failure
-                </button>
-              </div>
-
-              <button
-                onClick={cancelPayment}
-                className="w-full py-2.5 rounded-xl border border-[#1E293B]/10 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all"
-              >
-                Cancel Processing (Return)
-              </button>
-            </div>
-
           </div>
         </div>
       )}
 
-      {/* Simulated Payment Gateway Failure Dialog Overlay */}
-      {isProcessing && paymentResult === "failure" && (
+      {/* Payment Failure Dialog */}
+      {paymentResult === "failure" && (
         <div className="fixed inset-0 z-[2000] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="w-full max-w-md rounded-3xl bg-white border border-rose-500/20 p-8 shadow-2xl text-center space-y-6 animate-fade-in-up">
-
+          <div className="w-full max-w-md rounded-3xl bg-white border border-rose-500/20 p-8 shadow-2xl text-center space-y-5 animate-fade-in-up">
             <div className="w-16 h-16 rounded-full bg-rose-50 border border-rose-500/20 text-rose-500 flex items-center justify-center mx-auto shadow-sm">
-              <X className="w-8 h-8 font-black" />
+              <X className="w-8 h-8" />
             </div>
 
             <div className="space-y-1.5">
-              <h3 className="font-display font-black text-lg text-rose-800">Transaction Declined</h3>
-              <p className="text-xs font-bold text-rose-600 tracking-wider uppercase">Payment Simulation Failure</p>
+              <h3 className="font-display font-black text-lg text-rose-800">Payment Failed</h3>
+              <p className="text-xs font-bold text-rose-600 tracking-wider uppercase">Transaction could not be completed</p>
             </div>
 
-            <p className="text-xs font-semibold text-[#1E293B]/60 leading-relaxed max-w-xs mx-auto">
-              Your simulated bank declined the payment query. This could occur due to insufficient mock balance, invalid CVV code, or request timeout.
-            </p>
+            {paymentError && (
+              <p className="text-xs font-semibold text-[#1E293B]/60 leading-relaxed max-w-xs mx-auto bg-rose-50 border border-rose-100 rounded-xl p-3">
+                {paymentError}
+              </p>
+            )}
 
             <div className="flex flex-col gap-2 pt-2">
               <button
-                onClick={simulatePaymentSuccess}
+                onClick={resetFailureState}
                 className="w-full py-3 rounded-xl bg-[#3674B5] hover:bg-[#578FCA] text-white text-xs font-extrabold uppercase tracking-wider transition-all"
               >
-                Override & Force Success
+                Try Again
               </button>
               <button
-                onClick={resetFailureState}
-                className="w-full py-3 rounded-xl border border-rose-500/20 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-extrabold uppercase tracking-wider transition-all"
+                onClick={() => router.push("/shop")}
+                className="w-full py-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-extrabold uppercase tracking-wider transition-all"
               >
-                Modify Payment Method
+                Back to Shop
               </button>
             </div>
-
           </div>
         </div>
       )}

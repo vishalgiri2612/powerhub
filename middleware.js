@@ -26,9 +26,18 @@ export async function middleware(request) {
     }
   }
 
+  // 3. Protect /checkout route: must be logged in
+  if (pathname.startsWith("/checkout")) {
+    if (!session || !session.isLoggedIn) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/profile/:path*"]
+  matcher: ["/admin/:path*", "/profile/:path*", "/checkout/:path*"]
 };

@@ -24,9 +24,20 @@ export function CartProvider({ children }) {
   const [coupons, setCoupons] = useState([]);
   const [couponsLoading, setCouponsLoading] = useState(true);
 
-  const fetchCoupons = async () => {
+  const fetchCoupons = async (overrideEmail = null) => {
     try {
-      const res = await fetch("/api/coupons", { cache: "no-store" });
+      let emailParam = overrideEmail;
+      if (!emailParam) {
+        try {
+          const session = localStorage.getItem("ravtron_session");
+          if (session) {
+            const parsed = JSON.parse(session);
+            if (parsed && parsed.email) emailParam = parsed.email;
+          }
+        } catch (e) {}
+      }
+      const url = emailParam ? `/api/coupons?email=${encodeURIComponent(emailParam)}` : "/api/coupons";
+      const res = await fetch(url, { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) {
@@ -240,6 +251,7 @@ export function CartProvider({ children }) {
           if (userWishlistData) {
             setWishlist(JSON.parse(userWishlistData));
           }
+          fetchCoupons();
         } catch (e) {
           console.error("Failed to restore user cart on login", e);
         }
@@ -248,6 +260,7 @@ export function CartProvider({ children }) {
         setWishlist([]);
         setDiscount(0);
         setCoupon("");
+        fetchCoupons();
       }
     };
 
