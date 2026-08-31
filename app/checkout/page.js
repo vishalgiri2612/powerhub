@@ -138,12 +138,11 @@ export default function CheckoutPage() {
     if (cleanPin.length === 6) {
       setIsFetchingPin(true);
       try {
-        const res = await fetch(`https://api.postalpincode.in/pincode/${cleanPin}`);
+        const res = await fetch(`/api/pincode/${cleanPin}`);
         const data = await res.json();
-        if (Array.isArray(data) && data[0]?.Status === "Success" && data[0]?.PostOffice?.length > 0) {
-          const po = data[0].PostOffice[0];
-          const detectedCity = po.District || po.Division || po.Block || "";
-          const detectedState = po.State || "";
+        if (data.success && (data.city || data.state)) {
+          const detectedCity = data.city || "";
+          const detectedState = data.state || "";
 
           if (targetForm === "new") {
             setNewAddressForm((prev) => ({
@@ -1109,11 +1108,14 @@ export default function CheckoutPage() {
                             <input
                               type="text"
                               required
+                              maxLength={6}
+                              inputMode="numeric"
+                              pattern="[0-9]{6}"
                               placeholder="6-digit PIN"
                               className="w-full bg-white border border-[#1E293B]/10 rounded-xl px-4 py-3 text-xs font-semibold text-[#1E293B] outline-none focus:border-[#3674B5]"
                               value={newAddressForm.zip}
                               onChange={(e) => {
-                                const val = e.target.value;
+                                const val = e.target.value.replace(/\D/g, "").slice(0, 6);
                                 setNewAddressForm({ ...newAddressForm, zip: val });
                                 handlePincodeLookup(val, "new");
                               }}

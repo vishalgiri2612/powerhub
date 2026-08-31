@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 
-//  Content-Security-Policy
+// and  Content-Security-Policy
 // Built specifically for this app's dependency surface:
 //   - Google OAuth popup  → accounts.google.com, apis.google.com
 //   - Cloudinary uploads  → res.cloudinary.com
@@ -27,8 +27,8 @@ const ContentSecurityPolicy = [
   // Images: self + data URIs + blob + Cloudinary + Google avatars
   "img-src 'self' data: blob: https://res.cloudinary.com https://lh3.googleusercontent.com https://lh4.googleusercontent.com https://lh5.googleusercontent.com https://lh6.googleusercontent.com",
 
-  // XHR/Fetch: self + Google OAuth token endpoints + Razorpay API
-  "connect-src 'self' https://accounts.google.com https://oauth2.googleapis.com https://www.googleapis.com https://api.razorpay.com https://lumberjack.razorpay.com",
+  // XHR/Fetch: self + Google OAuth token endpoints + Razorpay API + Postal Pincode
+  "connect-src 'self' https://accounts.google.com https://oauth2.googleapis.com https://www.googleapis.com https://api.razorpay.com https://lumberjack.razorpay.com https://api.postalpincode.in",
 
   // Frames: Google OAuth popup + Razorpay checkout iframe
   "frame-src https://accounts.google.com https://api.razorpay.com https://checkout.razorpay.com",
