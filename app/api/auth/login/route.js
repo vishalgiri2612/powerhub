@@ -125,13 +125,11 @@ export async function POST(request) {
           return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
         }
       } else {
-        // Upgrade legacy user to bcrypt password storage on first password login
-        try {
-          clientUser.password = await hashPassword(password);
-          await clientUser.save();
-        } catch (e) {
-          console.warn("Failed to update user password hash:", e.message);
-        }
+        logSecurityEvent("CUSTOMER_LOGIN_NO_PASSWORD", { email: inputEmail, ip: clientIp });
+        return NextResponse.json(
+          { error: "This account was created via Google or does not have a password set. Please log in with Google or reset your password." },
+          { status: 400 }
+        );
       }
 
       if (clientUser && clientUser.active === false) {

@@ -29,8 +29,8 @@ export async function POST(request) {
 
     await dbConnect();
 
-    // Retrieve pending OTP document
-    const otpRecord = await OTP.findOne({ email: cleanEmail });
+    // Retrieve pending registration OTP document
+    const otpRecord = await OTP.findOne({ email: cleanEmail, type: { $ne: "reset" } });
 
     if (!otpRecord) {
       logSecurityEvent("OTP_VERIFY_NOT_FOUND", { email: cleanEmail, ip: clientIp });
