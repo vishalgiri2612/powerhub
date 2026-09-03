@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
 import OTP from "@/models/OTP";
-import { escapeRegex, sanitizeEmail, hashPassword, logSecurityEvent, verifyBotProtection } from "@/lib/security";
+import { escapeRegex, sanitizeEmail, hashPassword, logSecurityEvent, verifyBotProtection, isDisposableEmail, verifyEmailDomainMx } from "@/lib/security";
 import { rateLimit, getClientIp } from "@/lib/rateLimit";
 import { sendVerificationOTPEmail } from "@/lib/email";
 
@@ -35,10 +35,27 @@ export async function POST(request) {
 
     const cleanEmail = sanitizeEmail(email);
 
-    // Strict Email Format Validation
+    // 1. Strict Email Format Validation
     if (!EMAIL_REGEX.test(cleanEmail)) {
       return NextResponse.json(
         { error: "Please enter a valid email address (e.g., name@example.com)." },
+        { status: 400 }
+      );
+    }
+
+    // 2. Disposable / Temporary Email Domain Check
+    if (isDisposableEmail(cleanEmail)) {
+      return NextResponse.json(
+        { error: "Disposable or temporary email addresses are not permitted. Please use a permanent email address." },
+        { status: 400 }
+      );
+    }
+
+    // 3. DNS MX Record Verification (Domain must have valid mail servers)
+    const hasMxRecords = await verifyEmailDomainMx(cleanEmail);
+    if (!hasMxRecords) {
+      return NextResponse.json(
+        { error: "The email domain is invalid or cannot receive emails. Please enter a valid email address." },
         { status: 400 }
       );
     }

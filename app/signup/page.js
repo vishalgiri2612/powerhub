@@ -3,12 +3,45 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Eye, EyeOff, Lock, Mail, User, Phone, ArrowRight, ShieldCheck, KeyRound, RefreshCw, Edit3 } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, User, Phone, ArrowRight, ShieldCheck, KeyRound, RefreshCw, Edit3, CheckCircle2, AlertCircle } from "lucide-react";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import SearchModal from "../../components/SearchModal";
 import { useCart } from "../context/CartContext";
 import GoogleAuthProvider from "../../components/GoogleAuthProvider";
+
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+const DISPOSABLE_DOMAINS = new Set([
+  "mailinator.com", "tempmail.com", "temp-mail.org", "tempmail.net", "tempmail.dev",
+  "10minutemail.com", "10minutemail.net", "guerrillamail.com", "guerrillamail.net",
+  "guerrillamail.org", "sharklasers.com", "dispostable.com", "trashmail.com",
+  "trashmail.net", "yopmail.com", "yopmail.fr", "yopmail.net", "getnada.com",
+  "nada.ltd", "fakemail.net", "fakeinbox.com", "throwawaymail.com", "crazymailing.com",
+  "generator.email", "maildrop.cc", "mytemp.email", "inboxkitten.com", "binkmail.com",
+  "disposablemail.com", "mohmal.com", "byom.de", "dropmail.me", "minutemail.net", "temp-mail.ru"
+]);
+
+function getEmailStatus(emailStr) {
+  if (!emailStr || !emailStr.trim()) return { status: "empty", message: "" };
+  const clean = emailStr.trim().toLowerCase();
+  
+  if (!clean.includes("@")) {
+    return { status: "invalid", message: "Please include '@' in your email address." };
+  }
+  
+  const parts = clean.split("@");
+  const domain = parts[parts.length - 1];
+  
+  if (DISPOSABLE_DOMAINS.has(domain)) {
+    return { status: "disposable", message: "Disposable/temporary emails are not permitted." };
+  }
+
+  if (!EMAIL_REGEX.test(clean)) {
+    return { status: "invalid", message: "Please enter a valid format (e.g. name@example.com)." };
+  }
+
+  return { status: "valid", message: "Valid email format" };
+}
 
 function SignupContent() {
   const router = useRouter();
@@ -143,6 +176,16 @@ function SignupContent() {
     e.preventDefault();
     setError("");
     setInfoNotice("");
+
+    const emailCheck = getEmailStatus(email);
+    if (emailCheck.status === "disposable") {
+      setError("Disposable or temporary email addresses are not permitted. Please use a permanent email address.");
+      return;
+    }
+    if (emailCheck.status === "invalid") {
+      setError("Please enter a valid email address (e.g., name@example.com).");
+      return;
+    }
 
     if (!agreeTerms) {
       setError("You must agree to the Terms of Service and Privacy Policy.");
@@ -331,12 +374,40 @@ function SignupContent() {
                     type="email"
                     required
                     placeholder="Enter Your Emailid"
-                    className="w-full bg-[#F8F9FA] border border-[#1E293B]/10 rounded-2xl pl-11 pr-4 py-3.5 text-xs font-semibold text-[#1E293B] placeholder-[#1E293B]/30 outline-none focus:bg-white focus:border-[#3674B5] focus:ring-1 focus:ring-[#3674B5] transition-all"
+                    className={`w-full bg-[#F8F9FA] border rounded-2xl pl-11 pr-4 py-3.5 text-xs font-semibold text-[#1E293B] placeholder-[#1E293B]/30 outline-none focus:bg-white transition-all ${
+                      email && getEmailStatus(email).status === "valid"
+                        ? "border-emerald-500/50 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                        : email && (getEmailStatus(email).status === "disposable" || getEmailStatus(email).status === "invalid")
+                        ? "border-rose-500/50 focus:border-rose-500 focus:ring-1 focus:ring-rose-500"
+                        : "border-[#1E293B]/10 focus:border-[#3674B5] focus:ring-1 focus:ring-[#3674B5]"
+                    }`}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={isLoading}
                   />
                 </div>
+                {email && (
+                  <div className="pt-0.5 animate-fade-in-up">
+                    {getEmailStatus(email).status === "valid" && (
+                      <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-600">
+                        <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-500" />
+                        <span>Valid email format</span>
+                      </div>
+                    )}
+                    {getEmailStatus(email).status === "disposable" && (
+                      <div className="flex items-center gap-1.5 text-[11px] font-bold text-rose-600">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0 text-rose-500" />
+                        <span>Disposable / temporary emails are not allowed</span>
+                      </div>
+                    )}
+                    {getEmailStatus(email).status === "invalid" && email.trim().length > 3 && (
+                      <div className="flex items-center gap-1.5 text-[11px] font-semibold text-amber-600">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0 text-amber-500" />
+                        <span>{getEmailStatus(email).message}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Phone Number */}

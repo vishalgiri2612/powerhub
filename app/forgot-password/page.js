@@ -219,8 +219,19 @@ export default function ForgotPasswordPage() {
 
           {/* Error Notice */}
           {error && (
-            <div className="mb-5 p-4 rounded-2xl bg-rose-50 border border-rose-500/20 text-rose-800 text-xs font-bold animate-fade-in-up">
-              {error}
+            <div className="mb-5 p-4 rounded-2xl bg-rose-50 border border-rose-500/20 text-rose-800 text-xs font-bold animate-fade-in-up space-y-1.5">
+              <p>{error}</p>
+              {error.toLowerCase().includes("no account found") && (
+                <div className="pt-1">
+                  <Link
+                    href="/signup"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-rose-200 text-[#3674B5] hover:text-[#578FCA] font-extrabold text-[11px] shadow-2xs hover:shadow transition-all"
+                  >
+                    <span>Create New Account</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              )}
             </div>
           )}
 
